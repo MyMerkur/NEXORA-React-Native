@@ -62,6 +62,12 @@ export async function notifyApplicationStatusChange(applicantId: string, jobTitl
   await createNotification(applicantId, "application_status", title, body);
 }
 
+export async function notifyNewMessage(recipientId: string, senderName: string) {
+  const title = "Yeni mesaj";
+  const body = `${senderName} size bir mesaj gönderdi`;
+  await createNotification(recipientId, "new_message", title, body);
+}
+
 export async function listNotifications(userId: string) {
   const notifications = await listByUser(new Types.ObjectId(userId));
   return notifications.map((notification) => ({

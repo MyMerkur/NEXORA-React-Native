@@ -1,7 +1,7 @@
 import { createApiClient } from "@nexora/api-client";
 import { useAuthStore } from "../store/useAuthStore";
 
-const API_BASE_URL = "http://localhost:4000";
+export const API_BASE_URL = "http://localhost:4000";
 
 export const apiClient = createApiClient({
   baseURL: API_BASE_URL,

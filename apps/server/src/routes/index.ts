@@ -8,6 +8,7 @@ import { jobRouter } from "./job.routes";
 import { applicationRouter } from "./application.routes";
 import { notificationRouter } from "./notification.routes";
 import { orgRouter } from "./org.routes";
+import { inboxRouter } from "./inbox.routes";
 
 export const apiV1Router = Router();
 
@@ -20,3 +21,4 @@ apiV1Router.use(jobRouter);
 apiV1Router.use(applicationRouter);
 apiV1Router.use(notificationRouter);
 apiV1Router.use(orgRouter);
+apiV1Router.use(inboxRouter);

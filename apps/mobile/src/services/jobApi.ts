@@ -38,7 +38,7 @@ export interface MyApplicationItem {
   message: string;
   status: ApplicationStatus;
   createdAt: string;
-  job: { id: string; title: string };
+  job: { id: string; title: string; employerId: string };
 }
 
 export interface JobApplicantItem {
