@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { updateCareer, type ExperienceEntry, type UserProfile } from "../../../services/profileApi";
@@ -53,7 +54,7 @@ export function CareerTab({ profile, onUpdated }: CareerTabProps) {
       });
       onUpdated(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kaydedilemedi");
+      setError(getApiErrorMessage(err, "Kaydedilemedi"));
     } finally {
       setSaving(false);
     }

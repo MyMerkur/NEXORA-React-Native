@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { login, register } from "../../../services/authApi";
 import { useAuthStore } from "../../../store/useAuthStore";
@@ -18,7 +19,7 @@ export function LoginScreen() {
       const result = await login(email, password);
       setSession(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Giriş başarısız");
+      setError(getApiErrorMessage(err, "Giriş başarısız"));
     } finally {
       setLoading(false);
     }
@@ -31,7 +32,7 @@ export function LoginScreen() {
       const result = await register(email, password, "hekim");
       setSession(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kayıt başarısız");
+      setError(getApiErrorMessage(err, "Kayıt başarısız"));
     } finally {
       setLoading(false);
     }
@@ -59,6 +60,7 @@ export function LoginScreen() {
         value={password}
         onChangeText={setPassword}
       />
+      <Text style={styles.hint}>En az 8 karakter; en az bir büyük harf, bir küçük harf ve bir rakam içermeli</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -103,6 +105,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
     fontSize: typography.sizes.md,
+  },
+  hint: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.xs,
+    marginBottom: spacing.md,
   },
   error: {
     color: colors.danger,

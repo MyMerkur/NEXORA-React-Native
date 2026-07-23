@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, spacing, typography } from "@nexora/ui-tokens";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import { ShowcaseTab } from "../components/ShowcaseTab";
@@ -16,7 +17,7 @@ export function ProfileScreen() {
   useEffect(() => {
     getMe()
       .then(setProfile)
-      .catch((err) => setError(err instanceof Error ? err.message : "Profil yüklenemedi"))
+      .catch((err) => setError(getApiErrorMessage(err, "Profil yüklenemedi")))
       .finally(() => setLoading(false));
   }, []);
 

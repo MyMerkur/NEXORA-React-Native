@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
+import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { requestAvatarUploadUrl, updateShowcase, uploadAvatarFile, type UserProfile } from "../../../services/profileApi";
@@ -48,7 +49,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       const updated = await updateShowcase({ avatarKey: storageKey });
       onUpdated(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fotoğraf yüklenemedi");
+      setError(getApiErrorMessage(err, "Fotoğraf yüklenemedi"));
     } finally {
       setUploadingAvatar(false);
     }
@@ -61,7 +62,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       const updated = await updateShowcase({ displayName, title, bio, workplace, city, specialties });
       onUpdated(updated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kaydedilemedi");
+      setError(getApiErrorMessage(err, "Kaydedilemedi"));
     } finally {
       setSaving(false);
     }
