@@ -15,6 +15,11 @@ const envSchema = z.object({
     .default("http://localhost:8081")
     .transform((value) => value.split(",").map((origin) => origin.trim()).filter(Boolean)),
   AUTH_RATE_LIMIT_MAX: z.coerce.number().default(10),
+  R2_ENDPOINT: z.string().default(""),
+  R2_ACCESS_KEY: z.string().default(""),
+  R2_SECRET_KEY: z.string().default(""),
+  R2_BUCKET: z.string().default(""),
+  ANTHROPIC_API_KEY: z.string().default(""),
 });
 
 export const env = envSchema.parse(process.env);

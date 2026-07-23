@@ -11,19 +11,13 @@ import {
 import { sha256Hex } from "../utils/hash";
 import { logger } from "../utils/logger";
 import { USER_ROLES } from "../models/User";
+import { HttpError } from "../utils/httpError";
 
 const SALT_ROUNDS = 12;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 
-export class AuthError extends Error {
-  constructor(
-    message: string,
-    public statusCode: number,
-  ) {
-    super(message);
-  }
-}
+export class AuthError extends HttpError {}
 
 interface SessionUser {
   _id: Types.ObjectId;

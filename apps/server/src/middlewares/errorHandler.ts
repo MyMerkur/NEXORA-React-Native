@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
-import { AuthError } from "../services/auth.service";
+import { HttpError } from "../utils/httpError";
 import { logger } from "../utils/logger";
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
@@ -8,7 +8,7 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return res.status(400).json({ message: "Geçersiz istek", issues: err.issues });
   }
 
-  if (err instanceof AuthError) {
+  if (err instanceof HttpError) {
     return res.status(err.statusCode).json({ message: err.message });
   }
 
