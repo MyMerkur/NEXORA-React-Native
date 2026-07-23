@@ -1,0 +1,177 @@
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getApiErrorMessage } from "@nexora/api-client";
+import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { getMyJobs, updateJobStatus, type JobItem } from "../../../services/jobApi";
+import { CreateJobModal } from "./CreateJobModal";
+import { ApplicantsModal } from "./ApplicantsModal";
+
+export function MyPostingsTab() {
+  const [jobs, setJobs] = useState<JobItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createVisible, setCreateVisible] = useState(false);
+  const [applicantsTarget, setApplicantsTarget] = useState<JobItem | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const items = await getMyJobs();
+      setJobs(items);
+      setError(null);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "İlanların yüklenemedi"));
+    }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
+
+  async function handleToggleStatus(job: JobItem) {
+    setTogglingId(job.id);
+    try {
+      const nextStatus = job.status === "open" ? "closed" : "open";
+      const updated = await updateJobStatus(job.id, nextStatus);
+      setJobs((current) => current.map((item) => (item.id === job.id ? updated : item)));
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Güncellenemedi"));
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={colors.accentGold} />
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <TouchableOpacity style={styles.createButton} onPress={() => setCreateVisible(true)}>
+        <Text style={styles.createButtonText}>+ Yeni İlan</Text>
+      </TouchableOpacity>
+
+      <FlatList
+        data={jobs}
+        keyExtractor={(item) => item.id}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accentGold} />}
+        ListEmptyComponent={
+          <View style={styles.centered}>
+            <Text style={styles.emptyText}>{error ?? "Henüz ilan yayınlamadın"}</Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.card} onPress={() => setApplicantsTarget(item)}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text style={[styles.status, item.status === "open" ? styles.statusOpen : styles.statusClosed]}>
+                {item.status === "open" ? "Açık" : "Kapalı"}
+              </Text>
+            </View>
+            {item.location ? <Text style={styles.location}>{item.location}</Text> : null}
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={() => handleToggleStatus(item)}
+              disabled={togglingId === item.id}
+            >
+              <Text style={styles.toggleButtonText}>{item.status === "open" ? "Kapat" : "Yeniden Aç"}</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        )}
+      />
+
+      <CreateJobModal
+        visible={createVisible}
+        onClose={() => setCreateVisible(false)}
+        onCreated={(job) => setJobs((current) => [job, ...current])}
+      />
+      <ApplicantsModal visible={applicantsTarget !== null} job={applicantsTarget} onClose={() => setApplicantsTarget(null)} />
+    </>
+  );
+}
+
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: spacing.xxl,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.md,
+  },
+  createButton: {
+    margin: spacing.md,
+    backgroundColor: colors.accentBlue,
+    borderRadius: radii.pill,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+  },
+  createButtonText: {
+    color: colors.background,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    padding: spacing.md,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  title: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    flexShrink: 1,
+  },
+  status: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+  statusOpen: {
+    color: colors.success,
+  },
+  statusClosed: {
+    color: colors.textSecondary,
+  },
+  location: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    marginTop: 2,
+  },
+  toggleButton: {
+    alignSelf: "flex-start",
+    marginTop: spacing.sm,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.accentGold,
+  },
+  toggleButtonText: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+});

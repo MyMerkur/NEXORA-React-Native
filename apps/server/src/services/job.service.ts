@@ -1,0 +1,105 @@
+import { Types } from "mongoose";
+import { z } from "zod";
+import {
+  createJob as createJobRecord,
+  listOpenJobsPage,
+  listJobsByEmployer,
+  findJobById,
+  updateJobStatus,
+} from "../repositories/job.repository";
+import { findUserById } from "../repositories/user.repository";
+import { EMPLOYER_ROLES, type JobStatus } from "../models/Job";
+import { HttpError } from "../utils/httpError";
+import { resolveUserSummary, type UserSummary, type UserSummarySource } from "../utils/userSummary";
+import type { createJobSchema } from "../validators/job.validator";
+
+type CreateJobBody = z.infer<typeof createJobSchema>;
+
+interface JobLike {
+  _id: Types.ObjectId;
+  title: string;
+  description: string;
+  location: string;
+  specialties: string[];
+  status: JobStatus;
+  createdAt: Date;
+}
+
+function serializeJob(job: JobLike, employer: UserSummary) {
+  return {
+    id: job._id.toString(),
+    title: job.title,
+    description: job.description,
+    location: job.location,
+    specialties: job.specialties,
+    status: job.status,
+    employer,
+    createdAt: job.createdAt,
+  };
+}
+
+export async function createJob(userId: string, input: CreateJobBody) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new HttpError("Kullanıcı bulunamadı", 404);
+  }
+  if (!(EMPLOYER_ROLES as readonly string[]).includes(user.role)) {
+    throw new HttpError("Sadece klinik/firma/dernek hesapları ilan yayınlayabilir", 403);
+  }
+
+  const created = await createJobRecord({
+    employerId: new Types.ObjectId(userId),
+    title: input.title,
+    description: input.description ?? "",
+    location: input.location ?? "",
+    specialties: input.specialties ?? [],
+  });
+
+  const employer = await resolveUserSummary(user);
+  return serializeJob(created, employer);
+}
+
+export async function listOpenJobs(params: { cursor?: string; limit: number }) {
+  const cursorDate = params.cursor ? new Date(params.cursor) : undefined;
+  const { jobs, hasMore } = await listOpenJobsPage({ cursor: cursorDate, limit: params.limit });
+
+  const items = await Promise.all(
+    jobs.map(async (job) => {
+      const populatedUser = job.employerId as unknown as UserSummarySource;
+      const employer = await resolveUserSummary(populatedUser);
+      return serializeJob(job, employer);
+    }),
+  );
+
+  const last = jobs[jobs.length - 1];
+  return {
+    jobs: items,
+    nextCursor: hasMore && last ? last.createdAt.toISOString() : null,
+  };
+}
+
+export async function listMyJobs(userId: string) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new HttpError("Kullanıcı bulunamadı", 404);
+  }
+  const employer = await resolveUserSummary(user);
+
+  const jobs = await listJobsByEmployer(new Types.ObjectId(userId));
+  return jobs.map((job) => serializeJob(job, employer));
+}
+
+export async function setJobStatus(userId: string, jobId: string, status: JobStatus) {
+  const job = await findJobById(jobId);
+  if (!job) {
+    throw new HttpError("İlan bulunamadı", 404);
+  }
+  if (job.employerId.toString() !== userId) {
+    throw new HttpError("Bu ilanı yönetme yetkiniz yok", 403);
+  }
+
+  const updated = await updateJobStatus(jobId, status);
+  const user = await findUserById(userId);
+  const employer = await resolveUserSummary(user!);
+  return serializeJob(updated!, employer);
+}
