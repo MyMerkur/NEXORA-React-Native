@@ -33,6 +33,7 @@ const experienceEntrySchema = z.object({
 export const updateCareerSchema = z
   .object({
     openToWork: z.boolean().optional(),
+    hiddenSearch: z.boolean().optional(),
     desiredPositions: tagListSchema.optional(),
     experienceYears: z.number().int().min(0).max(60).optional(),
     experience: z.array(experienceEntrySchema).max(20).optional(),

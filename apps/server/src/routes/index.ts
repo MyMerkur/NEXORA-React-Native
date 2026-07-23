@@ -9,6 +9,7 @@ import { applicationRouter } from "./application.routes";
 import { notificationRouter } from "./notification.routes";
 import { orgRouter } from "./org.routes";
 import { inboxRouter } from "./inbox.routes";
+import { matchingRouter } from "./matching.routes";
 
 export const apiV1Router = Router();
 
@@ -22,3 +23,4 @@ apiV1Router.use(applicationRouter);
 apiV1Router.use(notificationRouter);
 apiV1Router.use(orgRouter);
 apiV1Router.use(inboxRouter);
+apiV1Router.use(matchingRouter);

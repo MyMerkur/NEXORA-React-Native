@@ -29,6 +29,7 @@ const experienceEntrySchema = new Schema(
 const careerSchema = new Schema(
   {
     openToWork: { type: Boolean, default: false },
+    hiddenSearch: { type: Boolean, default: false },
     desiredPositions: { type: [String], enum: MICRO_COMPETENCY_TAGS, default: [] },
     experienceYears: { type: Number, default: null },
     experience: { type: [experienceEntrySchema], default: [] },

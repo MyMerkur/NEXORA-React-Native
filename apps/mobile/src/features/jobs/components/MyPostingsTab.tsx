@@ -5,6 +5,7 @@ import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMyJobs, updateJobStatus, type JobItem } from "../../../services/jobApi";
 import { CreateJobModal } from "./CreateJobModal";
 import { ApplicantsModal } from "./ApplicantsModal";
+import { CandidateSwipeModal } from "../../matching/components/CandidateSwipeModal";
 
 export function MyPostingsTab() {
   const [jobs, setJobs] = useState<JobItem[]>([]);
@@ -13,6 +14,7 @@ export function MyPostingsTab() {
   const [error, setError] = useState<string | null>(null);
   const [createVisible, setCreateVisible] = useState(false);
   const [applicantsTarget, setApplicantsTarget] = useState<JobItem | null>(null);
+  const [candidatesTarget, setCandidatesTarget] = useState<JobItem | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -81,13 +83,18 @@ export function MyPostingsTab() {
               </Text>
             </View>
             {item.location ? <Text style={styles.location}>{item.location}</Text> : null}
-            <TouchableOpacity
-              style={styles.toggleButton}
-              onPress={() => handleToggleStatus(item)}
-              disabled={togglingId === item.id}
-            >
-              <Text style={styles.toggleButtonText}>{item.status === "open" ? "Kapat" : "Yeniden Aç"}</Text>
-            </TouchableOpacity>
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={() => handleToggleStatus(item)}
+                disabled={togglingId === item.id}
+              >
+                <Text style={styles.toggleButtonText}>{item.status === "open" ? "Kapat" : "Yeniden Aç"}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.toggleButton} onPress={() => setCandidatesTarget(item)}>
+                <Text style={styles.toggleButtonText}>Aday Bul</Text>
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         )}
       />
@@ -98,6 +105,11 @@ export function MyPostingsTab() {
         onCreated={(job) => setJobs((current) => [job, ...current])}
       />
       <ApplicantsModal visible={applicantsTarget !== null} job={applicantsTarget} onClose={() => setApplicantsTarget(null)} />
+      <CandidateSwipeModal
+        visible={candidatesTarget !== null}
+        job={candidatesTarget}
+        onClose={() => setCandidatesTarget(null)}
+      />
     </>
   );
 }
@@ -160,9 +172,13 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
+  actionRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
   toggleButton: {
     alignSelf: "flex-start",
-    marginTop: spacing.sm,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,

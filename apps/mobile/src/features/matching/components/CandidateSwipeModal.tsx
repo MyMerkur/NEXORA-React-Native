@@ -1,0 +1,229 @@
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getApiErrorMessage } from "@nexora/api-client";
+import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { getCandidateSwipeFeed, swipeCandidate, type SwipeCandidateCard } from "../../../services/matchingApi";
+import type { JobItem } from "../../../services/jobApi";
+import type { ThreadContextType } from "../../../services/inboxApi";
+import { SwipeCard } from "./SwipeCard";
+import { InboxModal } from "../../inbox/components/InboxModal";
+
+interface CandidateSwipeModalProps {
+  visible: boolean;
+  job: JobItem | null;
+  onClose: () => void;
+}
+
+export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeModalProps) {
+  const [deck, setDeck] = useState<SwipeCandidateCard[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [chatTarget, setChatTarget] = useState<{ userId: string; context: { type: ThreadContextType; id: string } } | null>(
+    null,
+  );
+
+  const load = useCallback(() => {
+    if (!job) {
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    getCandidateSwipeFeed(job.id)
+      .then(setDeck)
+      .catch((err) => setError(getApiErrorMessage(err, "Adaylar yüklenemedi")))
+      .finally(() => setLoading(false));
+  }, [job]);
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+    load();
+  }, [visible, load]);
+
+  async function handleSwipe(candidate: SwipeCandidateCard, direction: "left" | "right") {
+    if (!job) {
+      return;
+    }
+    setDeck((current) => current.filter((item) => item.id !== candidate.id));
+    try {
+      const result = await swipeCandidate(job.id, candidate.id, direction);
+      if (result.matched) {
+        Alert.alert("🎉 Eşleşme!", `${candidate.displayName} ile "${job.title}" ilanı üzerinden eşleştiniz.`, [
+          { text: "Kapat", style: "cancel" },
+          {
+            text: "Sohbeti Aç",
+            onPress: () => setChatTarget({ userId: candidate.id, context: { type: "job", id: job.id } }),
+          },
+        ]);
+      }
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Swipe işlemi başarısız oldu"));
+    }
+  }
+
+  const current = deck[0];
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <View style={styles.sheet}>
+          <View style={styles.header}>
+            <Text style={styles.title} numberOfLines={1}>
+              {job?.title ?? ""} — Adaylar
+            </Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeText}>Kapat</Text>
+            </TouchableOpacity>
+          </View>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          {loading ? (
+            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+          ) : current ? (
+            <View style={styles.deckArea}>
+              <SwipeCard
+                key={current.id}
+                onSwipeLeft={() => handleSwipe(current, "left")}
+                onSwipeRight={() => handleSwipe(current, "right")}
+              >
+                {current.avatarUrl ? (
+                  <Image source={{ uri: current.avatarUrl }} style={styles.avatar} />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                )}
+                <Text style={styles.candidateName}>{current.displayName}</Text>
+                {current.experienceYears != null ? (
+                  <Text style={styles.experience}>{current.experienceYears} yıl deneyim</Text>
+                ) : null}
+                {current.desiredPositions.length > 0 ? (
+                  <View style={styles.tagRow}>
+                    {current.desiredPositions.map((tag) => (
+                      <View key={tag} style={styles.tag}>
+                        <Text style={styles.tagText}>{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+              </SwipeCard>
+            </View>
+          ) : (
+            <View style={styles.centered}>
+              <Text style={styles.emptyText}>Şu an gösterilecek yeni aday yok</Text>
+              <TouchableOpacity style={styles.refreshButton} onPress={load}>
+                <Text style={styles.refreshButtonText}>Yenile</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <InboxModal visible={chatTarget !== null} onClose={() => setChatTarget(null)} startTarget={chatTarget} />
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.lg,
+    borderTopRightRadius: radii.lg,
+    padding: spacing.lg,
+    height: "80%",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  title: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    flexShrink: 1,
+  },
+  closeText: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.sm,
+  },
+  loader: {
+    marginVertical: spacing.xl,
+  },
+  error: {
+    color: colors.danger,
+    marginBottom: spacing.sm,
+  },
+  deckArea: {
+    flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.md,
+    textAlign: "center",
+    marginBottom: spacing.md,
+  },
+  refreshButton: {
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.accentGold,
+  },
+  refreshButtonText: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: radii.pill,
+    alignSelf: "center",
+    marginBottom: spacing.md,
+  },
+  avatarPlaceholder: {
+    backgroundColor: colors.surfaceElevated,
+  },
+  candidateName: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.semibold,
+    textAlign: "center",
+  },
+  experience: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    textAlign: "center",
+    marginTop: spacing.xs,
+  },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    justifyContent: "center",
+  },
+  tag: {
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tagText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.xs,
+  },
+});

@@ -22,6 +22,7 @@ export interface ShowcaseProfile {
 
 export interface CareerProfile {
   openToWork: boolean;
+  hiddenSearch: boolean;
   desiredPositions: MicroCompetencyTag[];
   experienceYears: number | null;
   experience: ExperienceEntry[];
@@ -48,6 +49,7 @@ export interface ShowcaseUpdateInput {
 
 export interface CareerUpdateInput {
   openToWork?: boolean;
+  hiddenSearch?: boolean;
   desiredPositions?: MicroCompetencyTag[];
   experienceYears?: number;
   experience?: ExperienceEntry[];
