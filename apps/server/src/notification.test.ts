@@ -77,7 +77,13 @@ async function registerAndLogin(email: string, role = "hekim") {
   return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
 }
 
-async function createJob(accessToken: string, title = "Diş Hekimi aranıyor") {
+async function verifyOrgKyc(userId: string) {
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(userId, { kycLevel: 3 });
+}
+
+async function createJob(accessToken: string, employerId: string, title = "Diş Hekimi aranıyor") {
+  await verifyOrgKyc(employerId);
   const response = await request(app)
     .post("/api/v1/jobs")
     .set("Authorization", `Bearer ${accessToken}`)
@@ -121,9 +127,12 @@ describe("Notification endpoints", () => {
   });
 
   it("creates a new_application notification for the employer when someone applies", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("notif-employer@nexora.dev", "klinik");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "notif-employer@nexora.dev",
+      "klinik",
+    );
     const { accessToken: applicantToken } = await registerAndLogin("notif-applicant@nexora.dev", "hekim");
-    const jobId = await createJob(employerToken);
+    const jobId = await createJob(employerToken, employerId);
 
     await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)
@@ -139,9 +148,12 @@ describe("Notification endpoints", () => {
   });
 
   it("creates an application_status notification for the applicant when their status changes", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("notif-status-employer@nexora.dev", "firma");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "notif-status-employer@nexora.dev",
+      "firma",
+    );
     const { accessToken: applicantToken } = await registerAndLogin("notif-status-applicant@nexora.dev", "teknisyen");
-    const jobId = await createJob(employerToken);
+    const jobId = await createJob(employerToken, employerId);
 
     const applied = await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)
@@ -162,9 +174,12 @@ describe("Notification endpoints", () => {
   });
 
   it("only lets the owner mark their notification as read, and unread-count reflects it", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("notif-read-employer@nexora.dev", "dernek");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "notif-read-employer@nexora.dev",
+      "dernek",
+    );
     const { accessToken: applicantToken } = await registerAndLogin("notif-read-applicant@nexora.dev", "asistan");
-    const jobId = await createJob(employerToken);
+    const jobId = await createJob(employerToken, employerId);
 
     await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)

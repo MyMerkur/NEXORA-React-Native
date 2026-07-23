@@ -30,7 +30,13 @@ async function registerAndLogin(email: string, role = "hekim") {
   return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
 }
 
-async function createJob(accessToken: string, title = "Diş Hekimi aranıyor") {
+async function verifyOrgKyc(userId: string) {
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(userId, { kycLevel: 3 });
+}
+
+async function createJob(accessToken: string, employerId: string, title = "Diş Hekimi aranıyor") {
+  await verifyOrgKyc(employerId);
   const response = await request(app)
     .post("/api/v1/jobs")
     .set("Authorization", `Bearer ${accessToken}`)
@@ -40,9 +46,12 @@ async function createJob(accessToken: string, title = "Diş Hekimi aranıyor") {
 
 describe("Application endpoints", () => {
   it("rejects applying to a closed job", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("app-closed-employer@nexora.dev", "klinik");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "app-closed-employer@nexora.dev",
+      "klinik",
+    );
     const { accessToken: applicantToken } = await registerAndLogin("app-closed-applicant@nexora.dev", "hekim");
-    const jobId = await createJob(employerToken);
+    const jobId = await createJob(employerToken, employerId);
 
     await request(app)
       .patch(`/api/v1/jobs/${jobId}/status`)
@@ -58,8 +67,11 @@ describe("Application endpoints", () => {
   });
 
   it("rejects applying to your own job", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("app-self-employer@nexora.dev", "firma");
-    const jobId = await createJob(employerToken);
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "app-self-employer@nexora.dev",
+      "firma",
+    );
+    const jobId = await createJob(employerToken, employerId);
 
     const response = await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)
@@ -70,9 +82,12 @@ describe("Application endpoints", () => {
   });
 
   it("creates an application and rejects a duplicate application", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("app-dup-employer@nexora.dev", "dernek");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "app-dup-employer@nexora.dev",
+      "dernek",
+    );
     const { accessToken: applicantToken } = await registerAndLogin("app-dup-applicant@nexora.dev", "teknisyen");
-    const jobId = await createJob(employerToken);
+    const jobId = await createJob(employerToken, employerId);
 
     const first = await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)
@@ -92,9 +107,12 @@ describe("Application endpoints", () => {
   });
 
   it("returns the applicant's own applications with job info", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("app-mine-employer@nexora.dev", "klinik");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "app-mine-employer@nexora.dev",
+      "klinik",
+    );
     const { accessToken: applicantToken } = await registerAndLogin("app-mine-applicant@nexora.dev", "asistan");
-    const jobId = await createJob(employerToken, "Klinik Asistanı aranıyor");
+    const jobId = await createJob(employerToken, employerId, "Klinik Asistanı aranıyor");
 
     await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)
@@ -111,10 +129,13 @@ describe("Application endpoints", () => {
   });
 
   it("only lets the job owner view and manage applications", async () => {
-    const { accessToken: employerToken } = await registerAndLogin("app-manage-employer@nexora.dev", "firma");
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "app-manage-employer@nexora.dev",
+      "firma",
+    );
     const { accessToken: otherToken } = await registerAndLogin("app-manage-other@nexora.dev", "klinik");
     const { accessToken: applicantToken } = await registerAndLogin("app-manage-applicant@nexora.dev", "hekim");
-    const jobId = await createJob(employerToken);
+    const jobId = await createJob(employerToken, employerId);
 
     const applied = await request(app)
       .post(`/api/v1/jobs/${jobId}/applications`)

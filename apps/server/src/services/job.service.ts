@@ -46,6 +46,9 @@ export async function createJob(userId: string, input: CreateJobBody) {
   if (!(EMPLOYER_ROLES as readonly string[]).includes(user.role)) {
     throw new HttpError("Sadece klinik/firma/dernek hesapları ilan yayınlayabilir", 403);
   }
+  if (user.kycLevel < 3) {
+    throw new HttpError("İlan yayınlamak için kurumsal doğrulama (Level 3) gerekli", 403);
+  }
 
   const created = await createJobRecord({
     employerId: new Types.ObjectId(userId),
