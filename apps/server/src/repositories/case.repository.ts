@@ -13,6 +13,12 @@ export async function createCase(data: CreateCaseInput) {
   return CaseModel.create(data);
 }
 
+export async function listRecentCasesByUsers(userIds: Types.ObjectId[], limit: number) {
+  return CaseModel.find({ userId: { $in: userIds } })
+    .sort({ createdAt: -1 })
+    .limit(limit);
+}
+
 export async function listCasesPage(params: { cursor?: Date; limit: number }) {
   const query = params.cursor ? { createdAt: { $lt: params.cursor } } : {};
   const cases = await CaseModel.find(query)

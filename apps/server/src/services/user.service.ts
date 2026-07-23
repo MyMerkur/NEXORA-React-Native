@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { findUserById } from "../repositories/user.repository";
 import { buildAvatarStorageKey, createDownloadUrl, createUploadUrl } from "../config/storage";
 import { HttpError } from "../utils/httpError";
@@ -16,6 +17,14 @@ export async function getMe(userId: string) {
 
   const avatarUrl = user.showcase.avatarKey ? await createDownloadUrl(user.showcase.avatarKey) : null;
 
+  let affiliatedOrg: { id: string; displayName: string } | null = null;
+  if (user.affiliatedOrgId) {
+    const org = await findUserById(user.affiliatedOrgId.toString());
+    if (org) {
+      affiliatedOrg = { id: org._id.toString(), displayName: org.showcase.displayName || org.email };
+    }
+  }
+
   return {
     id: user._id.toString(),
     email: user.email,
@@ -30,6 +39,7 @@ export async function getMe(userId: string) {
       city: user.showcase.city,
       specialties: user.showcase.specialties,
       isVerifiedOrg: (EMPLOYER_ROLES as readonly string[]).includes(user.role) && user.kycLevel >= 3,
+      affiliatedOrg,
     },
     career: {
       openToWork: user.career.openToWork,
@@ -59,6 +69,25 @@ export async function updateCareer(userId: string, patch: CareerPatch) {
   }
 
   Object.assign(user.career, patch);
+  await user.save();
+
+  return getMe(userId);
+}
+
+export async function setAffiliation(userId: string, orgUserId: string | null) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new HttpError("Kullanıcı bulunamadı", 404);
+  }
+
+  if (orgUserId) {
+    const org = await findUserById(orgUserId);
+    if (!org || !(EMPLOYER_ROLES as readonly string[]).includes(org.role)) {
+      throw new HttpError("Geçersiz kurum", 400);
+    }
+  }
+
+  user.affiliatedOrgId = orgUserId ? new Types.ObjectId(orgUserId) : null;
   await user.save();
 
   return getMe(userId);

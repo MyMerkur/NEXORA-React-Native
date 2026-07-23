@@ -175,4 +175,29 @@ describe("User profile endpoints", () => {
     expect(response.status).toBe(200);
     expect(response.body.showcase.isVerifiedOrg).toBe(true);
   });
+
+  it("sets and reflects an affiliation with a valid org", async () => {
+    const { accessToken } = await registerAndLoginWithRole("profile-affiliate@nexora.dev", "hekim");
+    const { userId: orgId } = await registerAndLoginWithRole("profile-affiliate-org@nexora.dev", "klinik");
+
+    const response = await request(app)
+      .patch("/api/v1/users/me/affiliation")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ orgUserId: orgId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.showcase.affiliatedOrg.id).toBe(orgId);
+  });
+
+  it("rejects affiliating with a non-employer-role user", async () => {
+    const { accessToken } = await registerAndLoginWithRole("profile-affiliate-invalid@nexora.dev", "hekim");
+    const { userId: otherHekimId } = await registerAndLoginWithRole("profile-affiliate-target@nexora.dev", "hekim");
+
+    const response = await request(app)
+      .patch("/api/v1/users/me/affiliation")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ orgUserId: otherHekimId });
+
+    expect(response.status).toBe(400);
+  });
 });

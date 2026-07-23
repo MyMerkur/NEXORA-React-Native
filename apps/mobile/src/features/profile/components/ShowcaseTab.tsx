@@ -14,7 +14,9 @@ import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client
 import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { requestAvatarUploadUrl, updateShowcase, type UserProfile } from "../../../services/profileApi";
+import { searchOrgs, setAffiliation, type OrgSearchResult } from "../../../services/orgApi";
 import { TagPicker } from "../../../components/TagPicker";
+import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
 
 interface ShowcaseTabProps {
   profile: UserProfile;
@@ -32,6 +34,10 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [affiliationQuery, setAffiliationQuery] = useState("");
+  const [affiliationResults, setAffiliationResults] = useState<OrgSearchResult[]>([]);
+  const [affiliationSaving, setAffiliationSaving] = useState(false);
 
   async function handlePickAvatar() {
     const result = await launchImageLibrary({ mediaType: "photo", quality: 0.8 });
@@ -66,6 +72,35 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       setError(getApiErrorMessage(err, "Kaydedilemedi"));
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSearchAffiliation(query: string) {
+    setAffiliationQuery(query);
+    if (query.trim().length < 2) {
+      setAffiliationResults([]);
+      return;
+    }
+    try {
+      const results = await searchOrgs(query);
+      setAffiliationResults(results);
+    } catch {
+      // sessizce yut, kullanıcı yazmaya devam edebilir
+    }
+  }
+
+  async function handleSelectAffiliation(orgUserId: string | null) {
+    setAffiliationSaving(true);
+    setError(null);
+    try {
+      const updated = await setAffiliation(orgUserId);
+      onUpdated(updated);
+      setAffiliationQuery("");
+      setAffiliationResults([]);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Kurum bağlantısı güncellenemedi"));
+    } finally {
+      setAffiliationSaving(false);
     }
   }
 
@@ -116,10 +151,48 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         onChangeText={setWorkplace}
       />
       {isEmployer ? (
-        <Text style={[styles.verifiedBadge, profile.showcase.isVerifiedOrg ? styles.verifiedTrue : styles.verifiedFalse]}>
-          {profile.showcase.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
-        </Text>
-      ) : null}
+        <>
+          <Text style={[styles.verifiedBadge, profile.showcase.isVerifiedOrg ? styles.verifiedTrue : styles.verifiedFalse]}>
+            {profile.showcase.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
+          </Text>
+          <TouchableOpacity style={styles.previewButton} onPress={() => setPreviewVisible(true)}>
+            <Text style={styles.previewButtonText}>Vitrinimi Görüntüle</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <View style={styles.affiliationSection}>
+          <Text style={styles.label}>Bağlı olduğun kurum (opsiyonel)</Text>
+          {profile.showcase.affiliatedOrg ? (
+            <View style={styles.affiliationChip}>
+              <Text style={styles.affiliationChipText}>{profile.showcase.affiliatedOrg.displayName}</Text>
+              <TouchableOpacity onPress={() => handleSelectAffiliation(null)} disabled={affiliationSaving}>
+                <Text style={styles.affiliationChipRemove}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Kurumunu Nexora'da bul"
+                placeholderTextColor={colors.textSecondary}
+                value={affiliationQuery}
+                onChangeText={handleSearchAffiliation}
+              />
+              {affiliationResults.map((org) => (
+                <TouchableOpacity
+                  key={org.id}
+                  style={styles.affiliationResultRow}
+                  onPress={() => handleSelectAffiliation(org.id)}
+                  disabled={affiliationSaving}
+                >
+                  <Text style={styles.affiliationResultText}>{org.displayName}</Text>
+                  {org.workplace ? <Text style={styles.affiliationResultSubtext}>{org.workplace}</Text> : null}
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+        </View>
+      )}
       <TextInput
         style={styles.input}
         placeholder="Şehir"
@@ -136,6 +209,8 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
         {saving ? <ActivityIndicator color={colors.background} /> : <Text style={styles.saveButtonText}>Kaydet</Text>}
       </TouchableOpacity>
+
+      <OrgProfileModal visible={previewVisible} orgUserId={profile.id} onClose={() => setPreviewVisible(false)} />
     </ScrollView>
   );
 }
@@ -202,6 +277,55 @@ const styles = StyleSheet.create({
   },
   verifiedFalse: {
     color: colors.textSecondary,
+  },
+  previewButton: {
+    alignSelf: "flex-start",
+    marginBottom: spacing.md,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.accentGold,
+  },
+  previewButtonText: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+  affiliationSection: {
+    marginBottom: spacing.md,
+  },
+  affiliationChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    backgroundColor: colors.surfaceElevated,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  affiliationChipText: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.sm,
+    marginRight: spacing.xs,
+  },
+  affiliationChipRemove: {
+    color: colors.danger,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+  },
+  affiliationResultRow: {
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  affiliationResultText: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.sm,
+  },
+  affiliationResultSubtext: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.xs,
   },
   label: {
     color: colors.textPrimary,
