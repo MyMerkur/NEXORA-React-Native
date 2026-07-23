@@ -20,6 +20,11 @@ const envSchema = z.object({
   R2_SECRET_KEY: z.string().default(""),
   R2_BUCKET: z.string().default(""),
   ANTHROPIC_API_KEY: z.string().default(""),
+  SMTP_HOST: z.string().default(""),
+  SMTP_PORT: z.string().default(""),
+  SMTP_USER: z.string().default(""),
+  SMTP_PASS: z.string().default(""),
+  SMTP_FROM: z.string().default(""),
 });
 
 export const env = envSchema.parse(process.env);

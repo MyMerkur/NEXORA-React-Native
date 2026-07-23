@@ -7,6 +7,7 @@ import {
 import { findUserById } from "../repositories/user.repository";
 import { createUploadUrl, buildStorageKey, downloadObject, StorageNotConfiguredError } from "../config/storage";
 import { analyzeKycDocument, OcrNotConfiguredError, type KycExtraction } from "./ocr.service";
+import { notifyKycStatusChange } from "./notification.service";
 import { logger } from "../utils/logger";
 import { HttpError } from "../utils/httpError";
 import type { KycDocumentStatus, KycDocumentType } from "../models/KycDocument";
@@ -76,6 +77,7 @@ export async function confirmUpload(userId: string, params: ConfirmUploadParams)
     }
 
     logger.info("kyc.document.processed", { documentId: document._id.toString(), status: document.status });
+    await notifyKycStatusChange(userId, params.documentType, document.status);
   } catch (error) {
     if (error instanceof StorageNotConfiguredError || error instanceof OcrNotConfiguredError) {
       logger.info("kyc.document.verification_deferred", {
