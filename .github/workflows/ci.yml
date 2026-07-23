@@ -23,3 +23,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm turbo run lint typecheck test
+
+      - run: pnpm audit --audit-level=high

@@ -10,6 +10,11 @@ const envSchema = z.object({
   ATLAS_URI_DEV: z.string().min(1, "ATLAS_URI_DEV is required"),
   JWT_ACCESS_SECRET: z.string().min(1, "JWT_ACCESS_SECRET is required"),
   JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
+  CORS_ALLOWED_ORIGINS: z
+    .string()
+    .default("http://localhost:8081")
+    .transform((value) => value.split(",").map((origin) => origin.trim()).filter(Boolean)),
+  AUTH_RATE_LIMIT_MAX: z.coerce.number().default(10),
 });
 
 export const env = envSchema.parse(process.env);
