@@ -76,17 +76,3 @@ export async function requestAvatarUploadUrl(
   return data;
 }
 
-export async function uploadAvatarFile(uploadUrl: string, fileUri: string, contentType: string): Promise<void> {
-  const response = await fetch(fileUri);
-  const blob = await response.blob();
-
-  const putResponse = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": contentType },
-    body: blob,
-  });
-
-  if (!putResponse.ok) {
-    throw new Error("Fotoğraf yüklenemedi");
-  }
-}

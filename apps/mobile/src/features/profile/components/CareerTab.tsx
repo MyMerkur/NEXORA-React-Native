@@ -4,7 +4,7 @@ import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { updateCareer, type ExperienceEntry, type UserProfile } from "../../../services/profileApi";
-import { TagPicker } from "./TagPicker";
+import { TagPicker } from "../../../components/TagPicker";
 
 interface CareerTabProps {
   profile: UserProfile;

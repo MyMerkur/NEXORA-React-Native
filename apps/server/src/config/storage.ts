@@ -40,6 +40,11 @@ export function buildAvatarStorageKey(userId: string, contentType: string): stri
   return `avatars/${userId}/${randomUUID()}.${extension}`;
 }
 
+export function buildCaseImageStorageKey(userId: string, contentType: string): string {
+  const extension = contentType.split("/")[1] ?? "bin";
+  return `cases/${userId}/${randomUUID()}.${extension}`;
+}
+
 export async function createUploadUrl(key: string, contentType: string): Promise<string> {
   ensureStorageConfigured();
   const command = new PutObjectCommand({ Bucket: env.R2_BUCKET, Key: key, ContentType: contentType });

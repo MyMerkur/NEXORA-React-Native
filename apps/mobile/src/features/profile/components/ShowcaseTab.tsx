@@ -10,11 +10,11 @@ import {
   View,
 } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
-import { getApiErrorMessage } from "@nexora/api-client";
+import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
-import { requestAvatarUploadUrl, updateShowcase, uploadAvatarFile, type UserProfile } from "../../../services/profileApi";
-import { TagPicker } from "./TagPicker";
+import { requestAvatarUploadUrl, updateShowcase, type UserProfile } from "../../../services/profileApi";
+import { TagPicker } from "../../../components/TagPicker";
 
 interface ShowcaseTabProps {
   profile: UserProfile;
@@ -45,7 +45,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
     setError(null);
     try {
       const { uploadUrl, storageKey } = await requestAvatarUploadUrl(contentType);
-      await uploadAvatarFile(uploadUrl, asset.uri, contentType);
+      await uploadFileToPresignedUrl(uploadUrl, asset.uri, contentType);
       const updated = await updateShowcase({ avatarKey: storageKey });
       onUpdated(updated);
     } catch (err) {
