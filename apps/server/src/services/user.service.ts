@@ -43,6 +43,7 @@ export async function getMe(userId: string) {
     },
     career: {
       openToWork: user.career.openToWork,
+      hiddenSearch: user.career.hiddenSearch,
       desiredPositions: user.career.desiredPositions,
       experienceYears: user.career.experienceYears,
       experience: user.career.experience,

@@ -25,3 +25,6 @@ export type MicroCompetencyTag = (typeof MICRO_COMPETENCY_TAGS)[number];
 
 export const EMPLOYER_ROLES = ["klinik", "firma", "dernek"] as const;
 export type EmployerRole = (typeof EMPLOYER_ROLES)[number];
+
+export const CANDIDATE_ROLES = ["hekim", "asistan", "teknisyen"] as const;
+export type CandidateRole = (typeof CANDIDATE_ROLES)[number];

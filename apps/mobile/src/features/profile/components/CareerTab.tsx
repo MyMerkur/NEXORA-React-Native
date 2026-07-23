@@ -13,6 +13,7 @@ interface CareerTabProps {
 
 export function CareerTab({ profile, onUpdated }: CareerTabProps) {
   const [openToWork, setOpenToWork] = useState(profile.career.openToWork);
+  const [hiddenSearch, setHiddenSearch] = useState(profile.career.hiddenSearch);
   const [desiredPositions, setDesiredPositions] = useState<MicroCompetencyTag[]>(profile.career.desiredPositions);
   const [experienceYears, setExperienceYears] = useState(
     profile.career.experienceYears != null ? String(profile.career.experienceYears) : "",
@@ -48,6 +49,7 @@ export function CareerTab({ profile, onUpdated }: CareerTabProps) {
     try {
       const updated = await updateCareer({
         openToWork,
+        hiddenSearch,
         desiredPositions,
         experienceYears: experienceYears ? Number(experienceYears) : undefined,
         experience,
@@ -67,6 +69,15 @@ export function CareerTab({ profile, onUpdated }: CareerTabProps) {
         <Switch
           value={openToWork}
           onValueChange={setOpenToWork}
+          trackColor={{ true: colors.accentGold, false: colors.border }}
+        />
+      </View>
+
+      <View style={styles.switchRow}>
+        <Text style={styles.label}>Gizli iş arama modu</Text>
+        <Switch
+          value={hiddenSearch}
+          onValueChange={setHiddenSearch}
           trackColor={{ true: colors.accentGold, false: colors.border }}
         />
       </View>

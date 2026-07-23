@@ -68,6 +68,12 @@ export async function notifyNewMessage(recipientId: string, senderName: string) 
   await createNotification(recipientId, "new_message", title, body);
 }
 
+export async function notifyNewMatch(userId: string, counterpartName: string, jobTitle: string) {
+  const title = "Yeni eşleşme";
+  const body = `${counterpartName} ile "${jobTitle}" ilanı üzerinden eşleştiniz`;
+  await createNotification(userId, "new_match", title, body);
+}
+
 export async function listNotifications(userId: string) {
   const notifications = await listByUser(new Types.ObjectId(userId));
   return notifications.map((notification) => ({

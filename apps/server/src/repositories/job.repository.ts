@@ -31,6 +31,13 @@ export async function listJobsByEmployer(employerId: Types.ObjectId) {
   return JobModel.find({ employerId }).sort({ createdAt: -1 }).limit(100);
 }
 
+export async function listOpenJobsExcluding(excludedJobIds: Types.ObjectId[], limit: number) {
+  return JobModel.find({ status: "open", _id: { $nin: excludedJobIds } })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("employerId", "email showcase.displayName showcase.avatarKey");
+}
+
 export async function findJobById(id: string) {
   return JobModel.findById(id);
 }

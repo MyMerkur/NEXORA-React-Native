@@ -1,0 +1,155 @@
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getApiErrorMessage } from "@nexora/api-client";
+import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { getMatches, type MatchItem } from "../../../services/matchingApi";
+import type { ThreadContextType } from "../../../services/inboxApi";
+import { InboxModal } from "../../inbox/components/InboxModal";
+
+interface MatchesModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+export function MatchesModal({ visible, onClose }: MatchesModalProps) {
+  const [matches, setMatches] = useState<MatchItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [chatTarget, setChatTarget] = useState<{ userId: string; context: { type: ThreadContextType; id: string } } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    getMatches()
+      .then(setMatches)
+      .catch((err) => setError(getApiErrorMessage(err, "Eşleşmeler yüklenemedi")))
+      .finally(() => setLoading(false));
+  }, [visible]);
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <View style={styles.sheet}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Eşleşmelerim</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Text style={styles.closeText}>Kapat</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+          ) : (
+            <ScrollView>
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {matches.length === 0 ? <Text style={styles.emptyText}>Henüz bir eşleşmen yok</Text> : null}
+              {matches.map((match) => (
+                <View key={match.id} style={styles.row}>
+                  {match.counterpart.avatarUrl ? (
+                    <Image source={{ uri: match.counterpart.avatarUrl }} style={styles.avatar} />
+                  ) : (
+                    <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                  )}
+                  <View style={styles.rowContent}>
+                    <Text style={styles.name}>{match.counterpart.displayName}</Text>
+                    <Text style={styles.jobTitle}>{match.job.title}</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() =>
+                      setChatTarget({ userId: match.counterpart.id, context: { type: "job", id: match.job.id } })
+                    }
+                  >
+                    <Text style={styles.chatLink}>Sohbeti Aç</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      </View>
+
+      <InboxModal visible={chatTarget !== null} onClose={() => setChatTarget(null)} startTarget={chatTarget} />
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.lg,
+    borderTopRightRadius: radii.lg,
+    padding: spacing.lg,
+    maxHeight: "80%",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  title: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+  },
+  closeText: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.sm,
+  },
+  loader: {
+    marginVertical: spacing.xl,
+  },
+  emptyText: {
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginVertical: spacing.lg,
+  },
+  error: {
+    color: colors.danger,
+    marginBottom: spacing.sm,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.md,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.pill,
+    marginRight: spacing.sm,
+  },
+  avatarPlaceholder: {
+    backgroundColor: colors.surfaceElevated,
+  },
+  rowContent: {
+    flex: 1,
+  },
+  name: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+  },
+  jobTitle: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    marginTop: 2,
+  },
+  chatLink: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+});

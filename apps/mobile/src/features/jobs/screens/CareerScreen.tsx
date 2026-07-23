@@ -6,16 +6,23 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import { JobListTab } from "../components/JobListTab";
 import { MyApplicationsTab } from "../components/MyApplicationsTab";
 import { MyPostingsTab } from "../components/MyPostingsTab";
+import { JobSwipeTab } from "../../matching/components/JobSwipeTab";
+import { MatchesModal } from "../../matching/components/MatchesModal";
 
-type CareerTab = "jobs" | "applications" | "postings";
+type CareerTab = "jobs" | "discover" | "applications" | "postings";
 
 export function CareerScreen() {
   const role = useAuthStore((state) => state.user?.role);
   const isEmployer = role ? (EMPLOYER_ROLES as readonly string[]).includes(role) : false;
   const [activeTab, setActiveTab] = useState<CareerTab>("jobs");
+  const [matchesVisible, setMatchesVisible] = useState(false);
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.matchesButton} onPress={() => setMatchesVisible(true)}>
+        <Text style={styles.matchesButtonText}>🎯 Eşleşmelerim</Text>
+      </TouchableOpacity>
+
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tabButton, activeTab === "jobs" && styles.tabButtonActive]}
@@ -23,6 +30,14 @@ export function CareerScreen() {
         >
           <Text style={[styles.tabText, activeTab === "jobs" && styles.tabTextActive]}>İlanlar</Text>
         </TouchableOpacity>
+        {!isEmployer ? (
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === "discover" && styles.tabButtonActive]}
+            onPress={() => setActiveTab("discover")}
+          >
+            <Text style={[styles.tabText, activeTab === "discover" && styles.tabTextActive]}>Keşfet</Text>
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity
           style={[styles.tabButton, activeTab === "applications" && styles.tabButtonActive]}
           onPress={() => setActiveTab("applications")}
@@ -40,8 +55,11 @@ export function CareerScreen() {
       </View>
 
       {activeTab === "jobs" ? <JobListTab /> : null}
+      {activeTab === "discover" && !isEmployer ? <JobSwipeTab /> : null}
       {activeTab === "applications" ? <MyApplicationsTab /> : null}
       {activeTab === "postings" && isEmployer ? <MyPostingsTab /> : null}
+
+      <MatchesModal visible={matchesVisible} onClose={() => setMatchesVisible(false)} />
     </View>
   );
 }
@@ -50,6 +68,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  matchesButton: {
+    alignSelf: "flex-end",
+    margin: spacing.md,
+    marginBottom: 0,
+  },
+  matchesButtonText: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
   },
   tabBar: {
     flexDirection: "row",
