@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build outputs
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+
+# React Native
+apps/mobile/ios/build/
+apps/mobile/ios/Pods/
+apps/mobile/android/app/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+*.jsbundle
+
+# Next.js (Faz 6)
+apps/web/.next/
+apps/web/out/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Claude Code local settings
+.claude/
+
+# Misc
+coverage/
+*.local
