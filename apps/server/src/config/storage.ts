@@ -28,15 +28,28 @@ function getClient(): S3Client {
   });
 }
 
+const DOWNLOAD_URL_TTL_SECONDS = 15 * 60;
+
 export function buildStorageKey(userId: string, documentType: string, contentType: string): string {
   const extension = contentType === "application/pdf" ? "pdf" : (contentType.split("/")[1] ?? "bin");
   return `kyc/${userId}/${documentType}/${randomUUID()}.${extension}`;
+}
+
+export function buildAvatarStorageKey(userId: string, contentType: string): string {
+  const extension = contentType.split("/")[1] ?? "bin";
+  return `avatars/${userId}/${randomUUID()}.${extension}`;
 }
 
 export async function createUploadUrl(key: string, contentType: string): Promise<string> {
   ensureStorageConfigured();
   const command = new PutObjectCommand({ Bucket: env.R2_BUCKET, Key: key, ContentType: contentType });
   return getSignedUrl(getClient(), command, { expiresIn: UPLOAD_URL_TTL_SECONDS });
+}
+
+export async function createDownloadUrl(key: string): Promise<string> {
+  ensureStorageConfigured();
+  const command = new GetObjectCommand({ Bucket: env.R2_BUCKET, Key: key });
+  return getSignedUrl(getClient(), command, { expiresIn: DOWNLOAD_URL_TTL_SECONDS });
 }
 
 export async function downloadObject(key: string): Promise<{ buffer: Buffer; contentType: string }> {

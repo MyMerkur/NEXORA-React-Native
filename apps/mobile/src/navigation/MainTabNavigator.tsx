@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { colors } from "@nexora/ui-tokens";
 import { PlaceholderScreen } from "../screens/PlaceholderScreen";
+import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
 
 export type MainTabParamList = {
   Feed: undefined;
@@ -27,7 +28,7 @@ export function MainTabNavigator() {
       <Tab.Screen name="Hubs">{() => <PlaceholderScreen title="Hubs" />}</Tab.Screen>
       <Tab.Screen name="Create">{() => <PlaceholderScreen title="Paylaş" />}</Tab.Screen>
       <Tab.Screen name="Career">{() => <PlaceholderScreen title="Kariyer" />}</Tab.Screen>
-      <Tab.Screen name="Profile">{() => <PlaceholderScreen title="Profil" />}</Tab.Screen>
+      <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
 }
