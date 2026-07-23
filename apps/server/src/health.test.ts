@@ -15,7 +15,7 @@ beforeAll(async () => {
   const { connectDB } = await import("./config/db");
   await connectDB();
   app = (await import("./app")).default;
-});
+}, 60000);
 
 afterAll(async () => {
   await mongoose.disconnect();

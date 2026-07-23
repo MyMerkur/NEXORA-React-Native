@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "NEXORA monorepo — server, mobile ve web uygulamaları için ortak workspace",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.11.0"
   },
   "packageManager": "pnpm@9.0.0",
   "scripts": {
@@ -13,5 +13,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "turbo": "^2.10.6"
   }
 }

@@ -1,5 +1,3 @@
 # infra/github-actions
 
-CI/CD workflow dosyaları — `ci.yml`, `deploy-staging.yml`, `deploy-production.yml`.
-
-Faz 0'da doldurulacak; workflow dosyalarının çalışması için `.github/workflows/` altına da kopyalanması/sembolik bağlanması gerekecek.
+GitHub Actions sadece `.github/workflows/` altındaki dosyaları çalıştırdığı için gerçek workflow dosyaları orada tutuluyor (`ci.yml` eklendi; `deploy-staging.yml` ve `deploy-production.yml` VPS kurulumu netleşince eklenecek). Bu klasör kod tekrarına yol açmamak için sadece referans amaçlı — `docs/PROJECT_PLAN.md`'deki (Bölüm 3.5) altyapı planına karşılık geliyor, ayrı bir kopya barındırmıyor.
