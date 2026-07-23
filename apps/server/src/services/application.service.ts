@@ -12,6 +12,7 @@ import { findUserById } from "../repositories/user.repository";
 import type { ApplicationStatus } from "../models/Application";
 import { HttpError } from "../utils/httpError";
 import { resolveUserSummary, type UserSummarySource } from "../utils/userSummary";
+import { notifyNewApplication, notifyApplicationStatusChange } from "./notification.service";
 
 function serializeApplicationForApplicant(application: {
   _id: Types.ObjectId;
@@ -55,6 +56,10 @@ export async function applyToJob(userId: string, jobId: string, message?: string
     applicantId: applicantObjectId,
     message: message ?? "",
   });
+
+  const applicant = await findUserById(userId);
+  const applicantName = applicant ? applicant.showcase.displayName || applicant.email : "Bir kullanıcı";
+  await notifyNewApplication(job.employerId.toString(), job.title, applicantName);
 
   return {
     id: created._id.toString(),
@@ -108,6 +113,8 @@ export async function updateApplicationStatus(userId: string, applicationId: str
   const updated = await updateStatus(applicationId, status);
   const applicantUser = await findUserById(application.applicantId.toString());
   const applicant = applicantUser ? await resolveUserSummary(applicantUser) : null;
+
+  await notifyApplicationStatusChange(application.applicantId.toString(), job.title, status);
 
   return {
     id: updated!._id.toString(),

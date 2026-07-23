@@ -6,6 +6,7 @@ import { userRouter } from "./user.routes";
 import { caseRouter } from "./case.routes";
 import { jobRouter } from "./job.routes";
 import { applicationRouter } from "./application.routes";
+import { notificationRouter } from "./notification.routes";
 
 export const apiV1Router = Router();
 
@@ -16,3 +17,4 @@ apiV1Router.use(userRouter);
 apiV1Router.use(caseRouter);
 apiV1Router.use(jobRouter);
 apiV1Router.use(applicationRouter);
+apiV1Router.use(notificationRouter);
