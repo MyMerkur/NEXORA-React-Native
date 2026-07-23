@@ -4,21 +4,10 @@ import { createCase as createCaseRecord, listCasesPage } from "../repositories/c
 import { findUserById } from "../repositories/user.repository";
 import { buildCaseImageStorageKey, createDownloadUrl, createUploadUrl } from "../config/storage";
 import { HttpError } from "../utils/httpError";
+import { resolveUserSummary, type UserSummary, type UserSummarySource } from "../utils/userSummary";
 import type { createCaseSchema } from "../validators/case.validator";
 
 type CreateCaseBody = z.infer<typeof createCaseSchema>;
-
-interface AuthorInfo {
-  id: string;
-  displayName: string;
-  avatarUrl: string | null;
-}
-
-interface AuthorSource {
-  _id: Types.ObjectId;
-  email: string;
-  showcase: { displayName: string; avatarKey?: string | null };
-}
 
 interface CaseLike {
   _id: Types.ObjectId;
@@ -29,16 +18,7 @@ interface CaseLike {
   createdAt: Date;
 }
 
-async function resolveAuthor(user: AuthorSource): Promise<AuthorInfo> {
-  const avatarUrl = user.showcase.avatarKey ? await createDownloadUrl(user.showcase.avatarKey) : null;
-  return {
-    id: user._id.toString(),
-    displayName: user.showcase.displayName || user.email,
-    avatarUrl,
-  };
-}
-
-async function serializeCase(caseDoc: CaseLike, author: AuthorInfo) {
+async function serializeCase(caseDoc: CaseLike, author: UserSummary) {
   const images = await Promise.all(
     caseDoc.images.map(async (image) => ({
       stage: image.stage,
@@ -80,7 +60,7 @@ export async function createCase(userId: string, input: CreateCaseBody) {
     images: input.images,
   });
 
-  const author = await resolveAuthor(user);
+  const author = await resolveUserSummary(user);
   return serializeCase(created, author);
 }
 
@@ -90,8 +70,8 @@ export async function getFeed(params: { cursor?: string; limit: number }) {
 
   const items = await Promise.all(
     cases.map(async (caseDoc) => {
-      const populatedUser = caseDoc.userId as unknown as AuthorSource;
-      const author = await resolveAuthor(populatedUser);
+      const populatedUser = caseDoc.userId as unknown as UserSummarySource;
+      const author = await resolveUserSummary(populatedUser);
       return serializeCase(caseDoc, author);
     }),
   );

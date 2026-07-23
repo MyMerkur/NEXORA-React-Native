@@ -4,6 +4,7 @@ import { PlaceholderScreen } from "../screens/PlaceholderScreen";
 import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
 import { FeedScreen } from "../features/feed/screens/FeedScreen";
 import { CreateCaseScreen } from "../features/cases/screens/CreateCaseScreen";
+import { CareerScreen } from "../features/jobs/screens/CareerScreen";
 
 export type MainTabParamList = {
   Feed: undefined;
@@ -29,7 +30,7 @@ export function MainTabNavigator() {
       <Tab.Screen name="Feed" component={FeedScreen} />
       <Tab.Screen name="Hubs">{() => <PlaceholderScreen title="Hubs" />}</Tab.Screen>
       <Tab.Screen name="Create" component={CreateCaseScreen} />
-      <Tab.Screen name="Career">{() => <PlaceholderScreen title="Kariyer" />}</Tab.Screen>
+      <Tab.Screen name="Career" component={CareerScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
