@@ -1,6 +1,6 @@
 import type { Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middlewares/auth";
-import { updateShowcaseSchema, updateCareerSchema, avatarUploadUrlSchema } from "../validators/user.validator";
+import { updateShowcaseSchema, updateCareerSchema, avatarUploadUrlSchema, affiliationSchema } from "../validators/user.validator";
 import * as userService from "../services/user.service";
 
 export async function meHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -36,6 +36,16 @@ export async function avatarUploadUrlHandler(req: AuthenticatedRequest, res: Res
   try {
     const { contentType } = avatarUploadUrlSchema.parse(req.body);
     const result = await userService.requestAvatarUploadUrl(req.user!.id, contentType);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateAffiliationHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const { orgUserId } = affiliationSchema.parse(req.body);
+    const result = await userService.setAffiliation(req.user!.id, orgUserId);
     res.status(200).json(result);
   } catch (error) {
     next(error);

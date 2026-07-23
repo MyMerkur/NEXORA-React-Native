@@ -17,6 +17,7 @@ export interface ShowcaseProfile {
   city: string;
   specialties: MicroCompetencyTag[];
   isVerifiedOrg: boolean;
+  affiliatedOrg: { id: string; displayName: string } | null;
 }
 
 export interface CareerProfile {

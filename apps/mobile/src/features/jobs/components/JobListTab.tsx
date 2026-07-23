@@ -4,6 +4,7 @@ import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { applyToJob, getJobs, type JobItem } from "../../../services/jobApi";
 import { ApplyModal } from "./ApplyModal";
+import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
 
 export function JobListTab() {
   const [jobs, setJobs] = useState<JobItem[]>([]);
@@ -14,6 +15,7 @@ export function JobListTab() {
   const [error, setError] = useState<string | null>(null);
   const [applyTarget, setApplyTarget] = useState<JobItem | null>(null);
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
+  const [orgTarget, setOrgTarget] = useState<string | null>(null);
 
   const loadInitial = useCallback(async () => {
     setLoading(true);
@@ -96,7 +98,9 @@ export function JobListTab() {
           const alreadyApplied = appliedIds.has(item.id);
           return (
             <View style={styles.card}>
-              <Text style={styles.employerName}>{item.employer.displayName}</Text>
+              <TouchableOpacity onPress={() => setOrgTarget(item.employer.id)}>
+                <Text style={styles.employerName}>{item.employer.displayName}</Text>
+              </TouchableOpacity>
               <Text style={styles.title}>{item.title}</Text>
               {item.location ? <Text style={styles.location}>{item.location}</Text> : null}
               {item.description ? (
@@ -130,6 +134,7 @@ export function JobListTab() {
         onClose={() => setApplyTarget(null)}
         onSubmit={handleApply}
       />
+      <OrgProfileModal visible={orgTarget !== null} orgUserId={orgTarget} onClose={() => setOrgTarget(null)} />
     </>
   );
 }

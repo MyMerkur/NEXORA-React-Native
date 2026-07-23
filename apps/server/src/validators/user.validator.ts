@@ -42,3 +42,9 @@ export const updateCareerSchema = z
 export const avatarUploadUrlSchema = z.object({
   contentType: z.enum(["image/jpeg", "image/png"]),
 });
+
+export const affiliationSchema = z
+  .object({
+    orgUserId: z.string().nullable(),
+  })
+  .strict();

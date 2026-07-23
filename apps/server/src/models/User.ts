@@ -46,6 +46,7 @@ const userSchema = new Schema(
     lockedUntil: { type: Date, default: null },
     showcase: { type: showcaseSchema, default: () => ({}) },
     career: { type: careerSchema, default: () => ({}) },
+    affiliatedOrgId: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true },
 );
