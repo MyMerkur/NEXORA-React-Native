@@ -11,6 +11,7 @@ beforeAll(async () => {
   process.env.ATLAS_URI_DEV = mongoServer.getUri();
   process.env.JWT_ACCESS_SECRET = "test-access-secret";
   process.env.JWT_REFRESH_SECRET = "test-refresh-secret";
+  process.env.AUTH_RATE_LIMIT_MAX = "1000";
 
   const { connectDB } = await import("./config/db");
   await connectDB();
@@ -23,18 +24,26 @@ afterAll(async () => {
 });
 
 describe("Auth endpoints", () => {
-  const credentials = { email: "test@nexora.dev", password: "supersecret123", role: "hekim" as const };
+  const credentials = { email: "test@nexora.dev", password: "Supersecret123", role: "hekim" as const };
 
   it("registers a new user", async () => {
     const response = await request(app).post("/api/v1/auth/register").send(credentials);
     expect(response.status).toBe(201);
     expect(response.body.user.email).toBe(credentials.email);
     expect(response.body.accessToken).toBeDefined();
+    expect(response.body.refreshToken).toBeDefined();
   });
 
   it("rejects duplicate registration", async () => {
     const response = await request(app).post("/api/v1/auth/register").send(credentials);
     expect(response.status).toBe(409);
+  });
+
+  it("rejects registration with a weak password", async () => {
+    const response = await request(app)
+      .post("/api/v1/auth/register")
+      .send({ email: "weak@nexora.dev", password: "alllowercase", role: "hekim" });
+    expect(response.status).toBe(400);
   });
 
   it("logs in with correct credentials", async () => {
@@ -48,7 +57,14 @@ describe("Auth endpoints", () => {
   it("rejects login with wrong password", async () => {
     const response = await request(app)
       .post("/api/v1/auth/login")
-      .send({ email: credentials.email, password: "wrongpassword" });
+      .send({ email: credentials.email, password: "WrongPassword1" });
     expect(response.status).toBe(401);
+  });
+
+  it("rejects a NoSQL injection payload instead of authenticating", async () => {
+    const response = await request(app)
+      .post("/api/v1/auth/login")
+      .send({ email: { $gt: "" }, password: { $gt: "" } });
+    expect(response.status).toBe(400);
   });
 });
