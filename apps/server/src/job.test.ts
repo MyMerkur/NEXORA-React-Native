@@ -30,6 +30,11 @@ async function registerAndLogin(email: string, role = "hekim") {
   return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
 }
 
+async function verifyOrgKyc(userId: string) {
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(userId, { kycLevel: 3 });
+}
+
 describe("Job endpoints", () => {
   it("rejects requests without an access token", async () => {
     const response = await request(app).get("/api/v1/jobs");
@@ -47,8 +52,20 @@ describe("Job endpoints", () => {
     expect(response.status).toBe(403);
   });
 
-  it("creates a job for an employer role", async () => {
+  it("rejects job creation for an employer role without Level 3 KYC", async () => {
+    const { accessToken } = await registerAndLogin("job-no-level3@nexora.dev", "klinik");
+
+    const response = await request(app)
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "Diş Hekimi aranıyor" });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("creates a job for an employer role with Level 3 KYC", async () => {
     const { accessToken, userId } = await registerAndLogin("job-employer@nexora.dev", "klinik");
+    await verifyOrgKyc(userId);
 
     const response = await request(app)
       .post("/api/v1/jobs")
@@ -61,7 +78,8 @@ describe("Job endpoints", () => {
   });
 
   it("lists only open jobs, newest first", async () => {
-    const { accessToken } = await registerAndLogin("job-feed@nexora.dev", "firma");
+    const { accessToken, userId } = await registerAndLogin("job-feed@nexora.dev", "firma");
+    await verifyOrgKyc(userId);
 
     await request(app)
       .post("/api/v1/jobs")
@@ -85,8 +103,9 @@ describe("Job endpoints", () => {
   });
 
   it("only allows the job owner to change its status", async () => {
-    const { accessToken: ownerToken } = await registerAndLogin("job-owner@nexora.dev", "dernek");
+    const { accessToken: ownerToken, userId: ownerId } = await registerAndLogin("job-owner@nexora.dev", "dernek");
     const { accessToken: otherToken } = await registerAndLogin("job-other@nexora.dev", "klinik");
+    await verifyOrgKyc(ownerId);
 
     const created = await request(app)
       .post("/api/v1/jobs")
@@ -102,7 +121,8 @@ describe("Job endpoints", () => {
   });
 
   it("returns the employer's own jobs regardless of status", async () => {
-    const { accessToken } = await registerAndLogin("job-mine@nexora.dev", "klinik");
+    const { accessToken, userId } = await registerAndLogin("job-mine@nexora.dev", "klinik");
+    await verifyOrgKyc(userId);
 
     await request(app).post("/api/v1/jobs").set("Authorization", `Bearer ${accessToken}`).send({ title: "İlan A" });
 

@@ -30,11 +30,17 @@ const KYC_EXTRACTION_JSON_SCHEMA = {
 } as const;
 
 interface AnalyzeKycDocumentParams {
-  documentType: "kimlik" | "diploma";
+  documentType: "kimlik" | "diploma" | "kurumsal_belge";
   contentType: string;
   fileBuffer: Buffer;
   expectedFullName: string;
 }
+
+const DOCUMENT_LABELS: Record<AnalyzeKycDocumentParams["documentType"], string> = {
+  kimlik: "kimlik",
+  diploma: "diploma",
+  kurumsal_belge: "kurumsal belge (vergi levhası, ticaret sicil gazetesi vb.)",
+};
 
 const SUPPORTED_IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
 
@@ -71,7 +77,7 @@ export async function analyzeKycDocument(params: AnalyzeKycDocumentParams): Prom
           documentBlock,
           {
             type: "text",
-            text: `Bu bir "${params.documentType}" belgesidir. Belgeyi incele ve şunları değerlendir: belgedeki tam ad, belge numarası (varsa), belgenin okunaklı/geçerli olup olmadığı. Belgedeki adın "${params.expectedFullName}" ile eşleşip eşleşmediğini değerlendir (küçük yazım/Türkçe karakter farklılıkları kabul edilebilir).`,
+            text: `Bu bir "${DOCUMENT_LABELS[params.documentType]}" belgesidir. Belgeyi incele ve şunları değerlendir: belgedeki tam ad, belge numarası (varsa), belgenin okunaklı/geçerli olup olmadığı. Belgedeki adın "${params.expectedFullName}" ile eşleşip eşleşmediğini değerlendir (küçük yazım/Türkçe karakter farklılıkları kabul edilebilir).`,
           },
         ],
       },

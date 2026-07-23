@@ -70,6 +70,11 @@ async function registerAndLogin(email: string) {
   return response.body.accessToken as string;
 }
 
+async function registerAndLoginWithRole(email: string, role: string) {
+  const response = await request(app).post("/api/v1/auth/register").send({ email, password: "Supersecret123", role });
+  return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
+}
+
 describe("KYC endpoints", () => {
   it("rejects requests without an access token", async () => {
     const response = await request(app).get("/api/v1/kyc/documents");
@@ -227,5 +232,49 @@ describe("KYC endpoints", () => {
 
     expect(diplomaResponse.status).toBe(201);
     expect(diplomaResponse.body.status).toBe("approved");
+  });
+
+  it("rejects a kurumsal_belge upload from a non-employer role", async () => {
+    const { accessToken } = await registerAndLoginWithRole("kyc-corp-non-employer@nexora.dev", "hekim");
+
+    const response = await request(app)
+      .post("/api/v1/kyc/documents")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        documentType: "kurumsal_belge",
+        storageKey: "kyc/fake/kurumsal_belge/fake.jpeg",
+        contentType: "image/jpeg",
+        claimedFullName: "Nexora Klinik",
+      });
+
+    expect(response.status).toBe(403);
+  });
+
+  it("approves a kurumsal_belge for an employer role and raises kycLevel to 3", async () => {
+    const { accessToken } = await registerAndLoginWithRole("kyc-corp-approve@nexora.dev", "klinik");
+    mockOcrResponse({
+      isLegible: true,
+      extractedFullName: "Nexora Klinik",
+      documentNumber: "1234567890",
+      nameMatchesUser: true,
+      confidence: "high",
+      notes: "Belge net ve kurum adı eşleşiyor",
+    });
+
+    const response = await request(app)
+      .post("/api/v1/kyc/documents")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        documentType: "kurumsal_belge",
+        storageKey: "kyc/fake/kurumsal_belge/fake.jpeg",
+        contentType: "image/jpeg",
+        claimedFullName: "Nexora Klinik",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.status).toBe("approved");
+
+    const profileResponse = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+    expect(profileResponse.body.kycLevel).toBe(3);
   });
 });

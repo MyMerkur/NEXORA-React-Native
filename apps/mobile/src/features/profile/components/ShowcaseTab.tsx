@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
-import type { MicroCompetencyTag } from "@nexora/shared-constants";
+import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { requestAvatarUploadUrl, updateShowcase, type UserProfile } from "../../../services/profileApi";
 import { TagPicker } from "../../../components/TagPicker";
@@ -22,6 +22,7 @@ interface ShowcaseTabProps {
 }
 
 export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
+  const isEmployer = (EMPLOYER_ROLES as readonly string[]).includes(profile.role);
   const [displayName, setDisplayName] = useState(profile.showcase.displayName);
   const [title, setTitle] = useState(profile.showcase.title);
   const [bio, setBio] = useState(profile.showcase.bio);
@@ -114,6 +115,11 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         value={workplace}
         onChangeText={setWorkplace}
       />
+      {isEmployer ? (
+        <Text style={[styles.verifiedBadge, profile.showcase.isVerifiedOrg ? styles.verifiedTrue : styles.verifiedFalse]}>
+          {profile.showcase.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
+        </Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Şehir"
@@ -185,6 +191,17 @@ const styles = StyleSheet.create({
   multiline: {
     minHeight: 80,
     textAlignVertical: "top",
+  },
+  verifiedBadge: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    marginBottom: spacing.md,
+  },
+  verifiedTrue: {
+    color: colors.success,
+  },
+  verifiedFalse: {
+    color: colors.textSecondary,
   },
   label: {
     color: colors.textPrimary,

@@ -57,6 +57,11 @@ async function registerAndLogin(email: string) {
   return response.body.accessToken as string;
 }
 
+async function registerAndLoginWithRole(email: string, role: string) {
+  const response = await request(app).post("/api/v1/auth/register").send({ email, password: "Supersecret123", role });
+  return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
+}
+
 describe("User profile endpoints", () => {
   it("rejects requests without an access token", async () => {
     const response = await request(app).get("/api/v1/users/me");
@@ -149,5 +154,25 @@ describe("User profile endpoints", () => {
     expect(response.status).toBe(200);
     expect(response.body.uploadUrl).toBe("https://example.r2.cloudflarestorage.com/presigned-put-url");
     expect(response.body.storageKey).toMatch(/^avatars\/.+\.jpeg$/);
+  });
+
+  it("shows isVerifiedOrg as false for an employer role without Level 3 KYC", async () => {
+    const { accessToken } = await registerAndLoginWithRole("profile-unverified-org@nexora.dev", "klinik");
+
+    const response = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.showcase.isVerifiedOrg).toBe(false);
+  });
+
+  it("shows isVerifiedOrg as true for an employer role with Level 3 KYC", async () => {
+    const { accessToken, userId } = await registerAndLoginWithRole("profile-verified-org@nexora.dev", "firma");
+    const { UserModel } = await import("./models/User");
+    await UserModel.findByIdAndUpdate(userId, { kycLevel: 3 });
+
+    const response = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.showcase.isVerifiedOrg).toBe(true);
   });
 });

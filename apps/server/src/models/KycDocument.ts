@@ -1,6 +1,6 @@
 import { Schema, model, type InferSchemaType } from "mongoose";
 
-export const KYC_DOCUMENT_TYPES = ["kimlik", "diploma"] as const;
+export const KYC_DOCUMENT_TYPES = ["kimlik", "diploma", "kurumsal_belge"] as const;
 export const KYC_DOCUMENT_STATUSES = ["pending", "approved", "rejected", "needs_review"] as const;
 
 export type KycDocumentType = (typeof KYC_DOCUMENT_TYPES)[number];

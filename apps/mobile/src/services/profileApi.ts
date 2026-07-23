@@ -16,6 +16,7 @@ export interface ShowcaseProfile {
   workplace: string;
   city: string;
   specialties: MicroCompetencyTag[];
+  isVerifiedOrg: boolean;
 }
 
 export interface CareerProfile {

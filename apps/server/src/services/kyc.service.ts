@@ -10,6 +10,7 @@ import { analyzeKycDocument, OcrNotConfiguredError, type KycExtraction } from ".
 import { notifyKycStatusChange } from "./notification.service";
 import { logger } from "../utils/logger";
 import { HttpError } from "../utils/httpError";
+import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import type { KycDocumentStatus, KycDocumentType } from "../models/KycDocument";
 
 export async function requestUploadUrl(userId: string, documentType: KycDocumentType, contentType: string) {
@@ -38,11 +39,20 @@ function decideStatus(extraction: KycExtraction): KycDocumentStatus {
 export async function confirmUpload(userId: string, params: ConfirmUploadParams) {
   const userObjectId = new Types.ObjectId(userId);
 
+  const requester = await findUserById(userId);
+  if (!requester) {
+    throw new HttpError("Kullanıcı bulunamadı", 404);
+  }
+
   if (params.documentType === "diploma") {
     const approvedKimlik = await findApprovedByUserAndType(userObjectId, "kimlik");
     if (!approvedKimlik) {
       throw new HttpError("Diploma yüklemeden önce kimlik onaylanmalı", 409);
     }
+  }
+
+  if (params.documentType === "kurumsal_belge" && !(EMPLOYER_ROLES as readonly string[]).includes(requester.role)) {
+    throw new HttpError("Sadece klinik/firma/dernek hesapları kurumsal belge yükleyebilir", 403);
   }
 
   const document = await createKycDocument({
@@ -70,7 +80,7 @@ export async function confirmUpload(userId: string, params: ConfirmUploadParams)
     if (document.status === "approved") {
       const user = await findUserById(userId);
       if (user) {
-        const targetLevel = params.documentType === "kimlik" ? 1 : 2;
+        const targetLevel = params.documentType === "kimlik" ? 1 : params.documentType === "diploma" ? 2 : 3;
         user.kycLevel = Math.max(user.kycLevel, targetLevel);
         await user.save();
       }
