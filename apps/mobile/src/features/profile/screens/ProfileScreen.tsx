@@ -4,9 +4,11 @@ import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import { getUnreadCount } from "../../../services/notificationApi";
+import { getUnreadThreadCount } from "../../../services/inboxApi";
 import { ShowcaseTab } from "../components/ShowcaseTab";
 import { CareerTab } from "../components/CareerTab";
 import { NotificationsModal } from "../../notifications/components/NotificationsModal";
+import { InboxModal } from "../../inbox/components/InboxModal";
 
 type ProfileTab = "showcase" | "career";
 
@@ -17,6 +19,8 @@ export function ProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [inboxVisible, setInboxVisible] = useState(false);
+  const [unreadThreadCount, setUnreadThreadCount] = useState(0);
 
   useEffect(() => {
     getMe()
@@ -30,6 +34,12 @@ export function ProfileScreen() {
       .then(setUnreadCount)
       .catch(() => undefined);
   }, [notificationsVisible]);
+
+  useEffect(() => {
+    getUnreadThreadCount()
+      .then(setUnreadThreadCount)
+      .catch(() => undefined);
+  }, [inboxVisible]);
 
   if (loading) {
     return (
@@ -49,14 +59,24 @@ export function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.notificationsButton} onPress={() => setNotificationsVisible(true)}>
-        <Text style={styles.notificationsButtonText}>🔔 Bildirimler</Text>
-        {unreadCount > 0 ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
-          </View>
-        ) : null}
-      </TouchableOpacity>
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.notificationsButton} onPress={() => setInboxVisible(true)}>
+          <Text style={styles.notificationsButtonText}>💬 Mesajlar</Text>
+          {unreadThreadCount > 0 ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadThreadCount > 9 ? "9+" : unreadThreadCount}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.notificationsButton} onPress={() => setNotificationsVisible(true)}>
+          <Text style={styles.notificationsButtonText}>🔔 Bildirimler</Text>
+          {unreadCount > 0 ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.tabBar}>
         <TouchableOpacity
@@ -80,6 +100,7 @@ export function ProfileScreen() {
       )}
 
       <NotificationsModal visible={notificationsVisible} onClose={() => setNotificationsVisible(false)} />
+      <InboxModal visible={inboxVisible} onClose={() => setInboxVisible(false)} />
     </View>
   );
 }
@@ -98,12 +119,16 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.danger,
   },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.md,
+    margin: spacing.md,
+    marginBottom: 0,
+  },
   notificationsButton: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-end",
-    margin: spacing.md,
-    marginBottom: 0,
   },
   notificationsButtonText: {
     color: colors.textPrimary,

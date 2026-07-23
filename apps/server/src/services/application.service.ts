@@ -21,13 +21,13 @@ function serializeApplicationForApplicant(application: {
   createdAt: Date;
   jobId: unknown;
 }) {
-  const job = application.jobId as unknown as { _id: Types.ObjectId; title: string };
+  const job = application.jobId as unknown as { _id: Types.ObjectId; title: string; employerId: Types.ObjectId };
   return {
     id: application._id.toString(),
     message: application.message,
     status: application.status,
     createdAt: application.createdAt,
-    job: { id: job._id.toString(), title: job.title },
+    job: { id: job._id.toString(), title: job.title, employerId: job.employerId.toString() },
   };
 }
 

@@ -4,6 +4,7 @@ import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getJobApplications, updateApplicationStatus, type JobApplicantItem, type JobItem } from "../../../services/jobApi";
 import { statusColor, statusLabel } from "../statusStyles";
+import { InboxModal } from "../../inbox/components/InboxModal";
 
 interface ApplicantsModalProps {
   visible: boolean;
@@ -16,6 +17,7 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [messageTargetId, setMessageTargetId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible || !job) {
@@ -71,6 +73,9 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
                     <Text style={[styles.status, { color: statusColor(applicant.status) }]}>
                       {statusLabel(applicant.status)}
                     </Text>
+                    <TouchableOpacity onPress={() => setMessageTargetId(applicant.applicant.id)}>
+                      <Text style={styles.messageLink}>Mesaj Gönder</Text>
+                    </TouchableOpacity>
                     {applicant.status === "pending" ? (
                       <View style={styles.decisionRow}>
                         <TouchableOpacity
@@ -96,6 +101,14 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
           )}
         </View>
       </View>
+
+      <InboxModal
+        visible={messageTargetId !== null}
+        onClose={() => setMessageTargetId(null)}
+        startTarget={
+          messageTargetId && job ? { userId: messageTargetId, context: { type: "job", id: job.id } } : null
+        }
+      />
     </Modal>
   );
 }
@@ -173,6 +186,12 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     marginTop: spacing.xs,
     fontWeight: typography.weights.semibold,
+  },
+  messageLink: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    marginTop: spacing.xs,
   },
   decisionRow: {
     flexDirection: "row",

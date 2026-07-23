@@ -3,6 +3,8 @@ import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, Touchabl
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getOrgProfile, type OrgProfile } from "../../../services/orgApi";
+import { useAuthStore } from "../../../store/useAuthStore";
+import { InboxModal } from "../../inbox/components/InboxModal";
 
 interface OrgProfileModalProps {
   visible: boolean;
@@ -14,6 +16,8 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
   const [profile, setProfile] = useState<OrgProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [messageVisible, setMessageVisible] = useState(false);
+  const currentUserId = useAuthStore((state) => state.user?.id);
 
   useEffect(() => {
     if (!visible || !orgUserId) {
@@ -62,6 +66,12 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
               </View>
 
               {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+
+              {profile.id !== currentUserId ? (
+                <TouchableOpacity style={styles.messageButton} onPress={() => setMessageVisible(true)}>
+                  <Text style={styles.messageButtonText}>Mesaj Gönder</Text>
+                </TouchableOpacity>
+              ) : null}
 
               <Text style={styles.sectionTitle}>Ekip ({profile.team.length})</Text>
               {profile.team.length === 0 ? (
@@ -114,6 +124,12 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
           ) : null}
         </View>
       </View>
+
+      <InboxModal
+        visible={messageVisible}
+        onClose={() => setMessageVisible(false)}
+        startTarget={profile ? { userId: profile.id, context: { type: "org", id: profile.id } } : null}
+      />
     </Modal>
   );
 }
@@ -195,6 +211,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
+  },
+  messageButton: {
+    alignSelf: "flex-start",
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.accentGold,
+    marginBottom: spacing.md,
+  },
+  messageButtonText: {
+    color: colors.background,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
   },
   sectionTitle: {
     color: colors.textPrimary,
