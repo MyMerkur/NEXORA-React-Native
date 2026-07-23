@@ -39,3 +39,18 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+export async function uploadFileToPresignedUrl(uploadUrl: string, fileUri: string, contentType: string): Promise<void> {
+  const fileResponse = await fetch(fileUri);
+  const blob = await fileResponse.blob();
+
+  const putResponse = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: blob,
+  });
+
+  if (!putResponse.ok) {
+    throw new Error("Dosya yüklenemedi");
+  }
+}
