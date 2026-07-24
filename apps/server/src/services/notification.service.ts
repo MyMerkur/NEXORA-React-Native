@@ -86,6 +86,30 @@ export async function notifyReferenceWritten(subjectId: string, authorName: stri
   await createNotification(subjectId, "reference_written", title, body);
 }
 
+export async function notifySubscriptionActivated(userId: string) {
+  const title = "Aboneliğiniz aktif";
+  const body = "Aboneliğiniz başarıyla başlatıldı, premium içeriklere erişebilirsiniz";
+  await createNotification(userId, "subscription_activated", title, body);
+}
+
+export async function notifySubscriptionRenewed(userId: string) {
+  const title = "Aboneliğiniz yenilendi";
+  const body = "Aboneliğiniz bir sonraki dönem için başarıyla yenilendi";
+  await createNotification(userId, "subscription_renewed", title, body);
+}
+
+export async function notifySubscriptionPaymentFailed(userId: string) {
+  const title = "Abonelik ödemesi başarısız";
+  const body = "Abonelik ödemeniz alınamadı, lütfen ödeme yönteminizi kontrol edin";
+  await createNotification(userId, "subscription_payment_failed", title, body);
+}
+
+export async function notifySubscriptionCanceled(userId: string) {
+  const title = "Aboneliğiniz iptal edildi";
+  const body = "Aboneliğiniz iptal edildi";
+  await createNotification(userId, "subscription_canceled", title, body);
+}
+
 export async function listNotifications(userId: string) {
   const notifications = await listByUser(new Types.ObjectId(userId));
   return notifications.map((notification) => ({

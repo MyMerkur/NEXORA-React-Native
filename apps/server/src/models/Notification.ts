@@ -8,6 +8,10 @@ export const NOTIFICATION_TYPES = [
   "new_match",
   "reference_request",
   "reference_written",
+  "subscription_activated",
+  "subscription_renewed",
+  "subscription_payment_failed",
+  "subscription_canceled",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
