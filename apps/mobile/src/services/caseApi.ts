@@ -59,3 +59,17 @@ export async function getFeed(cursor?: string): Promise<FeedPage> {
   const { data } = await apiClient.get<FeedPage>("/api/v1/cases", { params: cursor ? { cursor } : undefined });
   return data;
 }
+
+export interface CaseDraft {
+  title: string;
+  description: string;
+  specialties: MicroCompetencyTag[];
+}
+
+export async function generateCaseDraft(input: {
+  storageKeys: string[];
+  captionText?: string;
+}): Promise<CaseDraft> {
+  const { data } = await apiClient.post<CaseDraft>("/api/v1/cases/ai-draft", input);
+  return data;
+}
