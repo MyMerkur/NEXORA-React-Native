@@ -14,6 +14,24 @@ export async function createUser(data: Pick<User, "email" | "passwordHash" | "ro
   return UserModel.create(data);
 }
 
+export async function updateBillingInfo(
+  userId: string,
+  billingInfo: Partial<{
+    identityNumberEncrypted: string;
+    phone: string;
+    address: string;
+    city: string;
+    country: string;
+    zipCode: string;
+  }>,
+) {
+  const set: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(billingInfo)) {
+    set[`billingInfo.${key}`] = value;
+  }
+  return UserModel.findByIdAndUpdate(userId, { $set: set }, { new: true });
+}
+
 export async function listSwipeableCandidates(params: {
   excludedCandidateIds: Types.ObjectId[];
   specialties: string[];

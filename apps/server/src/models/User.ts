@@ -37,6 +37,18 @@ const careerSchema = new Schema(
   { _id: false },
 );
 
+const billingInfoSchema = new Schema(
+  {
+    identityNumberEncrypted: { type: String, default: "" },
+    phone: { type: String, trim: true, maxlength: 20, default: "" },
+    address: { type: String, trim: true, maxlength: 300, default: "" },
+    city: { type: String, trim: true, maxlength: 100, default: "" },
+    country: { type: String, trim: true, maxlength: 100, default: "Türkiye" },
+    zipCode: { type: String, trim: true, maxlength: 20, default: "" },
+  },
+  { _id: false },
+);
+
 const userSchema = new Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -47,6 +59,7 @@ const userSchema = new Schema(
     lockedUntil: { type: Date, default: null },
     showcase: { type: showcaseSchema, default: () => ({}) },
     career: { type: careerSchema, default: () => ({}) },
+    billingInfo: { type: billingInfoSchema, default: () => ({}) },
     affiliatedOrgId: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true },

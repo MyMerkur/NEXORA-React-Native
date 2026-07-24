@@ -11,6 +11,7 @@ beforeAll(async () => {
   process.env.ATLAS_URI_DEV = mongoServer.getUri();
   process.env.JWT_ACCESS_SECRET = "test-access-secret";
   process.env.JWT_REFRESH_SECRET = "test-refresh-secret";
+  process.env.FIELD_ENCRYPTION_KEY = "test-field-encryption-key-32-bytes!!";
   process.env.AUTH_RATE_LIMIT_MAX = "1000";
 
   const { connectDB } = await import("./config/db");

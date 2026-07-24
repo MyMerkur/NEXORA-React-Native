@@ -12,11 +12,17 @@ import { inboxRouter } from "./inbox.routes";
 import { matchingRouter } from "./matching.routes";
 import { referenceRouter } from "./reference.routes";
 import { profileRouter } from "./profile.routes";
+import { subscriptionRouter } from "./subscription.routes";
+import { paymentRouter } from "./payment.routes";
 
 export const apiV1Router = Router();
 
 apiV1Router.use(healthRouter);
 apiV1Router.use(authRouter);
+// paymentRouter has no requireAuth (iyzico calls it server-to-server) — every other router below
+// applies a blanket requireAuth that runs for ANY path reaching it, so this must stay registered
+// before them or its routes get 401'd before they're ever matched.
+apiV1Router.use(paymentRouter);
 apiV1Router.use(kycRouter);
 apiV1Router.use(userRouter);
 apiV1Router.use(caseRouter);
@@ -28,3 +34,4 @@ apiV1Router.use(inboxRouter);
 apiV1Router.use(matchingRouter);
 apiV1Router.use(referenceRouter);
 apiV1Router.use(profileRouter);
+apiV1Router.use(subscriptionRouter);

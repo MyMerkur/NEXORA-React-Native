@@ -15,3 +15,11 @@ export const authRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Çok fazla deneme yapıldı, lütfen daha sonra tekrar deneyin" },
 });
+
+export const paymentRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: env.PAYMENT_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Çok fazla ödeme isteği yapıldı, lütfen daha sonra tekrar deneyin" },
+});

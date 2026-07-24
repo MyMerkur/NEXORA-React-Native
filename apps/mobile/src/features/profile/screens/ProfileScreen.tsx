@@ -9,6 +9,7 @@ import { ShowcaseTab } from "../components/ShowcaseTab";
 import { CareerTab } from "../components/CareerTab";
 import { NotificationsModal } from "../../notifications/components/NotificationsModal";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { SubscriptionModal } from "../../subscription/components/SubscriptionModal";
 
 type ProfileTab = "showcase" | "career";
 
@@ -21,6 +22,7 @@ export function ProfileScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [inboxVisible, setInboxVisible] = useState(false);
   const [unreadThreadCount, setUnreadThreadCount] = useState(0);
+  const [subscriptionVisible, setSubscriptionVisible] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -76,6 +78,9 @@ export function ProfileScreen() {
             </View>
           ) : null}
         </TouchableOpacity>
+        <TouchableOpacity style={styles.notificationsButton} onPress={() => setSubscriptionVisible(true)}>
+          <Text style={styles.notificationsButtonText}>💳 Aboneliğim</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabBar}>
@@ -101,6 +106,7 @@ export function ProfileScreen() {
 
       <NotificationsModal visible={notificationsVisible} onClose={() => setNotificationsVisible(false)} />
       <InboxModal visible={inboxVisible} onClose={() => setInboxVisible(false)} />
+      <SubscriptionModal visible={subscriptionVisible} onClose={() => setSubscriptionVisible(false)} />
     </View>
   );
 }
