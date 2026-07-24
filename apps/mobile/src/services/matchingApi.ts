@@ -42,6 +42,7 @@ export interface MatchItem {
   id: string;
   job: { id: string; title: string };
   counterpart: { id: string; displayName: string; avatarUrl: string | null };
+  counterpartRole: "candidate" | "employer";
   threadId: string;
   createdAt: string;
 }

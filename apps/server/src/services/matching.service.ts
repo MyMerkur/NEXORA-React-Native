@@ -157,6 +157,7 @@ export async function getMatches(userId: string) {
         id: match._id.toString(),
         job: { id: job._id.toString(), title: job.title },
         counterpart,
+        counterpartRole: isCandidate ? "employer" : "candidate",
         threadId: match.threadId.toString(),
         createdAt: match.createdAt,
       };

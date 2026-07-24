@@ -74,6 +74,18 @@ export async function notifyNewMatch(userId: string, counterpartName: string, jo
   await createNotification(userId, "new_match", title, body);
 }
 
+export async function notifyReferenceRequested(authorId: string, subjectName: string) {
+  const title = "Referans isteği";
+  const body = `${subjectName} sizden bir referans yazmanızı istedi`;
+  await createNotification(authorId, "reference_request", title, body);
+}
+
+export async function notifyReferenceWritten(subjectId: string, authorName: string) {
+  const title = "Yeni referans";
+  const body = `${authorName} sizin için bir referans yazdı`;
+  await createNotification(subjectId, "reference_written", title, body);
+}
+
 export async function listNotifications(userId: string) {
   const notifications = await listByUser(new Types.ObjectId(userId));
   return notifications.map((notification) => ({

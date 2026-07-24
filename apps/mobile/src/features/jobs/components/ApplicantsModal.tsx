@@ -5,6 +5,7 @@ import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getJobApplications, updateApplicationStatus, type JobApplicantItem, type JobItem } from "../../../services/jobApi";
 import { statusColor, statusLabel } from "../statusStyles";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { UserProfileModal } from "../../profiles/components/UserProfileModal";
 
 interface ApplicantsModalProps {
   visible: boolean;
@@ -18,6 +19,7 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [messageTargetId, setMessageTargetId] = useState<string | null>(null);
+  const [profileTargetId, setProfileTargetId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible || !job) {
@@ -68,7 +70,9 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
                     <View style={[styles.avatar, styles.avatarPlaceholder]} />
                   )}
                   <View style={styles.rowContent}>
-                    <Text style={styles.applicantName}>{applicant.applicant.displayName}</Text>
+                    <TouchableOpacity onPress={() => setProfileTargetId(applicant.applicant.id)}>
+                      <Text style={styles.applicantName}>{applicant.applicant.displayName}</Text>
+                    </TouchableOpacity>
                     {applicant.message ? <Text style={styles.message}>{applicant.message}</Text> : null}
                     <Text style={[styles.status, { color: statusColor(applicant.status) }]}>
                       {statusLabel(applicant.status)}
@@ -109,6 +113,7 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
           messageTargetId && job ? { userId: messageTargetId, context: { type: "job", id: job.id } } : null
         }
       />
+      <UserProfileModal visible={profileTargetId !== null} userId={profileTargetId} onClose={() => setProfileTargetId(null)} />
     </Modal>
   );
 }
