@@ -5,12 +5,14 @@ import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getFeed, type CaseItem } from "../../../services/caseApi";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { UserProfileModal } from "../../profiles/components/UserProfileModal";
 
 export function FeedScreen() {
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [messageTarget, setMessageTarget] = useState<{ authorId: string; caseId: string } | null>(null);
+  const [profileTargetId, setProfileTargetId] = useState<string | null>(null);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -94,7 +96,9 @@ export function FeedScreen() {
               ) : (
                 <View style={[styles.avatar, styles.avatarPlaceholder]} />
               )}
-              <Text style={styles.authorName}>{item.author.displayName}</Text>
+              <TouchableOpacity onPress={() => setProfileTargetId(item.author.id)}>
+                <Text style={styles.authorName}>{item.author.displayName}</Text>
+              </TouchableOpacity>
             </View>
 
             {item.images[0] ? <Image source={{ uri: item.images[0].url }} style={styles.image} /> : null}
@@ -124,6 +128,7 @@ export function FeedScreen() {
           messageTarget ? { userId: messageTarget.authorId, context: { type: "case", id: messageTarget.caseId } } : null
         }
       />
+      <UserProfileModal visible={profileTargetId !== null} userId={profileTargetId} onClose={() => setProfileTargetId(null)} />
     </>
   );
 }

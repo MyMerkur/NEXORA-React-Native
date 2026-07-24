@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -15,6 +15,13 @@ import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constant
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { requestAvatarUploadUrl, updateShowcase, type UserProfile } from "../../../services/profileApi";
 import { searchOrgs, setAffiliation, type OrgSearchResult } from "../../../services/orgApi";
+import {
+  getIncomingRequests,
+  fulfillRequest,
+  getMyReferences,
+  setReferenceVisibility,
+  type ReferenceItem,
+} from "../../../services/referenceApi";
 import { TagPicker } from "../../../components/TagPicker";
 import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
 
@@ -38,6 +45,56 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
   const [affiliationQuery, setAffiliationQuery] = useState("");
   const [affiliationResults, setAffiliationResults] = useState<OrgSearchResult[]>([]);
   const [affiliationSaving, setAffiliationSaving] = useState(false);
+  const [incomingRequests, setIncomingRequests] = useState<ReferenceItem[]>([]);
+  const [myReferences, setMyReferences] = useState<ReferenceItem[]>([]);
+  const [fulfillingId, setFulfillingId] = useState<string | null>(null);
+  const [fulfillRelationship, setFulfillRelationship] = useState("");
+  const [fulfillBody, setFulfillBody] = useState("");
+  const [referenceSaving, setReferenceSaving] = useState(false);
+
+  useEffect(() => {
+    if (isEmployer) {
+      return;
+    }
+    getIncomingRequests()
+      .then(setIncomingRequests)
+      .catch(() => undefined);
+    getMyReferences()
+      .then(setMyReferences)
+      .catch(() => undefined);
+  }, [isEmployer]);
+
+  async function handleFulfill(referenceId: string) {
+    if (!fulfillBody.trim()) {
+      return;
+    }
+    setReferenceSaving(true);
+    setError(null);
+    try {
+      await fulfillRequest(referenceId, fulfillBody.trim(), fulfillRelationship.trim() || undefined);
+      setIncomingRequests((current) => current.filter((item) => item.id !== referenceId));
+      setFulfillingId(null);
+      setFulfillRelationship("");
+      setFulfillBody("");
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Referans yazılamadı"));
+    } finally {
+      setReferenceSaving(false);
+    }
+  }
+
+  async function handleToggleVisibility(reference: ReferenceItem) {
+    setReferenceSaving(true);
+    setError(null);
+    try {
+      const updated = await setReferenceVisibility(reference.id, reference.status !== "hidden");
+      setMyReferences((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Görünürlük güncellenemedi"));
+    } finally {
+      setReferenceSaving(false);
+    }
+  }
 
   async function handlePickAvatar() {
     const result = await launchImageLibrary({ mediaType: "photo", quality: 0.8 });
@@ -204,6 +261,73 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       <Text style={styles.label}>Mikro-yetkinlikler</Text>
       <TagPicker selected={specialties} onChange={setSpecialties} />
 
+      {!isEmployer ? (
+        <View style={styles.referencesSection}>
+          <Text style={styles.label}>Referanslarım</Text>
+
+          {incomingRequests.length > 0 ? (
+            <>
+              <Text style={styles.referencesSubLabel}>Bekleyen istekler</Text>
+              {incomingRequests.map((request) => (
+                <View key={request.id}>
+                  <View style={styles.referenceRow}>
+                    <Text style={styles.referenceName}>{request.counterpart.displayName}</Text>
+                    {fulfillingId !== request.id ? (
+                      <TouchableOpacity onPress={() => setFulfillingId(request.id)}>
+                        <Text style={styles.referenceAction}>Yaz</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                  {fulfillingId === request.id ? (
+                    <View style={styles.fulfillForm}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="İlişkiniz (opsiyonel)"
+                        placeholderTextColor={colors.textSecondary}
+                        value={fulfillRelationship}
+                        onChangeText={setFulfillRelationship}
+                      />
+                      <TextInput
+                        style={[styles.input, styles.multiline]}
+                        placeholder="Referans metni"
+                        placeholderTextColor={colors.textSecondary}
+                        value={fulfillBody}
+                        onChangeText={setFulfillBody}
+                        multiline
+                      />
+                      <TouchableOpacity
+                        style={styles.previewButton}
+                        onPress={() => handleFulfill(request.id)}
+                        disabled={referenceSaving}
+                      >
+                        <Text style={styles.previewButtonText}>Gönder</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </>
+          ) : null}
+
+          <Text style={styles.referencesSubLabel}>Yazılmış referanslarım ({myReferences.length})</Text>
+          {myReferences.length === 0 ? (
+            <Text style={styles.referencesEmptyText}>Henüz bir referansın yok</Text>
+          ) : (
+            myReferences.map((reference) => (
+              <View key={reference.id} style={styles.referenceRow}>
+                <View style={styles.referenceInfo}>
+                  <Text style={styles.referenceName}>{reference.counterpart.displayName}</Text>
+                  <Text style={styles.referenceBody}>{reference.body}</Text>
+                </View>
+                <TouchableOpacity onPress={() => handleToggleVisibility(reference)} disabled={referenceSaving}>
+                  <Text style={styles.referenceAction}>{reference.status === "hidden" ? "Göster" : "Gizle"}</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+        </View>
+      ) : null}
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
@@ -332,6 +456,51 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
+  },
+  referencesSection: {
+    marginTop: spacing.lg,
+  },
+  referencesSubLabel: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  referencesEmptyText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+  },
+  referenceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.sm,
+  },
+  referenceInfo: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  referenceName: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+  },
+  referenceBody: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    marginTop: 2,
+  },
+  referenceAction: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+  fulfillForm: {
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
   error: {
     color: colors.danger,

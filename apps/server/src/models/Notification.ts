@@ -6,6 +6,8 @@ export const NOTIFICATION_TYPES = [
   "application_status",
   "new_message",
   "new_match",
+  "reference_request",
+  "reference_written",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

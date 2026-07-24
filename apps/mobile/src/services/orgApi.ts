@@ -29,6 +29,19 @@ export interface OrgRecentCase {
   createdAt: string;
 }
 
+export interface OrgRating {
+  average: number;
+  count: number;
+}
+
+export interface OrgReview {
+  id: string;
+  rating: number;
+  comment: string;
+  author: { id: string; displayName: string; avatarUrl: string | null };
+  createdAt: string;
+}
+
 export interface OrgProfile {
   id: string;
   displayName: string;
@@ -42,6 +55,7 @@ export interface OrgProfile {
   team: OrgTeamMember[];
   openJobs: OrgOpenJob[];
   recentCases: OrgRecentCase[];
+  rating: OrgRating;
 }
 
 export async function searchOrgs(query: string): Promise<OrgSearchResult[]> {
@@ -57,4 +71,14 @@ export async function getOrgProfile(userId: string): Promise<OrgProfile> {
 export async function setAffiliation(orgUserId: string | null): Promise<UserProfile> {
   const { data } = await apiClient.patch<UserProfile>("/api/v1/users/me/affiliation", { orgUserId });
   return data;
+}
+
+export async function rateOrg(orgId: string, rating: number, comment?: string): Promise<{ id: string; rating: number; comment: string }> {
+  const { data } = await apiClient.post(`/api/v1/orgs/${orgId}/reviews`, { rating, comment });
+  return data;
+}
+
+export async function getOrgReviews(orgId: string): Promise<OrgReview[]> {
+  const { data } = await apiClient.get<{ reviews: OrgReview[] }>(`/api/v1/orgs/${orgId}/reviews`);
+  return data.reviews;
 }

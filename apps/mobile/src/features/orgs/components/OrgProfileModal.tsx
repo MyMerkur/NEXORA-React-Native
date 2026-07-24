@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
+import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
-import { getOrgProfile, type OrgProfile } from "../../../services/orgApi";
+import { getOrgProfile, rateOrg, getOrgReviews, type OrgProfile, type OrgReview } from "../../../services/orgApi";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { InboxModal } from "../../inbox/components/InboxModal";
 
@@ -14,10 +15,14 @@ interface OrgProfileModalProps {
 
 export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModalProps) {
   const [profile, setProfile] = useState<OrgProfile | null>(null);
+  const [reviews, setReviews] = useState<OrgReview[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messageVisible, setMessageVisible] = useState(false);
-  const currentUserId = useAuthStore((state) => state.user?.id);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [ratingSaving, setRatingSaving] = useState(false);
+  const currentUser = useAuthStore((state) => state.user);
+  const canRate = orgUserId !== currentUser?.id && currentUser ? !(EMPLOYER_ROLES as readonly string[]).includes(currentUser.role) : false;
 
   useEffect(() => {
     if (!visible || !orgUserId) {
@@ -26,11 +31,34 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
     setLoading(true);
     setError(null);
     setProfile(null);
+    setSelectedRating(0);
     getOrgProfile(orgUserId)
       .then(setProfile)
       .catch((err) => setError(getApiErrorMessage(err, "Kurum profili yüklenemedi")))
       .finally(() => setLoading(false));
+    getOrgReviews(orgUserId)
+      .then(setReviews)
+      .catch(() => undefined);
   }, [visible, orgUserId]);
+
+  async function handleRate(rating: number) {
+    if (!orgUserId) {
+      return;
+    }
+    setSelectedRating(rating);
+    setRatingSaving(true);
+    setError(null);
+    try {
+      await rateOrg(orgUserId, rating);
+      const [updatedProfile, updatedReviews] = await Promise.all([getOrgProfile(orgUserId), getOrgReviews(orgUserId)]);
+      setProfile(updatedProfile);
+      setReviews(updatedReviews);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Değerlendirme kaydedilemedi"));
+    } finally {
+      setRatingSaving(false);
+    }
+  }
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -62,16 +90,49 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                   >
                     {profile.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
                   </Text>
+                  <Text style={styles.ratingSummary}>
+                    {profile.rating.count > 0
+                      ? `⭐ ${profile.rating.average} (${profile.rating.count} değerlendirme)`
+                      : "Henüz değerlendirme yok"}
+                  </Text>
                 </View>
               </View>
 
               {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
 
-              {profile.id !== currentUserId ? (
+              {profile.id !== currentUser?.id ? (
                 <TouchableOpacity style={styles.messageButton} onPress={() => setMessageVisible(true)}>
                   <Text style={styles.messageButtonText}>Mesaj Gönder</Text>
                 </TouchableOpacity>
               ) : null}
+
+              {canRate ? (
+                <View style={styles.rateSection}>
+                  <Text style={styles.sectionTitle}>Değerlendir</Text>
+                  <View style={styles.starRow}>
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <TouchableOpacity key={value} onPress={() => handleRate(value)} disabled={ratingSaving}>
+                        <Text style={styles.star}>{value <= selectedRating ? "★" : "☆"}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
+              <Text style={styles.sectionTitle}>Değerlendirmeler ({reviews.length})</Text>
+              {reviews.length === 0 ? (
+                <Text style={styles.emptyText}>Henüz değerlendirme yok</Text>
+              ) : (
+                reviews.map((review) => (
+                  <View key={review.id} style={styles.reviewRow}>
+                    <Text style={styles.reviewAuthor}>
+                      {review.author.displayName} — {"★".repeat(review.rating)}
+                      {"☆".repeat(5 - review.rating)}
+                    </Text>
+                    {review.comment ? <Text style={styles.reviewComment}>{review.comment}</Text> : null}
+                  </View>
+                ))
+              )}
 
               <Text style={styles.sectionTitle}>Ekip ({profile.team.length})</Text>
               {profile.team.length === 0 ? (
@@ -206,6 +267,37 @@ const styles = StyleSheet.create({
   },
   verifiedFalse: {
     color: colors.textSecondary,
+  },
+  ratingSummary: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.xs,
+    marginTop: spacing.xs,
+  },
+  rateSection: {
+    marginBottom: spacing.sm,
+  },
+  starRow: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  star: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.xl,
+  },
+  reviewRow: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.sm,
+  },
+  reviewAuthor: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+  },
+  reviewComment: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    marginTop: 2,
   },
   bio: {
     color: colors.textSecondary,
