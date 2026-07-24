@@ -4,7 +4,13 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
-import { createCase, requestImageUploadUrl, type CaseImageInput, type CaseStage } from "../../../services/caseApi";
+import {
+  createCase,
+  requestImageUploadUrl,
+  generateCaseDraft,
+  type CaseImageInput,
+  type CaseStage,
+} from "../../../services/caseApi";
 import { TagPicker } from "../../../components/TagPicker";
 
 const STAGES: { key: CaseStage; label: string }[] = [
@@ -22,6 +28,60 @@ export function CreateCaseScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [captionText, setCaptionText] = useState("");
+  const [draftSourceImages, setDraftSourceImages] = useState<(CaseImageInput & { previewUri: string })[]>([]);
+  const [uploadingDraftImage, setUploadingDraftImage] = useState(false);
+  const [generatingDraft, setGeneratingDraft] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
+
+  async function handleAddDraftSourceImage() {
+    const result = await launchImageLibrary({ mediaType: "photo", quality: 0.8 });
+    const asset = result.assets?.[0];
+    if (!asset?.uri) {
+      return;
+    }
+
+    const contentType = asset.type === "image/png" ? "image/png" : "image/jpeg";
+
+    setUploadingDraftImage(true);
+    setDraftError(null);
+    try {
+      const { uploadUrl, storageKey } = await requestImageUploadUrl(contentType);
+      await uploadFileToPresignedUrl(uploadUrl, asset.uri, contentType);
+      setDraftSourceImages((current) => [...current, { storageKey, stage: "before", previewUri: asset.uri! }]);
+    } catch (err) {
+      setDraftError(getApiErrorMessage(err, "Fotoğraf yüklenemedi"));
+    } finally {
+      setUploadingDraftImage(false);
+    }
+  }
+
+  function handleRemoveDraftSourceImage(index: number) {
+    setDraftSourceImages((current) => current.filter((_, i) => i !== index));
+  }
+
+  async function handleGenerateDraft() {
+    setGeneratingDraft(true);
+    setDraftError(null);
+    try {
+      const draft = await generateCaseDraft({
+        storageKeys: draftSourceImages.map((image) => image.storageKey),
+        captionText: captionText || undefined,
+      });
+      setTitle(draft.title);
+      setDescription(draft.description);
+      setSpecialties(draft.specialties);
+      setImages((current) => [...current, ...draftSourceImages]);
+      setDraftSourceImages([]);
+      setCaptionText("");
+      setSuccessMessage("Taslak oluşturuldu, düzenleyip paylaşabilirsin.");
+    } catch (err) {
+      setDraftError(getApiErrorMessage(err, "Taslak oluşturulamadı"));
+    } finally {
+      setGeneratingDraft(false);
+    }
+  }
 
   async function handleAddImage(stage: CaseStage) {
     const result = await launchImageLibrary({ mediaType: "photo", quality: 0.8 });
@@ -74,6 +134,51 @@ export function CreateCaseScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.aiDraftSection}>
+        <Text style={styles.label}>🤖 Instagram Gönderisinden Taslak Oluştur (Eğitmen)</Text>
+        <TextInput
+          style={[styles.input, styles.multiline]}
+          placeholder="Instagram açıklaması (opsiyonel)"
+          placeholderTextColor={colors.textSecondary}
+          value={captionText}
+          onChangeText={setCaptionText}
+          multiline
+        />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
+          {draftSourceImages.map((image, index) => (
+            <View key={image.storageKey} style={styles.thumbnailWrapper}>
+              <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
+              <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveDraftSourceImage(index)}>
+                <Text style={styles.removeBadgeText}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity
+            style={styles.addThumbnailButton}
+            onPress={handleAddDraftSourceImage}
+            disabled={uploadingDraftImage}
+          >
+            {uploadingDraftImage ? (
+              <ActivityIndicator color={colors.textSecondary} />
+            ) : (
+              <Text style={styles.addThumbnailText}>+ Ekle</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+        {draftError ? <Text style={styles.error}>{draftError}</Text> : null}
+        <TouchableOpacity
+          style={[styles.submitButton, styles.draftButton]}
+          onPress={handleGenerateDraft}
+          disabled={draftSourceImages.length === 0 || generatingDraft}
+        >
+          {generatingDraft ? (
+            <ActivityIndicator color={colors.background} />
+          ) : (
+            <Text style={styles.submitButtonText}>Taslak Oluştur</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="Vaka başlığı"
@@ -136,6 +241,17 @@ export function CreateCaseScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: spacing.lg,
+  },
+  aiDraftSection: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  draftButton: {
+    marginTop: spacing.sm,
   },
   input: {
     backgroundColor: colors.surface,

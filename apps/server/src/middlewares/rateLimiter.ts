@@ -23,3 +23,11 @@ export const paymentRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Çok fazla ödeme isteği yapıldı, lütfen daha sonra tekrar deneyin" },
 });
+
+export const aiDraftRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: env.AI_DRAFT_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Çok fazla AI taslak isteği yapıldı, lütfen daha sonra tekrar deneyin" },
+});
