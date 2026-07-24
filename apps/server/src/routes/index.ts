@@ -14,6 +14,7 @@ import { referenceRouter } from "./reference.routes";
 import { profileRouter } from "./profile.routes";
 import { subscriptionRouter } from "./subscription.routes";
 import { paymentRouter } from "./payment.routes";
+import { instructorInviteRouter } from "./instructorInvite.routes";
 
 export const apiV1Router = Router();
 
@@ -35,3 +36,4 @@ apiV1Router.use(matchingRouter);
 apiV1Router.use(referenceRouter);
 apiV1Router.use(profileRouter);
 apiV1Router.use(subscriptionRouter);
+apiV1Router.use(instructorInviteRouter);

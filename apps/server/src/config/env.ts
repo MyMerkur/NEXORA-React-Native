@@ -33,6 +33,10 @@ const envSchema = z.object({
   IYZICO_PRICING_PLAN_REFERENCE_CODE: z.string().default(""),
   IYZICO_CALLBACK_URL: z.string().default(""),
   PAYMENT_RATE_LIMIT_MAX: z.coerce.number().default(20),
+  ADMIN_EMAILS: z
+    .string()
+    .default("")
+    .transform((value) => value.split(",").map((email) => email.trim().toLowerCase()).filter(Boolean)),
 });
 
 export const env = envSchema.parse(process.env);

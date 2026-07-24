@@ -13,7 +13,7 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
-import { requestAvatarUploadUrl, updateShowcase, type UserProfile } from "../../../services/profileApi";
+import { requestAvatarUploadUrl, updateShowcase, getMe, type UserProfile } from "../../../services/profileApi";
 import { searchOrgs, setAffiliation, type OrgSearchResult } from "../../../services/orgApi";
 import {
   getIncomingRequests,
@@ -22,6 +22,7 @@ import {
   setReferenceVisibility,
   type ReferenceItem,
 } from "../../../services/referenceApi";
+import { acceptInstructorInvite } from "../../../services/instructorInviteApi";
 import { TagPicker } from "../../../components/TagPicker";
 import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
 
@@ -51,6 +52,10 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
   const [fulfillRelationship, setFulfillRelationship] = useState("");
   const [fulfillBody, setFulfillBody] = useState("");
   const [referenceSaving, setReferenceSaving] = useState(false);
+  const [inviteToken, setInviteToken] = useState("");
+  const [inviteSubmitting, setInviteSubmitting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const isInstructor = profile.kycLevel >= 4;
 
   useEffect(() => {
     if (isEmployer) {
@@ -93,6 +98,24 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       setError(getApiErrorMessage(err, "Görünürlük güncellenemedi"));
     } finally {
       setReferenceSaving(false);
+    }
+  }
+
+  async function handleAcceptInvite() {
+    if (!inviteToken.trim()) {
+      return;
+    }
+    setInviteSubmitting(true);
+    setInviteError(null);
+    try {
+      await acceptInstructorInvite(inviteToken.trim());
+      const refreshed = await getMe();
+      onUpdated(refreshed);
+      setInviteToken("");
+    } catch (err) {
+      setInviteError(getApiErrorMessage(err, "Davet kabul edilemedi"));
+    } finally {
+      setInviteSubmitting(false);
     }
   }
 
@@ -260,6 +283,26 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
 
       <Text style={styles.label}>Mikro-yetkinlikler</Text>
       <TagPicker selected={specialties} onChange={setSpecialties} />
+
+      {!isEmployer && isInstructor ? <Text style={styles.instructorBadge}>🎓 Eğitmen</Text> : null}
+
+      {!isEmployer && !isInstructor ? (
+        <View style={styles.inviteSection}>
+          <Text style={styles.label}>Eğitmen daveti var mı?</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Davet kodu"
+            placeholderTextColor={colors.textSecondary}
+            value={inviteToken}
+            onChangeText={setInviteToken}
+            autoCapitalize="none"
+          />
+          {inviteError ? <Text style={styles.error}>{inviteError}</Text> : null}
+          <TouchableOpacity style={styles.previewButton} onPress={handleAcceptInvite} disabled={inviteSubmitting}>
+            <Text style={styles.previewButtonText}>Kabul Et</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {!isEmployer ? (
         <View style={styles.referencesSection}>
@@ -456,6 +499,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
+  },
+  instructorBadge: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    marginTop: spacing.md,
+  },
+  inviteSection: {
+    marginTop: spacing.md,
   },
   referencesSection: {
     marginTop: spacing.lg,
