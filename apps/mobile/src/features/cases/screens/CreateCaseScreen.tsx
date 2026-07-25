@@ -12,6 +12,7 @@ import {
   type CaseStage,
 } from "../../../services/caseApi";
 import { TagPicker } from "../../../components/TagPicker";
+import { InstagramImportModal } from "../components/InstagramImportModal";
 
 const STAGES: { key: CaseStage; label: string }[] = [
   { key: "before", label: "Öncesi" },
@@ -34,6 +35,25 @@ export function CreateCaseScreen() {
   const [uploadingDraftImage, setUploadingDraftImage] = useState(false);
   const [generatingDraft, setGeneratingDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [instagramModalVisible, setInstagramModalVisible] = useState(false);
+
+  async function handleSelectInstagramMedia(media: { mediaUrl: string; caption: string }) {
+    setInstagramModalVisible(false);
+    setUploadingDraftImage(true);
+    setDraftError(null);
+    try {
+      const { uploadUrl, storageKey } = await requestImageUploadUrl("image/jpeg");
+      await uploadFileToPresignedUrl(uploadUrl, media.mediaUrl, "image/jpeg");
+      setDraftSourceImages((current) => [...current, { storageKey, stage: "before", previewUri: media.mediaUrl }]);
+      if (!captionText && media.caption) {
+        setCaptionText(media.caption);
+      }
+    } catch (err) {
+      setDraftError(getApiErrorMessage(err, "Instagram fotoğrafı yüklenemedi"));
+    } finally {
+      setUploadingDraftImage(false);
+    }
+  }
 
   async function handleAddDraftSourceImage() {
     const result = await launchImageLibrary({ mediaType: "photo", quality: 0.8 });
@@ -133,108 +153,126 @@ export function CreateCaseScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.aiDraftSection}>
-        <Text style={styles.label}>🤖 Instagram Gönderisinden Taslak Oluştur (Eğitmen)</Text>
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          placeholder="Instagram açıklaması (opsiyonel)"
-          placeholderTextColor={colors.textSecondary}
-          value={captionText}
-          onChangeText={setCaptionText}
-          multiline
-        />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
-          {draftSourceImages.map((image, index) => (
-            <View key={image.storageKey} style={styles.thumbnailWrapper}>
-              <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
-              <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveDraftSourceImage(index)}>
-                <Text style={styles.removeBadgeText}>×</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-          <TouchableOpacity
-            style={styles.addThumbnailButton}
-            onPress={handleAddDraftSourceImage}
-            disabled={uploadingDraftImage}
-          >
-            {uploadingDraftImage ? (
-              <ActivityIndicator color={colors.textSecondary} />
-            ) : (
-              <Text style={styles.addThumbnailText}>+ Ekle</Text>
-            )}
-          </TouchableOpacity>
-        </ScrollView>
-        {draftError ? <Text style={styles.error}>{draftError}</Text> : null}
-        <TouchableOpacity
-          style={[styles.submitButton, styles.draftButton]}
-          onPress={handleGenerateDraft}
-          disabled={draftSourceImages.length === 0 || generatingDraft}
-        >
-          {generatingDraft ? (
-            <ActivityIndicator color={colors.background} />
-          ) : (
-            <Text style={styles.submitButtonText}>Taslak Oluştur</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Vaka başlığı"
-        placeholderTextColor={colors.textSecondary}
-        value={title}
-        onChangeText={setTitle}
-      />
-      <TextInput
-        style={[styles.input, styles.multiline]}
-        placeholder="Açıklama"
-        placeholderTextColor={colors.textSecondary}
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
-
-      <Text style={styles.label}>İlgili yetkinlikler</Text>
-      <TagPicker selected={specialties} onChange={setSpecialties} />
-
-      {STAGES.map((stage) => (
-        <View key={stage.key} style={styles.stageSection}>
-          <Text style={styles.label}>{stage.label}</Text>
+    <>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.aiDraftSection}>
+          <Text style={styles.label}>🤖 Instagram Gönderisinden Taslak Oluştur (Eğitmen)</Text>
+          <TextInput
+            style={[styles.input, styles.multiline]}
+            placeholder="Instagram açıklaması (opsiyonel)"
+            placeholderTextColor={colors.textSecondary}
+            value={captionText}
+            onChangeText={setCaptionText}
+            multiline
+          />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
-            {images
-              .map((image, index) => ({ image, index }))
-              .filter(({ image }) => image.stage === stage.key)
-              .map(({ image, index }) => (
-                <View key={image.storageKey} style={styles.thumbnailWrapper}>
-                  <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
-                  <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveImage(index)}>
-                    <Text style={styles.removeBadgeText}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+            {draftSourceImages.map((image, index) => (
+              <View key={image.storageKey} style={styles.thumbnailWrapper}>
+                <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
+                <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveDraftSourceImage(index)}>
+                  <Text style={styles.removeBadgeText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
             <TouchableOpacity
               style={styles.addThumbnailButton}
-              onPress={() => handleAddImage(stage.key)}
-              disabled={uploadingStage !== null}
+              onPress={handleAddDraftSourceImage}
+              disabled={uploadingDraftImage}
             >
-              {uploadingStage === stage.key ? (
+              {uploadingDraftImage ? (
                 <ActivityIndicator color={colors.textSecondary} />
               ) : (
                 <Text style={styles.addThumbnailText}>+ Ekle</Text>
               )}
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addThumbnailButton}
+              onPress={() => setInstagramModalVisible(true)}
+              disabled={uploadingDraftImage}
+            >
+              <Text style={styles.addThumbnailText}>📷 Instagram</Text>
+            </TouchableOpacity>
           </ScrollView>
+          {draftError ? <Text style={styles.error}>{draftError}</Text> : null}
+          <TouchableOpacity
+            style={[styles.submitButton, styles.draftButton]}
+            onPress={handleGenerateDraft}
+            disabled={draftSourceImages.length === 0 || generatingDraft}
+          >
+            {generatingDraft ? (
+              <ActivityIndicator color={colors.background} />
+            ) : (
+              <Text style={styles.submitButtonText}>Taslak Oluştur</Text>
+            )}
+          </TouchableOpacity>
         </View>
-      ))}
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+        <TextInput
+          style={styles.input}
+          placeholder="Vaka başlığı"
+          placeholderTextColor={colors.textSecondary}
+          value={title}
+          onChangeText={setTitle}
+        />
+        <TextInput
+          style={[styles.input, styles.multiline]}
+          placeholder="Açıklama"
+          placeholderTextColor={colors.textSecondary}
+          value={description}
+          onChangeText={setDescription}
+          multiline
+        />
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={submitting}>
-        {submitting ? <ActivityIndicator color={colors.background} /> : <Text style={styles.submitButtonText}>Paylaş</Text>}
-      </TouchableOpacity>
-    </ScrollView>
+        <Text style={styles.label}>İlgili yetkinlikler</Text>
+        <TagPicker selected={specialties} onChange={setSpecialties} />
+
+        {STAGES.map((stage) => (
+          <View key={stage.key} style={styles.stageSection}>
+            <Text style={styles.label}>{stage.label}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
+              {images
+                .map((image, index) => ({ image, index }))
+                .filter(({ image }) => image.stage === stage.key)
+                .map(({ image, index }) => (
+                  <View key={image.storageKey} style={styles.thumbnailWrapper}>
+                    <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
+                    <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveImage(index)}>
+                      <Text style={styles.removeBadgeText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              <TouchableOpacity
+                style={styles.addThumbnailButton}
+                onPress={() => handleAddImage(stage.key)}
+                disabled={uploadingStage !== null}
+              >
+                {uploadingStage === stage.key ? (
+                  <ActivityIndicator color={colors.textSecondary} />
+                ) : (
+                  <Text style={styles.addThumbnailText}>+ Ekle</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        ))}
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={submitting}>
+          {submitting ? (
+            <ActivityIndicator color={colors.background} />
+          ) : (
+            <Text style={styles.submitButtonText}>Paylaş</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+      <InstagramImportModal
+        visible={instagramModalVisible}
+        onClose={() => setInstagramModalVisible(false)}
+        onSelect={handleSelectInstagramMedia}
+      />
+    </>
   );
 }
 

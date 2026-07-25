@@ -34,6 +34,10 @@ const envSchema = z.object({
   IYZICO_CALLBACK_URL: z.string().default(""),
   PAYMENT_RATE_LIMIT_MAX: z.coerce.number().default(20),
   AI_DRAFT_RATE_LIMIT_MAX: z.coerce.number().default(10),
+  INSTAGRAM_APP_ID: z.string().default(""),
+  INSTAGRAM_APP_SECRET: z.string().default(""),
+  INSTAGRAM_REDIRECT_URI: z.string().default(""),
+  INSTAGRAM_RATE_LIMIT_MAX: z.coerce.number().default(20),
   ADMIN_EMAILS: z
     .string()
     .default("")

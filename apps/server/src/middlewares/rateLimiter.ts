@@ -31,3 +31,11 @@ export const aiDraftRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Çok fazla AI taslak isteği yapıldı, lütfen daha sonra tekrar deneyin" },
 });
+
+export const instagramRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: env.INSTAGRAM_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Çok fazla istek yapıldı, lütfen daha sonra tekrar deneyin" },
+});
