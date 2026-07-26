@@ -146,3 +146,27 @@ export async function notifyCertificateIssued(userId: string, courseTitle: strin
   const body = `"${courseTitle}" kursunu tamamladınız, sertifikanız oluşturuldu`;
   await createNotification(userId, "certificate_issued", title, body);
 }
+
+export async function notifyHubMembershipActivated(userId: string) {
+  const title = "Hub üyeliğiniz aktif";
+  const body = "Hub üyeliğiniz başarıyla başlatıldı, üyelere özel içeriklere erişebilirsiniz";
+  await createNotification(userId, "hub_membership_activated", title, body);
+}
+
+export async function notifyHubMembershipRenewed(userId: string) {
+  const title = "Hub üyeliğiniz yenilendi";
+  const body = "Hub üyeliğiniz bir sonraki dönem için başarıyla yenilendi";
+  await createNotification(userId, "hub_membership_renewed", title, body);
+}
+
+export async function notifyHubMembershipPaymentFailed(userId: string) {
+  const title = "Hub üyelik ödemesi başarısız";
+  const body = "Hub üyelik ödemeniz alınamadı, lütfen ödeme yönteminizi kontrol edin";
+  await createNotification(userId, "hub_membership_payment_failed", title, body);
+}
+
+export async function notifyHubMembershipCanceled(userId: string) {
+  const title = "Hub üyeliğiniz iptal edildi";
+  const body = "Hub üyeliğiniz iptal edildi";
+  await createNotification(userId, "hub_membership_canceled", title, body);
+}

@@ -182,3 +182,47 @@ export async function retrieveJobCreditCheckoutResult(token: string): Promise<Jo
     token,
   });
 }
+
+export interface CreateSubscriptionProductAndPlanParams {
+  name: string;
+  price: string;
+  currencyCode?: string;
+}
+
+export interface CreateSubscriptionProductAndPlanResult {
+  productReferenceCode: string;
+  pricingPlanReferenceCode: string;
+}
+
+// Dynamic per-Hub product/plan provisioning for Nexora Hubs paid membership — unlike the
+// app-wide teaser_monthly/clinic_premium_monthly plans (fixed, created once via iyzico's
+// dashboard/support, referenced via env), each paid Hub gets its own iyzico product + monthly
+// recurring pricing plan created here at Hub-creation time. Same IYZWSv2 auth, iyzicoRequest()
+// reused unchanged.
+export async function createSubscriptionProductAndPlan(
+  params: CreateSubscriptionProductAndPlanParams,
+): Promise<CreateSubscriptionProductAndPlanResult> {
+  const product = await iyzicoRequest<{ referenceCode: string }>("POST", "/v2/subscription/products", {
+    locale: "tr",
+    name: params.name,
+  });
+
+  const pricingPlan = await iyzicoRequest<{ referenceCode: string }>(
+    "POST",
+    `/v2/subscription/products/${encodeURIComponent(product.referenceCode)}/pricing-plans`,
+    {
+      locale: "tr",
+      name: params.name,
+      price: params.price,
+      currencyCode: params.currencyCode ?? "TRY",
+      paymentInterval: "MONTHLY",
+      paymentIntervalCount: 1,
+      planPaymentType: "RECURRING",
+    },
+  );
+
+  return {
+    productReferenceCode: product.referenceCode,
+    pricingPlanReferenceCode: pricingPlan.referenceCode,
+  };
+}

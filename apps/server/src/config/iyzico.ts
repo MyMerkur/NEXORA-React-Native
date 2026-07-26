@@ -32,6 +32,9 @@ export const iyzicoConfig = {
   get jobCreditCallbackUrl() {
     return env.IYZICO_JOB_CREDIT_CALLBACK_URL;
   },
+  get hubMembershipCallbackUrl() {
+    return env.IYZICO_HUB_MEMBERSHIP_CALLBACK_URL;
+  },
 };
 
 function generateRandomKey(): string {

@@ -60,7 +60,7 @@ function isDuplicateKeyError(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && "code" in error && (error as { code: number }).code === 11000);
 }
 
-async function processIdempotent(params: {
+export async function processIdempotent(params: {
   dedupeKey: string;
   source: "checkout_callback" | "subscription_webhook";
   eventType: string;
@@ -103,7 +103,7 @@ async function processIdempotent(params: {
   }
 }
 
-function mapIyzicoStatus(status: string): SubscriptionStatus {
+export function mapIyzicoStatus(status: string): SubscriptionStatus {
   switch (status) {
     case "ACTIVE":
       return "active";

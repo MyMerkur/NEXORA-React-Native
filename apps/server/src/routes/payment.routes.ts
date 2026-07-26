@@ -1,6 +1,11 @@
 import { Router, urlencoded } from "express";
 import { paymentRateLimiter } from "../middlewares/rateLimiter";
-import { iyzicoCallbackHandler, iyzicoWebhookHandler, jobCreditCallbackHandler } from "../controllers/payment.controller";
+import {
+  iyzicoCallbackHandler,
+  iyzicoWebhookHandler,
+  jobCreditCallbackHandler,
+  hubMembershipCallbackHandler,
+} from "../controllers/payment.controller";
 
 // No requireAuth: these are server-to-server / browser redirect callbacks from iyzico, not user sessions.
 export const paymentRouter = Router();
@@ -17,4 +22,10 @@ paymentRouter.post(
   paymentRateLimiter,
   urlencoded({ extended: false }),
   jobCreditCallbackHandler,
+);
+paymentRouter.post(
+  "/payments/iyzico/hub-membership-callback",
+  paymentRateLimiter,
+  urlencoded({ extended: false }),
+  hubMembershipCallbackHandler,
 );
