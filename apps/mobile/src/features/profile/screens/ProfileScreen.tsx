@@ -10,6 +10,7 @@ import { CareerTab } from "../components/CareerTab";
 import { NotificationsModal } from "../../notifications/components/NotificationsModal";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { SubscriptionModal } from "../../subscription/components/SubscriptionModal";
+import { CoursesModal } from "../../courses/components/CoursesModal";
 
 type ProfileTab = "showcase" | "career";
 
@@ -23,6 +24,7 @@ export function ProfileScreen() {
   const [inboxVisible, setInboxVisible] = useState(false);
   const [unreadThreadCount, setUnreadThreadCount] = useState(0);
   const [subscriptionVisible, setSubscriptionVisible] = useState(false);
+  const [coursesVisible, setCoursesVisible] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -81,6 +83,9 @@ export function ProfileScreen() {
         <TouchableOpacity style={styles.notificationsButton} onPress={() => setSubscriptionVisible(true)}>
           <Text style={styles.notificationsButtonText}>💳 Aboneliğim</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.notificationsButton} onPress={() => setCoursesVisible(true)}>
+          <Text style={styles.notificationsButtonText}>🎓 Kurslar</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabBar}>
@@ -107,6 +112,11 @@ export function ProfileScreen() {
       <NotificationsModal visible={notificationsVisible} onClose={() => setNotificationsVisible(false)} />
       <InboxModal visible={inboxVisible} onClose={() => setInboxVisible(false)} />
       <SubscriptionModal visible={subscriptionVisible} onClose={() => setSubscriptionVisible(false)} />
+      <CoursesModal
+        visible={coursesVisible}
+        onClose={() => setCoursesVisible(false)}
+        isInstructor={profile.kycLevel >= 4}
+      />
     </View>
   );
 }

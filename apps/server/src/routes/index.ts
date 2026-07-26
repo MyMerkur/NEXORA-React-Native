@@ -16,18 +16,22 @@ import { subscriptionRouter } from "./subscription.routes";
 import { paymentRouter } from "./payment.routes";
 import { instructorInviteRouter } from "./instructorInvite.routes";
 import { instagramRouter } from "./instagram.routes";
+import { courseRouter } from "./course.routes";
+import { certificateRouter } from "./certificate.routes";
 
 export const apiV1Router = Router();
 
 apiV1Router.use(healthRouter);
 apiV1Router.use(authRouter);
-// paymentRouter and instagramRouter have public routes (iyzico server-to-server callback,
-// Instagram's OAuth redirect) — every other router below applies a blanket requireAuth that
-// runs for ANY path reaching it, so these must stay registered before them or their public
-// routes get 401'd before they're ever matched. instagramRouter itself applies requireAuth
-// per-route (not blanket) since most of its routes still need auth.
+// paymentRouter, instagramRouter, and certificateRouter have public routes (iyzico
+// server-to-server callback, Instagram's OAuth redirect, certificate QR verification) — every
+// other router below applies a blanket requireAuth that runs for ANY path reaching it, so these
+// must stay registered before them or their public routes get 401'd before they're ever
+// matched. instagramRouter applies requireAuth per-route (not blanket) since most of its routes
+// still need auth; certificateRouter has no auth at all (fully public, single route).
 apiV1Router.use(paymentRouter);
 apiV1Router.use(instagramRouter);
+apiV1Router.use(certificateRouter);
 apiV1Router.use(kycRouter);
 apiV1Router.use(userRouter);
 apiV1Router.use(caseRouter);
@@ -41,3 +45,4 @@ apiV1Router.use(referenceRouter);
 apiV1Router.use(profileRouter);
 apiV1Router.use(subscriptionRouter);
 apiV1Router.use(instructorInviteRouter);
+apiV1Router.use(courseRouter);
