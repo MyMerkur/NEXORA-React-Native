@@ -6,5 +6,6 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^react-native-webview$': '<rootDir>/__mocks__/react-native-webview.js',
+    '^react-native-vision-camera$': '<rootDir>/__mocks__/react-native-vision-camera.js',
   },
 };
