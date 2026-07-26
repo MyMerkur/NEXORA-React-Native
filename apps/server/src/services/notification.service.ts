@@ -6,10 +6,13 @@ import {
   countUnread,
 } from "../repositories/notification.repository";
 import { findUserById } from "../repositories/user.repository";
+import * as deviceTokenRepo from "../repositories/deviceToken.repository";
 import { sendEmail, EmailNotConfiguredError } from "./email.service";
+import { sendPushToUser, PushNotConfiguredError } from "./push.service";
 import { logger } from "../utils/logger";
 import { HttpError } from "../utils/httpError";
 import type { NotificationType } from "../models/Notification";
+import type { DevicePlatform } from "../models/DeviceToken";
 
 async function createNotification(userId: string, type: NotificationType, title: string, body: string) {
   const notification = await createNotificationRecord({
@@ -35,7 +38,24 @@ async function createNotification(userId: string, type: NotificationType, title:
     }
   }
 
+  try {
+    await sendPushToUser(userId, { title, body });
+  } catch (error) {
+    if (error instanceof PushNotConfiguredError) {
+      logger.info("notification.push.skipped", { userId, reason: error.message });
+    } else {
+      logger.error("notification.push.failed", {
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   return notification;
+}
+
+export async function registerDeviceToken(userId: string, token: string, platform: DevicePlatform): Promise<void> {
+  await deviceTokenRepo.upsertToken(userId, token, platform);
 }
 
 export async function notifyKycStatusChange(userId: string, documentType: string, status: string) {
@@ -169,4 +189,16 @@ export async function notifyHubMembershipCanceled(userId: string) {
   const title = "Hub üyeliğiniz iptal edildi";
   const body = "Hub üyeliğiniz iptal edildi";
   await createNotification(userId, "hub_membership_canceled", title, body);
+}
+
+export async function notifyOrgAnnouncement(userId: string, orgName: string, announcementTitle: string) {
+  const title = `${orgName}: ${announcementTitle}`;
+  const body = `${orgName} yeni bir duyuru paylaştı: "${announcementTitle}"`;
+  await createNotification(userId, "org_announcement", title, body);
+}
+
+export async function notifyOrgVoteOpened(userId: string, orgName: string, question: string) {
+  const title = `${orgName}: Yeni oylama`;
+  const body = `${orgName} yeni bir oylama açtı: "${question}"`;
+  await createNotification(userId, "org_vote_opened", title, body);
 }

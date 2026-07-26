@@ -62,6 +62,7 @@ export async function getOrgProfile(orgUserId: string) {
 
   return {
     id: org._id.toString(),
+    role: org.role,
     displayName: org.showcase.displayName || org.email,
     title: org.showcase.title,
     bio: org.showcase.bio,

@@ -44,6 +44,7 @@ export interface OrgReview {
 
 export interface OrgProfile {
   id: string;
+  role: string;
   displayName: string;
   title: string;
   bio: string;
@@ -56,6 +57,29 @@ export interface OrgProfile {
   openJobs: OrgOpenJob[];
   recentCases: OrgRecentCase[];
   rating: OrgRating;
+}
+
+export interface OrgAnnouncement {
+  id: string;
+  orgId: string;
+  title: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface OrgVoteResultOption {
+  option: string;
+  count: number;
+}
+
+export interface OrgVote {
+  id: string;
+  orgId: string;
+  question: string;
+  status: "open" | "closed";
+  results: OrgVoteResultOption[];
+  myOptionIndex: number | null;
+  createdAt: string;
 }
 
 export async function searchOrgs(query: string): Promise<OrgSearchResult[]> {
@@ -81,4 +105,34 @@ export async function rateOrg(orgId: string, rating: number, comment?: string): 
 export async function getOrgReviews(orgId: string): Promise<OrgReview[]> {
   const { data } = await apiClient.get<{ reviews: OrgReview[] }>(`/api/v1/orgs/${orgId}/reviews`);
   return data.reviews;
+}
+
+export async function listAnnouncements(orgId: string): Promise<OrgAnnouncement[]> {
+  const { data } = await apiClient.get<{ announcements: OrgAnnouncement[] }>(`/api/v1/orgs/${orgId}/announcements`);
+  return data.announcements;
+}
+
+export async function createAnnouncement(orgId: string, input: { title: string; body: string }): Promise<OrgAnnouncement> {
+  const { data } = await apiClient.post<OrgAnnouncement>(`/api/v1/orgs/${orgId}/announcements`, input);
+  return data;
+}
+
+export async function listVotes(orgId: string): Promise<OrgVote[]> {
+  const { data } = await apiClient.get<{ votes: OrgVote[] }>(`/api/v1/orgs/${orgId}/votes`);
+  return data.votes;
+}
+
+export async function createVote(orgId: string, input: { question: string; options: string[] }): Promise<OrgVote> {
+  const { data } = await apiClient.post<OrgVote>(`/api/v1/orgs/${orgId}/votes`, input);
+  return data;
+}
+
+export async function castBallot(voteId: string, optionIndex: number): Promise<OrgVote> {
+  const { data } = await apiClient.post<OrgVote>(`/api/v1/orgs/votes/${voteId}/ballot`, { optionIndex });
+  return data;
+}
+
+export async function closeVote(voteId: string): Promise<OrgVote> {
+  const { data } = await apiClient.post<OrgVote>(`/api/v1/orgs/votes/${voteId}/close`);
+  return data;
 }

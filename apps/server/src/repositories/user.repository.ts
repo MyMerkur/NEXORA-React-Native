@@ -1,4 +1,4 @@
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 import { CANDIDATE_ROLES } from "@nexora/shared-constants";
 import { UserModel, type User } from "../models/User";
 
@@ -34,6 +34,10 @@ export async function updateBillingInfo(
 
 export async function incrementJobCreditsBalance(userId: string, delta: number) {
   return UserModel.findByIdAndUpdate(userId, { $inc: { jobPostingCreditsBalance: delta } }, { new: true });
+}
+
+export async function findByAffiliatedOrg(orgId: string) {
+  return UserModel.find({ affiliatedOrgId: new Types.ObjectId(orgId) });
 }
 
 export async function listSwipeableCandidates(params: {

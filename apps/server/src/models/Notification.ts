@@ -18,6 +18,8 @@ export const NOTIFICATION_TYPES = [
   "hub_membership_renewed",
   "hub_membership_payment_failed",
   "hub_membership_canceled",
+  "org_announcement",
+  "org_vote_opened",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
