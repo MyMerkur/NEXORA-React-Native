@@ -23,6 +23,15 @@ export const iyzicoConfig = {
   get pricingPlanReferenceCode() {
     return env.IYZICO_PRICING_PLAN_REFERENCE_CODE;
   },
+  get clinicPremiumPricingPlanReferenceCode() {
+    return env.IYZICO_CLINIC_PREMIUM_PRICING_PLAN_REFERENCE_CODE;
+  },
+  get jobCreditPrice() {
+    return env.IYZICO_JOB_CREDIT_PRICE;
+  },
+  get jobCreditCallbackUrl() {
+    return env.IYZICO_JOB_CREDIT_CALLBACK_URL;
+  },
 };
 
 function generateRandomKey(): string {

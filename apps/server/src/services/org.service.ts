@@ -7,6 +7,7 @@ import { listRecentCasesByUsers } from "../repositories/case.repository";
 import { createDownloadUrl } from "../config/storage";
 import { resolveUserSummary } from "../utils/userSummary";
 import { getOrgRatingSummary } from "./clinicReview.service";
+import { hasActiveSubscription } from "./subscription.service";
 import { HttpError } from "../utils/httpError";
 
 export async function searchOrgs(query: string) {
@@ -49,6 +50,7 @@ export async function getOrgProfile(orgUserId: string) {
   const teamMemberIds = teamMembers.map((member) => member._id);
   const cases = await listRecentCasesByUsers([orgObjectId, ...teamMemberIds], 10);
   const rating = await getOrgRatingSummary(orgUserId);
+  const isPremium = await hasActiveSubscription(orgUserId);
   const recentCases = await Promise.all(
     cases.map(async (caseDoc) => ({
       id: caseDoc._id.toString(),
@@ -68,6 +70,7 @@ export async function getOrgProfile(orgUserId: string) {
     city: org.showcase.city,
     specialties: org.showcase.specialties,
     isVerifiedOrg: org.kycLevel >= 3,
+    isPremium,
     team,
     openJobs,
     recentCases,

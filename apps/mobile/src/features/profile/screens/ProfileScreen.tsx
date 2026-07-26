@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
+import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import { getUnreadCount } from "../../../services/notificationApi";
@@ -11,6 +12,7 @@ import { NotificationsModal } from "../../notifications/components/Notifications
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { SubscriptionModal } from "../../subscription/components/SubscriptionModal";
 import { CoursesModal } from "../../courses/components/CoursesModal";
+import { BusinessModal } from "../../business/components/BusinessModal";
 
 type ProfileTab = "showcase" | "career";
 
@@ -25,6 +27,7 @@ export function ProfileScreen() {
   const [unreadThreadCount, setUnreadThreadCount] = useState(0);
   const [subscriptionVisible, setSubscriptionVisible] = useState(false);
   const [coursesVisible, setCoursesVisible] = useState(false);
+  const [businessVisible, setBusinessVisible] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -86,6 +89,11 @@ export function ProfileScreen() {
         <TouchableOpacity style={styles.notificationsButton} onPress={() => setCoursesVisible(true)}>
           <Text style={styles.notificationsButtonText}>🎓 Kurslar</Text>
         </TouchableOpacity>
+        {(EMPLOYER_ROLES as readonly string[]).includes(profile.role) ? (
+          <TouchableOpacity style={styles.notificationsButton} onPress={() => setBusinessVisible(true)}>
+            <Text style={styles.notificationsButtonText}>💼 İşletme</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.tabBar}>
@@ -117,6 +125,7 @@ export function ProfileScreen() {
         onClose={() => setCoursesVisible(false)}
         isInstructor={profile.kycLevel >= 4}
       />
+      <BusinessModal visible={businessVisible} onClose={() => setBusinessVisible(false)} />
     </View>
   );
 }

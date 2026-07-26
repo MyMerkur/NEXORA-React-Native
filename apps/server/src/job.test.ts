@@ -132,4 +132,62 @@ describe("Job endpoints", () => {
     expect(response.status).toBe(200);
     expect(response.body.jobs.length).toBeGreaterThanOrEqual(1);
   });
+
+  it("allows the first 3 job posts for free, then requires a credit or premium subscription", async () => {
+    const { accessToken, userId } = await registerAndLogin("job-limit@nexora.dev", "klinik");
+    await verifyOrgKyc(userId);
+
+    for (let i = 0; i < 3; i += 1) {
+      const response = await request(app)
+        .post("/api/v1/jobs")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ title: `Ücretsiz ilan ${i + 1}` });
+      expect(response.status).toBe(201);
+    }
+
+    const fourthWithoutCredit = await request(app)
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "Kredisiz 4. ilan" });
+    expect(fourthWithoutCredit.status).toBe(402);
+
+    const { UserModel } = await import("./models/User");
+    await UserModel.findByIdAndUpdate(userId, { jobPostingCreditsBalance: 1 });
+
+    const fourthWithCredit = await request(app)
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "Kredili 4. ilan" });
+    expect(fourthWithCredit.status).toBe(201);
+
+    const afterCredit = await UserModel.findById(userId);
+    expect(afterCredit!.jobPostingCreditsBalance).toBe(0);
+
+    const fifthWithoutCredit = await request(app)
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "Kredisiz 5. ilan" });
+    expect(fifthWithoutCredit.status).toBe(402);
+  });
+
+  it("allows unlimited job posts with an active clinic_premium_monthly subscription", async () => {
+    const { accessToken, userId } = await registerAndLogin("job-premium@nexora.dev", "klinik");
+    await verifyOrgKyc(userId);
+
+    for (let i = 0; i < 3; i += 1) {
+      await request(app)
+        .post("/api/v1/jobs")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .send({ title: `Ücretsiz ilan ${i + 1}` });
+    }
+
+    const { SubscriptionModel } = await import("./models/Subscription");
+    await SubscriptionModel.create({ userId, planCode: "clinic_premium_monthly", status: "active" });
+
+    const fourth = await request(app)
+      .post("/api/v1/jobs")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "Premium 4. ilan" });
+    expect(fourth.status).toBe(201);
+  });
 });

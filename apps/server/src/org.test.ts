@@ -152,6 +152,7 @@ describe("Org endpoints", () => {
     expect(response.status).toBe(200);
     expect(response.body.displayName).toBe("Tam Vitrin Klinik");
     expect(response.body.isVerifiedOrg).toBe(true);
+    expect(response.body.isPremium).toBe(false);
     expect(response.body.openJobs).toHaveLength(1);
     expect(response.body.openJobs[0].id).toBe(openJobId);
     expect(response.body.team).toHaveLength(1);

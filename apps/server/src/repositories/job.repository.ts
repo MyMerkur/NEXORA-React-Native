@@ -45,3 +45,7 @@ export async function findJobById(id: string) {
 export async function updateJobStatus(id: string, status: JobStatus) {
   return JobModel.findByIdAndUpdate(id, { status }, { new: true });
 }
+
+export async function countByEmployer(employerId: Types.ObjectId): Promise<number> {
+  return JobModel.countDocuments({ employerId });
+}

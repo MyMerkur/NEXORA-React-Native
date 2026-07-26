@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { EMPLOYER_ROLES, CANDIDATE_ROLES } from "@nexora/shared-constants";
 import { findUserById, updateBillingInfo } from "../repositories/user.repository";
 import * as subscriptionRepo from "../repositories/subscription.repository";
 import * as paymentEventRepo from "../repositories/paymentEvent.repository";
@@ -14,6 +15,17 @@ import {
   notifySubscriptionCanceled,
 } from "./notification.service";
 import type { SubscriptionPlanCode, SubscriptionStatus } from "../models/Subscription";
+
+const PLAN_CODE_ALLOWED_ROLES: Record<SubscriptionPlanCode, readonly string[]> = {
+  teaser_monthly: CANDIDATE_ROLES,
+  clinic_premium_monthly: EMPLOYER_ROLES,
+};
+
+function getPricingPlanReferenceCode(planCode: SubscriptionPlanCode): string {
+  return planCode === "clinic_premium_monthly"
+    ? iyzicoConfig.clinicPremiumPricingPlanReferenceCode
+    : iyzicoConfig.pricingPlanReferenceCode;
+}
 
 interface BillingInfoInput {
   identityNumber?: string;
@@ -118,7 +130,7 @@ export async function getSubscriptionStatus(userId: string) {
   return serializeStatus(subscription);
 }
 
-async function resolveBillingInfo(userId: string, provided: BillingInfoInput) {
+export async function resolveBillingInfo(userId: string, provided: BillingInfoInput) {
   const user = await findUserById(userId);
   if (!user) {
     throw new HttpError("Kullanıcı bulunamadı", 404);
@@ -162,11 +174,13 @@ async function resolveBillingInfo(userId: string, provided: BillingInfoInput) {
 }
 
 export async function startSubscriptionCheckout(userId: string, planCode: SubscriptionPlanCode, billingInfo: BillingInfoInput) {
+  const { user, merged } = await resolveBillingInfo(userId, billingInfo);
+  if (!PLAN_CODE_ALLOWED_ROLES[planCode].includes(user.role)) {
+    throw new HttpError("Bu abonelik planı hesap türünüz için uygun değil", 403);
+  }
   if (await hasActiveSubscription(userId)) {
     throw new HttpError("Zaten aktif bir aboneliğiniz var", 409);
   }
-
-  const { user, merged } = await resolveBillingInfo(userId, billingInfo);
 
   const subscription = await subscriptionRepo.create({
     userId,
@@ -182,7 +196,7 @@ export async function startSubscriptionCheckout(userId: string, planCode: Subscr
   try {
     checkout = await iyzicoService.initializeSubscriptionCheckout({
       conversationId: subscription._id.toString(),
-      pricingPlanReferenceCode: iyzicoConfig.pricingPlanReferenceCode,
+      pricingPlanReferenceCode: getPricingPlanReferenceCode(planCode),
       callbackUrl: iyzicoConfig.callbackUrl,
       customer: {
         name: name || "Kullanıcı",
@@ -235,7 +249,7 @@ export async function handleCheckoutCallback(token: string): Promise<void> {
           status: "active",
           iyzicoSubscriptionReferenceCode: result.referenceCode,
           iyzicoCustomerReferenceCode: result.customerReferenceCode ?? "",
-          iyzicoPricingPlanReferenceCode: iyzicoConfig.pricingPlanReferenceCode,
+          iyzicoPricingPlanReferenceCode: getPricingPlanReferenceCode(subscription.planCode),
           currentPeriodStart: details.startDate ? new Date(details.startDate) : new Date(),
           currentPeriodEnd: details.endDate ? new Date(details.endDate) : null,
         });
