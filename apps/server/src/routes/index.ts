@@ -19,6 +19,7 @@ import { instagramRouter } from "./instagram.routes";
 import { courseRouter } from "./course.routes";
 import { certificateRouter } from "./certificate.routes";
 import { jobCreditRouter } from "./jobCredit.routes";
+import { hubRouter } from "./hub.routes";
 
 export const apiV1Router = Router();
 
@@ -48,3 +49,4 @@ apiV1Router.use(subscriptionRouter);
 apiV1Router.use(instructorInviteRouter);
 apiV1Router.use(courseRouter);
 apiV1Router.use(jobCreditRouter);
+apiV1Router.use(hubRouter);

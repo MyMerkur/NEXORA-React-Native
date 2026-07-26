@@ -35,6 +35,7 @@ const envSchema = z.object({
   IYZICO_CLINIC_PREMIUM_PRICING_PLAN_REFERENCE_CODE: z.string().default(""),
   IYZICO_JOB_CREDIT_PRICE: z.string().default("199.90"),
   IYZICO_JOB_CREDIT_CALLBACK_URL: z.string().default(""),
+  IYZICO_HUB_MEMBERSHIP_CALLBACK_URL: z.string().default(""),
   PAYMENT_RATE_LIMIT_MAX: z.coerce.number().default(20),
   AI_DRAFT_RATE_LIMIT_MAX: z.coerce.number().default(10),
   INSTAGRAM_APP_ID: z.string().default(""),
