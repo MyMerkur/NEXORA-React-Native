@@ -38,6 +38,7 @@ const envSchema = z.object({
   INSTAGRAM_APP_SECRET: z.string().default(""),
   INSTAGRAM_REDIRECT_URI: z.string().default(""),
   INSTAGRAM_RATE_LIMIT_MAX: z.coerce.number().default(20),
+  PUBLIC_APP_BASE_URL: z.string().default(""),
   ADMIN_EMAILS: z
     .string()
     .default("")

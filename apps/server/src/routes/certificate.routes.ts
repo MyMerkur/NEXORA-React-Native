@@ -1,0 +1,8 @@
+import { Router } from "express";
+import { verifyCertificateHandler } from "../controllers/certificate.controller";
+
+// No requireAuth: this is a public verification endpoint meant to be hit by anyone scanning
+// a certificate's QR code (or a browser), not an authenticated NEXORA user.
+export const certificateRouter = Router();
+
+certificateRouter.get("/certificates/verify/:code", verifyCertificateHandler);

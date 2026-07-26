@@ -134,3 +134,15 @@ export async function getUnreadCount(userId: string) {
   const count = await countUnread(new Types.ObjectId(userId));
   return { count };
 }
+
+export async function notifyCourseEnrollment(instructorId: string, courseTitle: string, participantName: string) {
+  const title = "Kursunuza yeni bir katılımcı";
+  const body = `${participantName}, "${courseTitle}" kursunuza katıldı`;
+  await createNotification(instructorId, "course_enrollment", title, body);
+}
+
+export async function notifyCertificateIssued(userId: string, courseTitle: string) {
+  const title = "Sertifikanız hazır";
+  const body = `"${courseTitle}" kursunu tamamladınız, sertifikanız oluşturuldu`;
+  await createNotification(userId, "certificate_issued", title, body);
+}
