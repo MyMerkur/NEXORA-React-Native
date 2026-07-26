@@ -248,6 +248,24 @@ describe("Subscription endpoints", () => {
     expect(statusRes.body.status).toBe("active");
   });
 
+  it("rejects a candidate role from checking out the clinic premium plan", async () => {
+    const { accessToken } = await registerAndLogin("sub-wrong-plan-candidate@nexora.dev", "hekim");
+    const response = await request(app)
+      .post("/api/v1/subscriptions/checkout")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ planCode: "clinic_premium_monthly", ...billingFields });
+    expect(response.status).toBe(403);
+  });
+
+  it("rejects an employer role from checking out the individual teaser plan", async () => {
+    const { accessToken } = await registerAndLogin("sub-wrong-plan-employer@nexora.dev", "klinik");
+    const response = await request(app)
+      .post("/api/v1/subscriptions/checkout")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ planCode: "teaser_monthly", ...billingFields });
+    expect(response.status).toBe(403);
+  });
+
   it("cancels an active subscription and returns 404 when nothing is left to cancel", async () => {
     mockCancelIyzicoSubscription.mockResolvedValueOnce(undefined);
     const { accessToken } = await registerAndLogin("sub-cancel@nexora.dev");

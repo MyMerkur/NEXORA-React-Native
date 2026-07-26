@@ -1,6 +1,6 @@
 import { Schema, model, type InferSchemaType } from "mongoose";
 
-export const SUBSCRIPTION_PLAN_CODES = ["teaser_monthly"] as const;
+export const SUBSCRIPTION_PLAN_CODES = ["teaser_monthly", "clinic_premium_monthly"] as const;
 export type SubscriptionPlanCode = (typeof SUBSCRIPTION_PLAN_CODES)[number];
 
 export const SUBSCRIPTION_STATUSES = ["pending_checkout", "active", "past_due", "canceled", "expired"] as const;

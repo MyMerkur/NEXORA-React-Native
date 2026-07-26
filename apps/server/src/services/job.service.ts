@@ -6,14 +6,18 @@ import {
   listJobsByEmployer,
   findJobById,
   updateJobStatus,
+  countByEmployer,
 } from "../repositories/job.repository";
-import { findUserById } from "../repositories/user.repository";
+import { findUserById, incrementJobCreditsBalance } from "../repositories/user.repository";
+import { hasActiveSubscription } from "./subscription.service";
 import { EMPLOYER_ROLES, type JobStatus } from "../models/Job";
 import { HttpError } from "../utils/httpError";
 import { resolveUserSummary, type UserSummary, type UserSummarySource } from "../utils/userSummary";
 import type { createJobSchema } from "../validators/job.validator";
 
 type CreateJobBody = z.infer<typeof createJobSchema>;
+
+const FREE_JOB_POST_LIMIT = 3;
 
 interface JobLike {
   _id: Types.ObjectId;
@@ -48,6 +52,21 @@ export async function createJob(userId: string, input: CreateJobBody) {
   }
   if (user.kycLevel < 3) {
     throw new HttpError("İlan yayınlamak için kurumsal doğrulama (Level 3) gerekli", 403);
+  }
+
+  const postedCount = await countByEmployer(new Types.ObjectId(userId));
+  if (postedCount >= FREE_JOB_POST_LIMIT) {
+    const hasPremium = await hasActiveSubscription(userId);
+    if (!hasPremium) {
+      if (user.jobPostingCreditsBalance > 0) {
+        await incrementJobCreditsBalance(userId, -1);
+      } else {
+        throw new HttpError(
+          "İlan hakkınız kalmadı. Alakart ilan kredisi satın alın veya premium abone olun.",
+          402,
+        );
+      }
+    }
   }
 
   const created = await createJobRecord({

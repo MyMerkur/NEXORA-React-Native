@@ -55,6 +55,7 @@ const userSchema = new Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: USER_ROLES, required: true },
     kycLevel: { type: Number, min: 0, max: 4, default: 0 },
+    jobPostingCreditsBalance: { type: Number, default: 0 },
     failedLoginAttempts: { type: Number, default: 0 },
     lockedUntil: { type: Date, default: null },
     showcase: { type: showcaseSchema, default: () => ({}) },

@@ -111,3 +111,74 @@ export async function getSubscriptionDetails(subscriptionReferenceCode: string):
 export async function cancelIyzicoSubscription(subscriptionReferenceCode: string): Promise<void> {
   await iyzicoRequest<unknown>("POST", `/v2/subscription/subscriptions/${encodeURIComponent(subscriptionReferenceCode)}/cancel`);
 }
+
+export interface JobCreditBuyer {
+  id: string;
+  name: string;
+  surname: string;
+  email: string;
+  gsmNumber: string;
+  identityNumber: string;
+  registrationAddress: string;
+  city: string;
+  country: string;
+}
+
+export interface InitializeJobCreditCheckoutParams {
+  conversationId: string;
+  price: string;
+  callbackUrl: string;
+  buyer: JobCreditBuyer;
+}
+
+export interface JobCreditCheckoutInitResult {
+  token: string;
+  checkoutFormContent: string;
+}
+
+// iyzico Checkout Form (CF) — one-time payment product, distinct from the Subscription v2 API
+// above but the same IYZWSv2 auth scheme, so iyzicoRequest() is reused unchanged.
+export async function initializeJobCreditCheckout(
+  params: InitializeJobCreditCheckoutParams,
+): Promise<JobCreditCheckoutInitResult> {
+  const address = {
+    address: params.buyer.registrationAddress,
+    contactName: `${params.buyer.name} ${params.buyer.surname}`,
+    city: params.buyer.city,
+    country: params.buyer.country,
+  };
+
+  return iyzicoRequest<JobCreditCheckoutInitResult>("POST", "/payment/iyzipos/checkoutform/initialize/auth/ecom", {
+    locale: "tr",
+    conversationId: params.conversationId,
+    price: params.price,
+    paidPrice: params.price,
+    currency: "TRY",
+    callbackUrl: params.callbackUrl,
+    paymentGroup: "PRODUCT",
+    buyer: params.buyer,
+    shippingAddress: address,
+    billingAddress: address,
+    basketItems: [
+      {
+        id: "job-posting-credit",
+        price: params.price,
+        name: "NEXORA İlan Yayın Kredisi",
+        category1: "İlan",
+        itemType: "VIRTUAL",
+      },
+    ],
+  });
+}
+
+export interface JobCreditCheckoutDetailResult {
+  paymentStatus: string;
+  paymentId: string | null;
+}
+
+export async function retrieveJobCreditCheckoutResult(token: string): Promise<JobCreditCheckoutDetailResult> {
+  return iyzicoRequest<JobCreditCheckoutDetailResult>("POST", "/payment/iyzipos/checkoutform/auth/ecom/detail", {
+    locale: "tr",
+    token,
+  });
+}

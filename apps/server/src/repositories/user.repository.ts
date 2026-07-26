@@ -32,6 +32,10 @@ export async function updateBillingInfo(
   return UserModel.findByIdAndUpdate(userId, { $set: set }, { new: true });
 }
 
+export async function incrementJobCreditsBalance(userId: string, delta: number) {
+  return UserModel.findByIdAndUpdate(userId, { $inc: { jobPostingCreditsBalance: delta } }, { new: true });
+}
+
 export async function listSwipeableCandidates(params: {
   excludedCandidateIds: Types.ObjectId[];
   specialties: string[];
