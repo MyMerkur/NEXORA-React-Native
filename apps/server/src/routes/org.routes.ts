@@ -11,6 +11,12 @@ import {
   listVotesHandler,
   castBallotHandler,
   closeVoteHandler,
+  createDuesPlanHandler,
+  getDuesPlanHandler,
+  startDuesCheckoutHandler,
+  cancelDuesSubscriptionHandler,
+  getMyDuesStatusHandler,
+  listDuesSubscribersHandler,
 } from "../controllers/org.controller";
 
 export const orgRouter = Router();
@@ -26,3 +32,9 @@ orgRouter.post("/orgs/:orgId/votes", createVoteHandler);
 orgRouter.get("/orgs/:orgId/votes", listVotesHandler);
 orgRouter.post("/orgs/votes/:voteId/ballot", castBallotHandler);
 orgRouter.post("/orgs/votes/:voteId/close", closeVoteHandler);
+orgRouter.post("/orgs/:orgId/dues-plan", createDuesPlanHandler);
+orgRouter.get("/orgs/:orgId/dues-plan", getDuesPlanHandler);
+orgRouter.post("/orgs/:orgId/dues/checkout", startDuesCheckoutHandler);
+orgRouter.post("/orgs/:orgId/dues/cancel", cancelDuesSubscriptionHandler);
+orgRouter.get("/orgs/:orgId/dues/mine", getMyDuesStatusHandler);
+orgRouter.get("/orgs/:orgId/dues/subscribers", listDuesSubscribersHandler);

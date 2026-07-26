@@ -3,6 +3,7 @@ import { checkoutCallbackSchema, subscriptionWebhookSchema } from "../validators
 import * as subscriptionService from "../services/subscription.service";
 import * as jobCreditService from "../services/jobCredit.service";
 import * as hubService from "../services/hub.service";
+import * as orgDuesService from "../services/orgDues.service";
 import * as paymentWebhookRouterService from "../services/paymentWebhookRouter.service";
 
 export async function iyzicoCallbackHandler(req: Request, res: Response, next: NextFunction) {
@@ -40,6 +41,16 @@ export async function hubMembershipCallbackHandler(req: Request, res: Response, 
   try {
     const { token } = checkoutCallbackSchema.parse(req.body);
     await hubService.handleHubMembershipCallback(token);
+    res.status(200).json({ received: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function duesCallbackHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { token } = checkoutCallbackSchema.parse(req.body);
+    await orgDuesService.handleDuesCallback(token);
     res.status(200).json({ received: true });
   } catch (error) {
     next(error);

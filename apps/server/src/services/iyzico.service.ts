@@ -187,6 +187,7 @@ export interface CreateSubscriptionProductAndPlanParams {
   name: string;
   price: string;
   currencyCode?: string;
+  paymentInterval?: "MONTHLY" | "YEARLY";
 }
 
 export interface CreateSubscriptionProductAndPlanResult {
@@ -215,7 +216,7 @@ export async function createSubscriptionProductAndPlan(
       name: params.name,
       price: params.price,
       currencyCode: params.currencyCode ?? "TRY",
-      paymentInterval: "MONTHLY",
+      paymentInterval: params.paymentInterval ?? "MONTHLY",
       paymentIntervalCount: 1,
       planPaymentType: "RECURRING",
     },

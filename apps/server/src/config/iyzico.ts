@@ -35,6 +35,9 @@ export const iyzicoConfig = {
   get hubMembershipCallbackUrl() {
     return env.IYZICO_HUB_MEMBERSHIP_CALLBACK_URL;
   },
+  get duesCallbackUrl() {
+    return env.IYZICO_DUES_CALLBACK_URL;
+  },
 };
 
 function generateRandomKey(): string {
