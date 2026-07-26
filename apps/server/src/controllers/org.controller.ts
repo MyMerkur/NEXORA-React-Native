@@ -4,9 +4,11 @@ import * as orgService from "../services/org.service";
 import * as clinicReviewService from "../services/clinicReview.service";
 import * as orgAnnouncementService from "../services/orgAnnouncement.service";
 import * as orgVoteService from "../services/orgVote.service";
+import * as orgDuesService from "../services/orgDues.service";
 import { rateOrgSchema } from "../validators/review.validator";
 import { createAnnouncementSchema } from "../validators/orgAnnouncement.validator";
 import { createVoteSchema, castBallotSchema } from "../validators/orgVote.validator";
+import { createDuesPlanSchema, duesCheckoutSchema } from "../validators/orgDues.validator";
 
 export async function searchOrgsHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -98,6 +100,62 @@ export async function closeVoteHandler(req: AuthenticatedRequest, res: Response,
   try {
     const result = await orgVoteService.closeVote(req.user!.id, req.params.voteId!);
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createDuesPlanHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const input = createDuesPlanSchema.parse(req.body);
+    const result = await orgDuesService.createDuesPlan(req.user!.id, req.params.orgId!, input);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getDuesPlanHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await orgDuesService.getDuesPlan(req.user!.id, req.params.orgId!);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function startDuesCheckoutHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const billingInfo = duesCheckoutSchema.parse(req.body);
+    const result = await orgDuesService.startDuesCheckout(req.user!.id, req.params.orgId!, billingInfo);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function cancelDuesSubscriptionHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await orgDuesService.cancelDuesSubscription(req.user!.id, req.params.orgId!);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getMyDuesStatusHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await orgDuesService.getMyDuesStatus(req.user!.id, req.params.orgId!);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listDuesSubscribersHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const subscribers = await orgDuesService.listDuesSubscribers(req.user!.id, req.params.orgId!);
+    res.status(200).json({ subscribers });
   } catch (error) {
     next(error);
   }

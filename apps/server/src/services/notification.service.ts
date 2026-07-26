@@ -202,3 +202,27 @@ export async function notifyOrgVoteOpened(userId: string, orgName: string, quest
   const body = `${orgName} yeni bir oylama açtı: "${question}"`;
   await createNotification(userId, "org_vote_opened", title, body);
 }
+
+export async function notifyOrgDuesActivated(userId: string, orgName: string) {
+  const title = "Aidat üyeliğiniz aktif";
+  const body = `${orgName} aidat üyeliğiniz başarıyla başlatıldı`;
+  await createNotification(userId, "org_dues_activated", title, body);
+}
+
+export async function notifyOrgDuesRenewed(userId: string, orgName: string) {
+  const title = "Aidat ödemeniz yenilendi";
+  const body = `${orgName} aidat ödemeniz bir sonraki dönem için başarıyla yenilendi`;
+  await createNotification(userId, "org_dues_renewed", title, body);
+}
+
+export async function notifyOrgDuesPaymentFailed(userId: string, orgName: string) {
+  const title = "Aidat ödemesi başarısız";
+  const body = `${orgName} aidat ödemeniz alınamadı, lütfen ödeme yönteminizi kontrol edin`;
+  await createNotification(userId, "org_dues_payment_failed", title, body);
+}
+
+export async function notifyOrgDuesCanceled(userId: string, orgName: string) {
+  const title = "Aidat üyeliğiniz iptal edildi";
+  const body = `${orgName} aidat üyeliğiniz iptal edildi`;
+  await createNotification(userId, "org_dues_canceled", title, body);
+}

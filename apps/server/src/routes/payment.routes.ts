@@ -5,6 +5,7 @@ import {
   iyzicoWebhookHandler,
   jobCreditCallbackHandler,
   hubMembershipCallbackHandler,
+  duesCallbackHandler,
 } from "../controllers/payment.controller";
 
 // No requireAuth: these are server-to-server / browser redirect callbacks from iyzico, not user sessions.
@@ -28,4 +29,10 @@ paymentRouter.post(
   paymentRateLimiter,
   urlencoded({ extended: false }),
   hubMembershipCallbackHandler,
+);
+paymentRouter.post(
+  "/payments/iyzico/dues-callback",
+  paymentRateLimiter,
+  urlencoded({ extended: false }),
+  duesCallbackHandler,
 );

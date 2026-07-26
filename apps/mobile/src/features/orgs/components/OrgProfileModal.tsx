@@ -23,13 +23,23 @@ import {
   createVote,
   castBallot,
   closeVote,
+  getDuesPlan,
+  createDuesPlan,
+  cancelDuesSubscription,
+  getMyDuesStatus,
+  listDuesSubscribers,
   type OrgProfile,
   type OrgReview,
   type OrgAnnouncement,
   type OrgVote,
+  type OrgDuesPlan,
+  type OrgDuesSubscriber,
+  type OrgDuesPaymentInterval,
+  type MyDuesStatus,
 } from "../../../services/orgApi";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { OrgDuesCheckoutWebView } from "./OrgDuesCheckoutWebView";
 
 interface OrgProfileModalProps {
   visible: boolean;
@@ -61,6 +71,16 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
   const [castingVoteId, setCastingVoteId] = useState<string | null>(null);
   const [closingVoteId, setClosingVoteId] = useState<string | null>(null);
 
+  const [duesPlan, setDuesPlan] = useState<OrgDuesPlan | null>(null);
+  const [duesSubscribers, setDuesSubscribers] = useState<OrgDuesSubscriber[]>([]);
+  const [myDuesStatus, setMyDuesStatus] = useState<MyDuesStatus | null>(null);
+  const [newDuesName, setNewDuesName] = useState("");
+  const [newDuesPrice, setNewDuesPrice] = useState("");
+  const [newDuesInterval, setNewDuesInterval] = useState<OrgDuesPaymentInterval>("MONTHLY");
+  const [creatingDuesPlan, setCreatingDuesPlan] = useState(false);
+  const [duesCheckoutVisible, setDuesCheckoutVisible] = useState(false);
+  const [cancelingDues, setCancelingDues] = useState(false);
+
   useEffect(() => {
     if (!visible || !orgUserId) {
       return;
@@ -86,7 +106,8 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
       return;
     }
     loadCommunity(orgUserId);
-  }, [orgUserId, profile?.role]);
+    loadDues(orgUserId, isOwnProfile);
+  }, [orgUserId, profile?.role, isOwnProfile]);
 
   function loadCommunity(orgId: string) {
     setCommunityError(null);
@@ -169,6 +190,62 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
     }
   }
 
+  function loadDues(orgId: string, isOwner: boolean) {
+    getDuesPlan(orgId)
+      .then(setDuesPlan)
+      .catch(() => undefined);
+    if (isOwner) {
+      listDuesSubscribers(orgId)
+        .then(setDuesSubscribers)
+        .catch(() => undefined);
+    } else {
+      getMyDuesStatus(orgId)
+        .then(setMyDuesStatus)
+        .catch(() => undefined);
+    }
+  }
+
+  async function handleCreateDuesPlan() {
+    if (!orgUserId) {
+      return;
+    }
+    setCreatingDuesPlan(true);
+    setCommunityError(null);
+    try {
+      await createDuesPlan(orgUserId, { name: newDuesName || undefined, price: newDuesPrice, paymentInterval: newDuesInterval });
+      setNewDuesName("");
+      setNewDuesPrice("");
+      loadDues(orgUserId, isOwnProfile);
+    } catch (err) {
+      setCommunityError(getApiErrorMessage(err, "Aidat planı oluşturulamadı"));
+    } finally {
+      setCreatingDuesPlan(false);
+    }
+  }
+
+  async function handleCancelDues() {
+    if (!orgUserId) {
+      return;
+    }
+    setCancelingDues(true);
+    setCommunityError(null);
+    try {
+      await cancelDuesSubscription(orgUserId);
+      loadDues(orgUserId, isOwnProfile);
+    } catch (err) {
+      setCommunityError(getApiErrorMessage(err, "Aidat üyeliği iptal edilemedi"));
+    } finally {
+      setCancelingDues(false);
+    }
+  }
+
+  function handleDuesCheckoutDone(result: "success" | "cancelled") {
+    setDuesCheckoutVisible(false);
+    if (result === "success" && orgUserId) {
+      loadDues(orgUserId, isOwnProfile);
+    }
+  }
+
   async function handleRate(rating: number) {
     if (!orgUserId) {
       return;
@@ -202,7 +279,9 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
           {loading ? <ActivityIndicator color={colors.accentGold} style={styles.loader} /> : null}
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {profile ? (
+          {duesCheckoutVisible && orgUserId ? (
+            <OrgDuesCheckoutWebView orgId={orgUserId} onDone={handleDuesCheckoutDone} />
+          ) : profile ? (
             <ScrollView>
               <View style={styles.profileHeader}>
                 {profile.avatarUrl ? (
@@ -432,6 +511,95 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                         ) : null}
                       </View>
                     ))
+                  )}
+
+                  <Text style={styles.sectionTitle}>Aidat</Text>
+                  {isOwnProfile ? (
+                    !duesPlan ? (
+                      <View style={styles.communityForm}>
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Plan adı (opsiyonel)"
+                          placeholderTextColor={colors.textSecondary}
+                          value={newDuesName}
+                          onChangeText={setNewDuesName}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          placeholder="Tutar (₺)"
+                          placeholderTextColor={colors.textSecondary}
+                          keyboardType="decimal-pad"
+                          value={newDuesPrice}
+                          onChangeText={setNewDuesPrice}
+                        />
+                        <View style={styles.typeRow}>
+                          <TouchableOpacity
+                            style={[styles.typeButton, newDuesInterval === "MONTHLY" && styles.typeButtonActive]}
+                            onPress={() => setNewDuesInterval("MONTHLY")}
+                          >
+                            <Text style={[styles.typeText, newDuesInterval === "MONTHLY" && styles.typeTextActive]}>
+                              Aylık
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[styles.typeButton, newDuesInterval === "YEARLY" && styles.typeButtonActive]}
+                            onPress={() => setNewDuesInterval("YEARLY")}
+                          >
+                            <Text style={[styles.typeText, newDuesInterval === "YEARLY" && styles.typeTextActive]}>
+                              Yıllık
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.primaryButton}
+                          onPress={handleCreateDuesPlan}
+                          disabled={creatingDuesPlan || newDuesPrice.trim().length === 0}
+                        >
+                          {creatingDuesPlan ? (
+                            <ActivityIndicator color={colors.background} />
+                          ) : (
+                            <Text style={styles.primaryButtonText}>Aidat Planı Oluştur</Text>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <View>
+                        <Text style={styles.emptyText}>
+                          {duesPlan.name} — ₺{duesPlan.price} / {duesPlan.paymentInterval === "MONTHLY" ? "ay" : "yıl"}
+                        </Text>
+                        {duesSubscribers.length === 0 ? (
+                          <Text style={styles.emptyText}>Henüz aidat abonesi yok</Text>
+                        ) : (
+                          duesSubscribers.map((subscriber) => (
+                            <View key={subscriber.id} style={styles.reviewRow}>
+                              <Text style={styles.reviewAuthor}>{subscriber.member.displayName}</Text>
+                              <Text style={styles.reviewComment}>{subscriber.status}</Text>
+                            </View>
+                          ))
+                        )}
+                      </View>
+                    )
+                  ) : !duesPlan ? (
+                    <Text style={styles.emptyText}>Bu derneğin henüz aidat planı yok</Text>
+                  ) : (
+                    <View>
+                      <Text style={styles.emptyText}>
+                        {duesPlan.name} — ₺{duesPlan.price} / {duesPlan.paymentInterval === "MONTHLY" ? "ay" : "yıl"}
+                      </Text>
+                      {myDuesStatus?.status === "active" ? (
+                        <TouchableOpacity style={styles.dangerButton} onPress={handleCancelDues} disabled={cancelingDues}>
+                          {cancelingDues ? (
+                            <ActivityIndicator color={colors.danger} />
+                          ) : (
+                            <Text style={styles.dangerButtonText}>Aidat Üyeliğini İptal Et</Text>
+                          )}
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity style={styles.primaryButton} onPress={() => setDuesCheckoutVisible(true)}>
+                          <Text style={styles.primaryButtonText}>Aidat Öde</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   )}
                 </>
               ) : null}
@@ -713,6 +881,32 @@ const styles = StyleSheet.create({
   dangerButtonText: {
     color: colors.danger,
     fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+  },
+  typeRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  typeButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  typeButtonActive: {
+    borderColor: colors.accentGold,
+    backgroundColor: colors.surfaceElevated,
+  },
+  typeText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+  },
+  typeTextActive: {
+    color: colors.accentGold,
     fontWeight: typography.weights.semibold,
   },
 });
