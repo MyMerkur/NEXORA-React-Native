@@ -21,7 +21,7 @@ Detaylı faz planı, mimari kararlar ve gerekçeleri için: [docs/PROJECT_PLAN.m
 nexora/
 ├── apps/
 │   ├── server/      # Express + TypeScript backend — auth, MVC/Service/Repository
-│   ├── mobile/       # React Native (Bare, TypeScript) — henüz iskelet aşamasında
+│   ├── mobile/       # React Native (Bare, TypeScript) — Faz 0-4 kapsamındaki tüm ekranlar aktif
 │   └── web/            # Next.js — Faz 6'ya kadar placeholder, mobil lansmandan sonra kurulacak
 ├── packages/
 │   ├── shared-types/        # User, Case, Job, Application... ortak TS tipleri
@@ -48,6 +48,11 @@ nexora/
 | State (mobil) | Zustand + React Query |
 | Paket yönetimi | pnpm workspaces |
 | Build orkestrasyon | Turborepo |
+| Ödeme | iyzico (Subscription v2 API — abonelik/recurring, Checkout Form — tek seferlik kredi/bilet satın alma) |
+| Gerçek zamanlı | Socket.io (Smart Inbox anlık mesajlaşma) |
+| Push bildirim | Firebase Admin SDK (FCM) |
+| Dosya depolama | Cloudflare R2 |
+| AI | Anthropic Claude API (Instagram gönderisi → vaka taslağı) |
 | Test | Jest + Supertest (backend, mongodb-memory-server ile izole), RN Testing Library (mobil) |
 | İzleme | Sentry (planlanan) |
 
@@ -70,16 +75,25 @@ pnpm --filter @nexora/server typecheck
 pnpm --filter @nexora/server lint
 ```
 
-Mobil tarafta Bare React Native kullanıldığı için Expo Go ile anlık önizleme yok — iOS için Xcode + CocoaPods, Android için Android Studio + JDK kurulu olması gerekiyor. Mobil iskelet henüz eklenmedi, ilerleyen bir aşamada bu bölüm güncellenecek.
+Mobil tarafta Bare React Native kullanıldığı için Expo Go ile anlık önizleme yok — iOS için Xcode + CocoaPods, Android için Android Studio + JDK kurulu olması gerekiyor.
+
+```bash
+pnpm --filter @nexora/mobile ios       # Xcode + CocoaPods kurulu olmalı
+pnpm --filter @nexora/mobile android   # Android Studio + JDK kurulu olmalı
+pnpm --filter @nexora/mobile test
+pnpm --filter @nexora/mobile typecheck
+pnpm --filter @nexora/mobile lint
+```
 
 ## Branch stratejisi
 
-- `main` → production
-- `develop` → staging
-- `feature/<faz>-<kısa-açıklama>`, `fix/<kısa-açıklama>` → günlük geliştirme dalları
+- `main` → tek entegrasyon dalı, doğrudan production'a karşılık gelir.
+- `feature/<faz>-<kısa-açıklama>`, `fix/<kısa-açıklama>` → günlük geliştirme dalları, iş bitince `main`'e PR ile birleşir ve silinir.
 
-`main` ve `develop` dallarına doğrudan push kapalı, her değişiklik pull request ile giriyor. Commit mesajları [Conventional Commits](https://www.conventionalcommits.org/) formatında (`feat:`, `fix:`, `chore:`, `docs:` ...).
+`main` dalına doğrudan push kapalı (branch protection), her değişiklik pull request + yeşil CI ile giriyor. Ayrı bir `develop`/staging dalı kullanılmıyor — VPS/staging ortamı kurulana kadar (bkz. Durum) tüm geliştirme `main` üzerinden ilerliyor. Commit mesajları [Conventional Commits](https://www.conventionalcommits.org/) formatında (`feat:`, `fix:`, `chore:`, `docs:` ...).
 
 ## Durum
 
-Şu an Faz 0'dayız (temel altyapı). İlerlemeyi [GitHub Projects — Nexora Roadmap](https://github.com/users/MyMerkur/projects/2) board'undan takip edebilirsin; her faz ayrı bir milestone olarak tanımlı.
+**Faz 0–4 tamamlandı.** Faz 0 (temel altyapı) VPS/staging kurulumu hariç bitti — o adım bilinçli olarak tüm fazların sonuna ertelendi. Faz 1 (MVP çekirdek döngü), Faz 2 (etkileşim/güven katmanı), Faz 3 (monetizasyon — abonelik altyapısı, eğitmen ekonomisi, sertifika sistemi, B2B ilan/premium) ve Faz 4 (topluluk/kurumsal katman — Nexora Hubs, dernek sayfaları, dernek aidat tahsilatı, etkinlik biletleme, B2B aday arama) tamamen bitti ve kapatıldı.
+
+Sırada **Faz 5 (mobil lansman hazırlığı)** var. İlerlemeyi [GitHub Projects — Nexora Roadmap](https://github.com/users/MyMerkur/projects/2) board'undan takip edebilirsin; her faz ayrı bir milestone olarak tanımlı, kapanan tüm issue'lar ilgili PR'a referans veriyor.
