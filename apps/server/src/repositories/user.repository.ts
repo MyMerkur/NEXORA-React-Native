@@ -36,6 +36,18 @@ export async function incrementJobCreditsBalance(userId: string, delta: number) 
   return UserModel.findByIdAndUpdate(userId, { $inc: { jobPostingCreditsBalance: delta } }, { new: true });
 }
 
+export async function incrementSniperCreditsBalance(userId: string, delta: number) {
+  return UserModel.findByIdAndUpdate(userId, { $inc: { sniperCreditsBalance: delta } }, { new: true });
+}
+
+export async function decrementSniperCreditsIfSufficient(userId: string, cost: number) {
+  return UserModel.findOneAndUpdate(
+    { _id: userId, sniperCreditsBalance: { $gte: cost } },
+    { $inc: { sniperCreditsBalance: -cost } },
+    { new: true },
+  );
+}
+
 export async function findByAffiliatedOrg(orgId: string) {
   return UserModel.find({ affiliatedOrgId: new Types.ObjectId(orgId) });
 }
@@ -60,4 +72,51 @@ export async function listSwipeableCandidates(params: {
   }
 
   return UserModel.find(query).sort({ createdAt: -1 }).limit(params.limit);
+}
+
+export async function searchSniperCandidates(params: {
+  specialties: string[];
+  city?: string;
+  minExperienceYears?: number;
+  maxExperienceYears?: number;
+  limit: number;
+}) {
+  const query: Record<string, unknown> = {
+    role: { $in: CANDIDATE_ROLES },
+    "career.openToWork": true,
+    "career.hiddenSearch": false,
+  };
+
+  if (params.specialties.length > 0) {
+    query.$or = [
+      { "showcase.specialties": { $in: params.specialties } },
+      { "career.desiredPositions": { $in: params.specialties } },
+    ];
+  }
+
+  if (params.city) {
+    query["showcase.city"] = params.city;
+  }
+
+  if (params.minExperienceYears !== undefined || params.maxExperienceYears !== undefined) {
+    const range: Record<string, number> = {};
+    if (params.minExperienceYears !== undefined) {
+      range.$gte = params.minExperienceYears;
+    }
+    if (params.maxExperienceYears !== undefined) {
+      range.$lte = params.maxExperienceYears;
+    }
+    query["career.experienceYears"] = range;
+  }
+
+  return UserModel.find(query).sort({ createdAt: -1 }).limit(params.limit);
+}
+
+export async function findDiscoverableCandidateById(candidateId: string) {
+  return UserModel.findOne({
+    _id: candidateId,
+    role: { $in: CANDIDATE_ROLES },
+    "career.openToWork": true,
+    "career.hiddenSearch": false,
+  });
 }

@@ -227,6 +227,49 @@ export async function initializeEventTicketCheckout(
   });
 }
 
+export interface InitializeSniperCreditCheckoutParams {
+  conversationId: string;
+  price: string;
+  callbackUrl: string;
+  buyer: JobCreditBuyer;
+}
+
+// Structural twin of initializeJobCreditCheckout — same one-time CF endpoint, different basket
+// item. Kept separate rather than generalizing the job-credit function, to avoid touching its
+// tested call site for a purely cosmetic shared-helper win (same reasoning as the event-ticket twin).
+export async function initializeSniperCreditCheckout(
+  params: InitializeSniperCreditCheckoutParams,
+): Promise<JobCreditCheckoutInitResult> {
+  const address = {
+    address: params.buyer.registrationAddress,
+    contactName: `${params.buyer.name} ${params.buyer.surname}`,
+    city: params.buyer.city,
+    country: params.buyer.country,
+  };
+
+  return iyzicoRequest<JobCreditCheckoutInitResult>("POST", "/payment/iyzipos/checkoutform/initialize/auth/ecom", {
+    locale: "tr",
+    conversationId: params.conversationId,
+    price: params.price,
+    paidPrice: params.price,
+    currency: "TRY",
+    callbackUrl: params.callbackUrl,
+    paymentGroup: "PRODUCT",
+    buyer: params.buyer,
+    shippingAddress: address,
+    billingAddress: address,
+    basketItems: [
+      {
+        id: "sniper-credit",
+        price: params.price,
+        name: "NEXORA Keskin Nişancı Kredisi",
+        category1: "Lead",
+        itemType: "VIRTUAL",
+      },
+    ],
+  });
+}
+
 export interface CreateSubscriptionProductAndPlanParams {
   name: string;
   price: string;

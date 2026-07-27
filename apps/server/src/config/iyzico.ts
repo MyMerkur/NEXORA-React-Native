@@ -41,6 +41,12 @@ export const iyzicoConfig = {
   get eventTicketCallbackUrl() {
     return env.IYZICO_EVENT_TICKET_CALLBACK_URL;
   },
+  get sniperCreditPrice() {
+    return env.IYZICO_SNIPER_CREDIT_PRICE;
+  },
+  get sniperCreditCallbackUrl() {
+    return env.IYZICO_SNIPER_CREDIT_CALLBACK_URL;
+  },
 };
 
 function generateRandomKey(): string {
