@@ -55,6 +55,14 @@ export async function confirmUpload(userId: string, params: ConfirmUploadParams)
     throw new HttpError("Sadece klinik/firma/dernek hesapları kurumsal belge yükleyebilir", 403);
   }
 
+  // storageKey is client-supplied — without this check, a caller could submit any key (guessed,
+  // leaked, or reused from another response) and have it processed as their own KYC document.
+  // requestUploadUrl always issues keys under kyc/{userId}/{documentType}/..., so both segments
+  // must match the actual requester and the declared document type.
+  if (!params.storageKey.startsWith(`kyc/${userId}/${params.documentType}/`)) {
+    throw new HttpError("Geçersiz dosya anahtarı", 400);
+  }
+
   const document = await createKycDocument({
     userId: userObjectId,
     documentType: params.documentType,

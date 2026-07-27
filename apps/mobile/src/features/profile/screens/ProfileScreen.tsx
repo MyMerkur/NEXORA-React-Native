@@ -6,6 +6,7 @@ import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import { getUnreadCount } from "../../../services/notificationApi";
 import { getUnreadThreadCount } from "../../../services/inboxApi";
+import { logout } from "../../../services/authApi";
 import { ShowcaseTab } from "../components/ShowcaseTab";
 import { CareerTab } from "../components/CareerTab";
 import { NotificationsModal } from "../../notifications/components/NotificationsModal";
@@ -99,6 +100,9 @@ export function ProfileScreen() {
             <Text style={styles.notificationsButtonText}>💼 İşletme</Text>
           </TouchableOpacity>
         ) : null}
+        <TouchableOpacity style={styles.notificationsButton} onPress={() => logout()}>
+          <Text style={styles.notificationsButtonText}>🚪 Çıkış Yap</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabBar}>
@@ -156,6 +160,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "flex-end",
     gap: spacing.md,
     margin: spacing.md,

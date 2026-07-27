@@ -8,6 +8,10 @@ import { HttpError } from "../utils/httpError";
 
 const UNLOCK_COST = 1;
 
+function isDuplicateKeyError(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && (error as { code: number }).code === 11000);
+}
+
 interface SearchFilters {
   specialties?: string[];
   city?: string;
@@ -78,11 +82,28 @@ export async function unlockCandidate(employerId: string, candidateId: string) {
 
   const existing = await sniperUnlockRepo.findByEmployerAndCandidate(employerId, candidateId);
   if (!existing) {
-    const updated = await decrementSniperCreditsIfSufficient(employerId, UNLOCK_COST);
-    if (!updated) {
-      throw new HttpError("Yetersiz Keskin Nişancı kredisi", 402);
+    // The unique {employerId,candidateId} index is the real concurrency guard, not the read
+    // above: create the unlock record FIRST, and only the request that actually wins the
+    // insert charges a credit. A concurrent duplicate hits the unique index, is treated as
+    // "already unlocked" (no charge), instead of both requests decrementing before either
+    // insert lands.
+    let wonRace = false;
+    try {
+      await sniperUnlockRepo.create(employerId, candidateId);
+      wonRace = true;
+    } catch (error) {
+      if (!isDuplicateKeyError(error)) {
+        throw error;
+      }
     }
-    await sniperUnlockRepo.create(employerId, candidateId);
+
+    if (wonRace) {
+      const updated = await decrementSniperCreditsIfSufficient(employerId, UNLOCK_COST);
+      if (!updated) {
+        await sniperUnlockRepo.deleteByEmployerAndCandidate(employerId, candidateId);
+        throw new HttpError("Yetersiz Keskin Nişancı kredisi", 402);
+      }
+    }
   }
 
   const thread = await startOrGetThread(employerId, candidateId);

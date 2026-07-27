@@ -170,6 +170,37 @@ describe("Job endpoints", () => {
     expect(fifthWithoutCredit.status).toBe(402);
   });
 
+  it("does not allow concurrent requests to over-consume the free-post quota or credit balance", async () => {
+    const { accessToken, userId } = await registerAndLogin("job-race@nexora.dev", "klinik");
+    await verifyOrgKyc(userId);
+
+    const { UserModel } = await import("./models/User");
+    await UserModel.findByIdAndUpdate(userId, { jobPostingCreditsBalance: 2 });
+
+    // 3 free posts + 2 credits = 5 should succeed; fire well beyond that concurrently.
+    const responses = await Promise.all(
+      Array.from({ length: 10 }, (_, i) =>
+        request(app)
+          .post("/api/v1/jobs")
+          .set("Authorization", `Bearer ${accessToken}`)
+          .send({ title: `Yarış ilanı ${i + 1}` }),
+      ),
+    );
+
+    const successCount = responses.filter((response) => response.status === 201).length;
+    const rejectedCount = responses.filter((response) => response.status === 402).length;
+    expect(successCount).toBe(5);
+    expect(rejectedCount).toBe(5);
+
+    const finalUser = await UserModel.findById(userId);
+    expect(finalUser!.jobPostingCreditsBalance).toBe(0);
+    expect(finalUser!.freeJobPostsUsed).toBe(3);
+
+    const { JobModel } = await import("./models/Job");
+    const jobCount = await JobModel.countDocuments({ employerId: userId });
+    expect(jobCount).toBe(5);
+  });
+
   it("allows unlimited job posts with an active clinic_premium_monthly subscription", async () => {
     const { accessToken, userId } = await registerAndLogin("job-premium@nexora.dev", "klinik");
     await verifyOrgKyc(userId);

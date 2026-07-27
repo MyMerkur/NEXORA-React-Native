@@ -49,3 +49,9 @@ export const affiliationSchema = z
     orgUserId: z.string().nullable(),
   })
   .strict();
+
+export const requestAffiliationSchema = z
+  .object({
+    orgUserId: z.string().min(1),
+  })
+  .strict();

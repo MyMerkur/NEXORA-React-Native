@@ -31,16 +31,38 @@ async function registerAndLogin(email: string, role = "hekim") {
   return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
 }
 
+// Affiliation now requires the org's approval (see user.test.ts for that flow itself) — these
+// tests are about announcements/votes/etc., so membership is set up directly for brevity.
 async function affiliate(accessToken: string, orgUserId: string) {
-  await request(app)
-    .patch("/api/v1/users/me/affiliation")
-    .set("Authorization", `Bearer ${accessToken}`)
-    .send({ orgUserId });
+  const meRes = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(meRes.body.id, { affiliatedOrgId: orgUserId });
+}
+
+async function verifyOrgKyc(userId: string) {
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(userId, { kycLevel: 3 });
 }
 
 describe("Org community: announcements, votes, device tokens", () => {
   it("rejects announcement/vote creation for non-dernek accounts", async () => {
     const { accessToken, userId } = await registerAndLogin("org-notdernek@nexora.dev", "klinik");
+
+    const announcementRes = await request(app)
+      .post(`/api/v1/orgs/${userId}/announcements`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "Başlık", body: "İçerik" });
+    expect(announcementRes.status).toBe(403);
+
+    const voteRes = await request(app)
+      .post(`/api/v1/orgs/${userId}/votes`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ question: "Soru?", options: ["A", "B"] });
+    expect(voteRes.status).toBe(403);
+  });
+
+  it("rejects announcement/vote creation for an unverified dernek account", async () => {
+    const { accessToken, userId } = await registerAndLogin("org-unverified-dernek@nexora.dev", "dernek");
 
     const announcementRes = await request(app)
       .post(`/api/v1/orgs/${userId}/announcements`)
@@ -67,6 +89,7 @@ describe("Org community: announcements, votes, device tokens", () => {
 
   it("creates an announcement and notifies affiliated members", async () => {
     const { accessToken: ownerToken, userId: orgId } = await registerAndLogin("org-owner-2@nexora.dev", "dernek");
+    await verifyOrgKyc(orgId);
     const { accessToken: memberToken } = await registerAndLogin("org-member-2@nexora.dev");
     await affiliate(memberToken, orgId);
 
@@ -91,6 +114,7 @@ describe("Org community: announcements, votes, device tokens", () => {
 
   it("runs the full vote lifecycle: open -> cast -> duplicate 409 -> results -> close -> cast-on-closed 400", async () => {
     const { accessToken: ownerToken, userId: orgId } = await registerAndLogin("org-owner-3@nexora.dev", "dernek");
+    await verifyOrgKyc(orgId);
     const { accessToken: memberToken } = await registerAndLogin("org-member-3@nexora.dev");
     await affiliate(memberToken, orgId);
 

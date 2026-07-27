@@ -11,6 +11,7 @@ import { getQrCodeDataUrl, buildVerificationUrl } from "./certificate.service";
 import { notifyEventTicketPurchased } from "./notification.service";
 import { resolveUserSummary, type UserSummarySource } from "../utils/userSummary";
 import { HttpError } from "../utils/httpError";
+import { logger } from "../utils/logger";
 
 interface BillingInfoInput {
   identityNumber?: string;
@@ -101,26 +102,42 @@ export async function handleTicketCallback(token: string): Promise<void> {
 
   const result = await iyzicoService.retrieveJobCreditCheckoutResult(token);
 
-  if (result.paymentStatus === "SUCCESS") {
-    const updated = await eventTicketRepo.markPaidIfPending(
-      purchase._id.toString(),
-      result.paymentId ?? "",
-      randomUUID(),
-    );
-    if (updated) {
-      const event = await eventRepo.findById(purchase.eventId.toString());
-      const ticketType = event?.ticketTypes.find((type) => type._id.toString() === purchase.ticketTypeId.toString());
-      if (event && ticketType) {
-        await eventRepo.incrementSoldCountIfCapacity(
-          purchase.eventId.toString(),
-          purchase.ticketTypeId.toString(),
-          ticketType.capacity,
-        );
-        await notifyEventTicketPurchased(purchase.userId.toString(), event.title);
-      }
-    }
-  } else {
+  if (result.paymentStatus !== "SUCCESS") {
     await eventTicketRepo.markFailedIfPending(purchase._id.toString());
+    return;
+  }
+
+  const event = await eventRepo.findById(purchase.eventId.toString());
+  const ticketType = event?.ticketTypes.find((type) => type._id.toString() === purchase.ticketTypeId.toString());
+  if (!event || !ticketType) {
+    await eventTicketRepo.markFailedIfPending(purchase._id.toString());
+    return;
+  }
+
+  // Capacity is reserved atomically BEFORE the ticket is marked paid — the checkout-start
+  // capacity check is only a soft gate, so payment can still succeed after the last spot is
+  // taken by a concurrent buyer. In that case we must not issue a ticket for money already paid.
+  const capacityReserved = await eventRepo.incrementSoldCountIfCapacity(
+    purchase.eventId.toString(),
+    purchase.ticketTypeId.toString(),
+    ticketType.capacity,
+  );
+
+  if (!capacityReserved) {
+    await eventTicketRepo.markOversoldIfPending(purchase._id.toString(), result.paymentId ?? "");
+    logger.error("event.ticket.oversold_after_payment", {
+      purchaseId: purchase._id.toString(),
+      eventId: purchase.eventId.toString(),
+      ticketTypeId: purchase.ticketTypeId.toString(),
+      userId: purchase.userId.toString(),
+      iyzicoPaymentId: result.paymentId,
+    });
+    return;
+  }
+
+  const updated = await eventTicketRepo.markPaidIfPending(purchase._id.toString(), result.paymentId ?? "", randomUUID());
+  if (updated) {
+    await notifyEventTicketPurchased(purchase.userId.toString(), event.title);
   }
 }
 

@@ -1,6 +1,8 @@
 import { Schema, model, type InferSchemaType } from "mongoose";
 
-export const EVENT_TICKET_STATUSES = ["pending_checkout", "paid", "failed"] as const;
+// "oversold" = payment succeeded via iyzico but capacity ran out in the gap between checkout
+// start and payment completion — no ticket was issued, money was taken, needs manual refund.
+export const EVENT_TICKET_STATUSES = ["pending_checkout", "paid", "failed", "oversold"] as const;
 export type EventTicketStatus = (typeof EVENT_TICKET_STATUSES)[number];
 
 const eventTicketPurchaseSchema = new Schema(

@@ -128,6 +128,25 @@ describe("Matching endpoints", () => {
     expect(response.body.matched).toBe(false);
   });
 
+  it("rejects a direct swipe on a hidden-search candidate even when the employer already knows their id", async () => {
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin(
+      "match-direct-hidden-employer@nexora.dev",
+      "klinik",
+    );
+    await verifyOrgKyc(employerId);
+    const jobId = await createOpenJob(employerToken, "Doğrudan swipe gizlilik testi ilanı");
+
+    const { userId: hiddenCandidateId } = await registerAndLogin("match-direct-hidden-candidate@nexora.dev");
+    await setOpenToWork(hiddenCandidateId, true);
+
+    const response = await request(app)
+      .post(`/api/v1/matching/jobs/${jobId}/candidates/${hiddenCandidateId}/swipe`)
+      .set("Authorization", `Bearer ${employerToken}`)
+      .send({ direction: "right" });
+
+    expect(response.status).toBe(404);
+  });
+
   it("creates a match and an inbox thread when both sides swipe right", async () => {
     const { accessToken: employerToken, userId: employerId } = await registerAndLogin("match-mutual-employer@nexora.dev", "firma");
     await verifyOrgKyc(employerId);

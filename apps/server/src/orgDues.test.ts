@@ -62,11 +62,12 @@ async function registerAndLogin(email: string, role = "hekim") {
   return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
 }
 
+// Affiliation now requires the org's approval (see user.test.ts for that flow itself) — these
+// tests are about dues subscriptions, so membership is set up directly for brevity.
 async function affiliate(accessToken: string, orgUserId: string) {
-  await request(app)
-    .patch("/api/v1/users/me/affiliation")
-    .set("Authorization", `Bearer ${accessToken}`)
-    .send({ orgUserId });
+  const meRes = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(meRes.body.id, { affiliatedOrgId: orgUserId });
 }
 
 const billingFields = {
@@ -93,6 +94,9 @@ function buildWebhookSignature(params: {
 }
 
 async function createPlan(ownerToken: string, orgId: string) {
+  const { UserModel } = await import("./models/User");
+  await UserModel.findByIdAndUpdate(orgId, { kycLevel: 3 });
+
   mockCreateSubscriptionProductAndPlan.mockResolvedValueOnce({
     productReferenceCode: "dues-prod-ref-1",
     pricingPlanReferenceCode: "dues-plan-ref-1",
@@ -141,6 +145,15 @@ async function activateDues(memberToken: string, orgId: string, tokenSuffix: str
 describe("Org dues endpoints", () => {
   it("rejects dues plan creation for non-dernek accounts", async () => {
     const { accessToken, userId } = await registerAndLogin("dues-notdernek@nexora.dev", "klinik");
+    const response = await request(app)
+      .post(`/api/v1/orgs/${userId}/dues-plan`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ price: "100.00", paymentInterval: "MONTHLY" });
+    expect(response.status).toBe(403);
+  });
+
+  it("rejects dues plan creation for an unverified dernek account", async () => {
+    const { accessToken, userId } = await registerAndLogin("dues-unverified@nexora.dev", "dernek");
     const response = await request(app)
       .post(`/api/v1/orgs/${userId}/dues-plan`)
       .set("Authorization", `Bearer ${accessToken}`)

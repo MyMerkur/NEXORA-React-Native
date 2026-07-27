@@ -17,6 +17,9 @@ import {
   cancelDuesSubscriptionHandler,
   getMyDuesStatusHandler,
   listDuesSubscribersHandler,
+  listAffiliationRequestsHandler,
+  approveAffiliationRequestHandler,
+  rejectAffiliationRequestHandler,
 } from "../controllers/org.controller";
 
 export const orgRouter = Router();
@@ -38,3 +41,6 @@ orgRouter.post("/orgs/:orgId/dues/checkout", startDuesCheckoutHandler);
 orgRouter.post("/orgs/:orgId/dues/cancel", cancelDuesSubscriptionHandler);
 orgRouter.get("/orgs/:orgId/dues/mine", getMyDuesStatusHandler);
 orgRouter.get("/orgs/:orgId/dues/subscribers", listDuesSubscribersHandler);
+orgRouter.get("/orgs/:orgId/affiliation-requests", listAffiliationRequestsHandler);
+orgRouter.post("/orgs/:orgId/affiliation-requests/:requestId/approve", approveAffiliationRequestHandler);
+orgRouter.post("/orgs/:orgId/affiliation-requests/:requestId/reject", rejectAffiliationRequestHandler);

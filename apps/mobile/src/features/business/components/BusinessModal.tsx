@@ -5,6 +5,13 @@ import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getJobCreditBalance } from "../../../services/jobCreditApi";
 import { getSniperCreditBalance } from "../../../services/sniperApi";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
+import {
+  listAffiliationRequests,
+  approveAffiliationRequest,
+  rejectAffiliationRequest,
+  type PendingAffiliationRequest,
+} from "../../../services/orgApi";
+import { useAuthStore } from "../../../store/useAuthStore";
 import { CheckoutWebView } from "../../subscription/components/CheckoutWebView";
 import { JobCreditCheckoutWebView } from "./JobCreditCheckoutWebView";
 import { SniperCreditCheckoutWebView } from "./SniperCreditCheckoutWebView";
@@ -36,7 +43,10 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
   const [sniperCreditCheckoutVisible, setSniperCreditCheckoutVisible] = useState(false);
   const [sniperSearchVisible, setSniperSearchVisible] = useState(false);
   const [subscriptionCheckoutVisible, setSubscriptionCheckoutVisible] = useState(false);
+  const [affiliationRequests, setAffiliationRequests] = useState<PendingAffiliationRequest[]>([]);
+  const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const orgId = useAuthStore((state) => state.user?.id);
 
   useEffect(() => {
     if (!visible) {
@@ -46,19 +56,61 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
     setSniperCreditCheckoutVisible(false);
     setSubscriptionCheckoutVisible(false);
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- orgId is stable for the session
   }, [visible]);
 
   function loadData() {
+    if (!orgId) {
+      return;
+    }
     setLoading(true);
     setError(null);
-    Promise.all([getJobCreditBalance(), getSniperCreditBalance(), getSubscriptionStatus()])
-      .then(([creditResult, sniperCreditResult, subscriptionResult]) => {
+    Promise.all([
+      getJobCreditBalance(),
+      getSniperCreditBalance(),
+      getSubscriptionStatus(),
+      listAffiliationRequests(orgId),
+    ])
+      .then(([creditResult, sniperCreditResult, subscriptionResult, requests]) => {
         setBalance(creditResult.balance);
         setSniperBalance(sniperCreditResult.balance);
         setSummary(subscriptionResult);
+        setAffiliationRequests(requests);
       })
       .catch((err) => setError(getApiErrorMessage(err, "Yüklenemedi")))
       .finally(() => setLoading(false));
+  }
+
+  async function handleApproveAffiliation(requestId: string) {
+    if (!orgId) {
+      return;
+    }
+    setRespondingRequestId(requestId);
+    setError(null);
+    try {
+      await approveAffiliationRequest(orgId, requestId);
+      setAffiliationRequests((current) => current.filter((item) => item.id !== requestId));
+    } catch (err) {
+      setError(getApiErrorMessage(err, "İstek onaylanamadı"));
+    } finally {
+      setRespondingRequestId(null);
+    }
+  }
+
+  async function handleRejectAffiliation(requestId: string) {
+    if (!orgId) {
+      return;
+    }
+    setRespondingRequestId(requestId);
+    setError(null);
+    try {
+      await rejectAffiliationRequest(orgId, requestId);
+      setAffiliationRequests((current) => current.filter((item) => item.id !== requestId));
+    } catch (err) {
+      setError(getApiErrorMessage(err, "İstek reddedilemedi"));
+    } finally {
+      setRespondingRequestId(null);
+    }
   }
 
   async function handleCancelSubscription() {
@@ -118,7 +170,34 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
             <View style={styles.content}>
               {error ? <Text style={styles.error}>{error}</Text> : null}
 
-              <Text style={styles.sectionTitle}>İlan Kredisi</Text>
+              <Text style={styles.sectionTitle}>Aidiyet İstekleri</Text>
+              {affiliationRequests.length === 0 ? (
+                <Text style={styles.balanceText}>Bekleyen istek yok.</Text>
+              ) : (
+                affiliationRequests.map((request) => (
+                  <View key={request.id} style={styles.affiliationRequestRow}>
+                    <Text style={styles.affiliationRequestName}>{request.applicant.displayName}</Text>
+                    <View style={styles.affiliationRequestActions}>
+                      <TouchableOpacity
+                        style={styles.affiliationApproveButton}
+                        onPress={() => handleApproveAffiliation(request.id)}
+                        disabled={respondingRequestId === request.id}
+                      >
+                        <Text style={styles.affiliationApproveButtonText}>Onayla</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.affiliationRejectButton}
+                        onPress={() => handleRejectAffiliation(request.id)}
+                        disabled={respondingRequestId === request.id}
+                      >
+                        <Text style={styles.affiliationRejectButtonText}>Reddet</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+
+              <Text style={[styles.sectionTitle, styles.sectionSpacing]}>İlan Kredisi</Text>
               <Text style={styles.balanceText}>Bakiye: {balance ?? 0} kredi</Text>
               <TouchableOpacity style={styles.primaryButton} onPress={() => setCreditCheckoutVisible(true)}>
                 <Text style={styles.primaryButtonText}>1 Kredi Satın Al</Text>
@@ -265,6 +344,47 @@ const styles = StyleSheet.create({
   dangerButtonText: {
     color: colors.danger,
     fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+  },
+  affiliationRequestRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  affiliationRequestName: {
+    color: colors.textPrimary,
+    fontSize: typography.sizes.sm,
+    flexShrink: 1,
+    marginRight: spacing.sm,
+  },
+  affiliationRequestActions: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  affiliationApproveButton: {
+    borderRadius: radii.pill,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.accentBlue,
+  },
+  affiliationApproveButtonText: {
+    color: colors.background,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+  affiliationRejectButton: {
+    borderRadius: radii.pill,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.danger,
+  },
+  affiliationRejectButtonText: {
+    color: colors.danger,
+    fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
 });

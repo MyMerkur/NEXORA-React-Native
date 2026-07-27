@@ -99,7 +99,7 @@ describe("Notification endpoints", () => {
   });
 
   it("creates a kyc_status notification when a KYC document is approved (SMTP not configured, email step skipped)", async () => {
-    const { accessToken } = await registerAndLogin("notif-kyc@nexora.dev");
+    const { accessToken, userId } = await registerAndLogin("notif-kyc@nexora.dev");
     mockOcrResponse({
       isLegible: true,
       extractedFullName: "Ada Lovelace",
@@ -114,7 +114,7 @@ describe("Notification endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kimlik",
-        storageKey: "kyc/fake/kimlik/fake.jpeg",
+        storageKey: `kyc/${userId}/kimlik/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });

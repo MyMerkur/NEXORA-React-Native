@@ -1,7 +1,14 @@
 import type { Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "../middlewares/auth";
-import { updateShowcaseSchema, updateCareerSchema, avatarUploadUrlSchema, affiliationSchema } from "../validators/user.validator";
+import {
+  updateShowcaseSchema,
+  updateCareerSchema,
+  avatarUploadUrlSchema,
+  affiliationSchema,
+  requestAffiliationSchema,
+} from "../validators/user.validator";
 import * as userService from "../services/user.service";
+import * as affiliationRequestService from "../services/affiliationRequest.service";
 
 export async function meHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {
@@ -46,6 +53,25 @@ export async function updateAffiliationHandler(req: AuthenticatedRequest, res: R
   try {
     const { orgUserId } = affiliationSchema.parse(req.body);
     const result = await userService.setAffiliation(req.user!.id, orgUserId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function requestAffiliationHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const { orgUserId } = requestAffiliationSchema.parse(req.body);
+    const result = await affiliationRequestService.requestAffiliation(req.user!.id, orgUserId);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listMyAffiliationRequestsHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await affiliationRequestService.listMyAffiliationRequests(req.user!.id);
     res.status(200).json(result);
   } catch (error) {
     next(error);

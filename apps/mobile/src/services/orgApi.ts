@@ -98,6 +98,42 @@ export async function setAffiliation(orgUserId: string | null): Promise<UserProf
   return data;
 }
 
+export interface MyAffiliationRequest {
+  id: string;
+  orgId: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}
+
+export async function requestAffiliation(orgUserId: string): Promise<MyAffiliationRequest> {
+  const { data } = await apiClient.post<MyAffiliationRequest>("/api/v1/users/me/affiliation-requests", { orgUserId });
+  return data;
+}
+
+export async function listMyAffiliationRequests(): Promise<MyAffiliationRequest[]> {
+  const { data } = await apiClient.get<MyAffiliationRequest[]>("/api/v1/users/me/affiliation-requests");
+  return data;
+}
+
+export interface PendingAffiliationRequest {
+  id: string;
+  applicant: { id: string; displayName: string; avatarUrl: string | null };
+  createdAt: string;
+}
+
+export async function listAffiliationRequests(orgId: string): Promise<PendingAffiliationRequest[]> {
+  const { data } = await apiClient.get<PendingAffiliationRequest[]>(`/api/v1/orgs/${orgId}/affiliation-requests`);
+  return data;
+}
+
+export async function approveAffiliationRequest(orgId: string, requestId: string): Promise<void> {
+  await apiClient.post(`/api/v1/orgs/${orgId}/affiliation-requests/${requestId}/approve`);
+}
+
+export async function rejectAffiliationRequest(orgId: string, requestId: string): Promise<void> {
+  await apiClient.post(`/api/v1/orgs/${orgId}/affiliation-requests/${requestId}/reject`);
+}
+
 export async function rateOrg(orgId: string, rating: number, comment?: string): Promise<{ id: string; rating: number; comment: string }> {
   const { data } = await apiClient.post(`/api/v1/orgs/${orgId}/reviews`, { rating, comment });
   return data;

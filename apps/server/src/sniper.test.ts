@@ -183,4 +183,32 @@ describe("Sniper (B2B lead) endpoints", () => {
       .set("Authorization", `Bearer ${employerToken}`);
     expect(hiddenUnlockRes.status).toBe(404);
   });
+
+  it("charges exactly one credit when concurrent requests unlock the same candidate", async () => {
+    const { accessToken: employerToken, userId: employerId } = await registerAndLogin("sniper-race-emp@nexora.dev");
+    await verifyOrgKyc(employerId);
+
+    const { userId: candidateId } = await registerAndLogin("sniper-race-candidate@nexora.dev", "hekim");
+    await setDiscoverableCandidate(candidateId, { specialties: ["Ortodonti"] });
+
+    const { UserModel } = await import("./models/User");
+    await UserModel.findByIdAndUpdate(employerId, { sniperCreditsBalance: 2 });
+
+    const responses = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        request(app).post(`/api/v1/sniper/candidates/${candidateId}/unlock`).set("Authorization", `Bearer ${employerToken}`),
+      ),
+    );
+
+    for (const response of responses) {
+      expect(response.status).toBe(200);
+    }
+
+    const finalEmployer = await UserModel.findById(employerId);
+    expect(finalEmployer!.sniperCreditsBalance).toBe(1);
+
+    const { SniperUnlockModel } = await import("./models/SniperUnlock");
+    const unlockCount = await SniperUnlockModel.countDocuments({ employerId, candidateId });
+    expect(unlockCount).toBe(1);
+  });
 });

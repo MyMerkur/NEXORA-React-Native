@@ -48,6 +48,22 @@ export async function decrementSniperCreditsIfSufficient(userId: string, cost: n
   );
 }
 
+export async function decrementJobCreditsBalanceIfSufficient(userId: string, cost: number) {
+  return UserModel.findOneAndUpdate(
+    { _id: userId, jobPostingCreditsBalance: { $gte: cost } },
+    { $inc: { jobPostingCreditsBalance: -cost } },
+    { new: true },
+  );
+}
+
+export async function consumeFreeJobPostSlotIfAvailable(userId: string, limit: number) {
+  return UserModel.findOneAndUpdate(
+    { _id: userId, freeJobPostsUsed: { $lt: limit } },
+    { $inc: { freeJobPostsUsed: 1 } },
+    { new: true },
+  );
+}
+
 export async function findByAffiliatedOrg(orgId: string) {
   return UserModel.find({ affiliatedOrgId: new Types.ObjectId(orgId) });
 }
