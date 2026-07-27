@@ -6,9 +6,12 @@ import {
   listJobsByEmployer,
   findJobById,
   updateJobStatus,
-  countByEmployer,
 } from "../repositories/job.repository";
-import { findUserById, incrementJobCreditsBalance } from "../repositories/user.repository";
+import {
+  findUserById,
+  consumeFreeJobPostSlotIfAvailable,
+  decrementJobCreditsBalanceIfSufficient,
+} from "../repositories/user.repository";
 import { hasActiveSubscription } from "./subscription.service";
 import { EMPLOYER_ROLES, type JobStatus } from "../models/Job";
 import { HttpError } from "../utils/httpError";
@@ -54,13 +57,15 @@ export async function createJob(userId: string, input: CreateJobBody) {
     throw new HttpError("İlan yayınlamak için kurumsal doğrulama (Level 3) gerekli", 403);
   }
 
-  const postedCount = await countByEmployer(new Types.ObjectId(userId));
-  if (postedCount >= FREE_JOB_POST_LIMIT) {
-    const hasPremium = await hasActiveSubscription(userId);
-    if (!hasPremium) {
-      if (user.jobPostingCreditsBalance > 0) {
-        await incrementJobCreditsBalance(userId, -1);
-      } else {
+  // Both the free-post quota and the paid-credit balance are consumed via atomic guarded
+  // updates (findOneAndUpdate with a $lt/$gte condition), not read-then-write — this closes a
+  // race where concurrent requests could each pass a stale check and over-consume the quota.
+  const hasPremium = await hasActiveSubscription(userId);
+  if (!hasPremium) {
+    const freeSlotConsumed = await consumeFreeJobPostSlotIfAvailable(userId, FREE_JOB_POST_LIMIT);
+    if (!freeSlotConsumed) {
+      const creditConsumed = await decrementJobCreditsBalanceIfSufficient(userId, 1);
+      if (!creditConsumed) {
         throw new HttpError(
           "İlan hakkınız kalmadı. Alakart ilan kredisi satın alın veya premium abone olun.",
           402,

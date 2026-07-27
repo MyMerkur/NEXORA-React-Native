@@ -41,6 +41,14 @@ export async function markFailedIfPending(id: string) {
   );
 }
 
+export async function markOversoldIfPending(id: string, iyzicoPaymentId: string) {
+  return EventTicketPurchaseModel.findOneAndUpdate(
+    { _id: id, status: "pending_checkout" },
+    { $set: { status: "oversold", iyzicoPaymentId } },
+    { new: true },
+  );
+}
+
 export async function findByVerificationCode(code: string) {
   return EventTicketPurchaseModel.findOne({ verificationCode: code }).populate("userId eventId");
 }

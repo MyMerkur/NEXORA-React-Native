@@ -126,6 +126,12 @@ export async function swipeCandidate(userId: string, jobId: string, candidateId:
   if (!candidate || (EMPLOYER_ROLES as readonly string[]).includes(candidate.role)) {
     throw new HttpError("Aday bulunamadı", 404);
   }
+  // Same discoverability gate as the browse feed (listSwipeableCandidates) — swiping a
+  // candidateId obtained elsewhere (case author, another job's applicant list) must not bypass
+  // their openToWork/hiddenSearch privacy choice. 404, not 403, so existence isn't leaked.
+  if (!candidate.career.openToWork || candidate.career.hiddenSearch) {
+    throw new HttpError("Aday bulunamadı", 404);
+  }
 
   await upsertSwipe({ jobId, candidateId, swipedBy: "employer", direction });
 

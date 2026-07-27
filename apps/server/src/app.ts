@@ -10,6 +10,14 @@ import { env } from "./config/env";
 
 const app = express();
 
+// express-rate-limit keys on req.ip. Behind the VPS reverse proxy (staging/production), every
+// request otherwise resolves to the proxy's IP, turning per-client rate limits into one shared
+// bucket for all users. Trust exactly one hop (the proxy in front of this process) — not an
+// unbounded chain — and only outside local dev/test, where there's no real proxy to trust.
+if (env.NODE_ENV === "staging" || env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 app.use(
   helmet({
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },

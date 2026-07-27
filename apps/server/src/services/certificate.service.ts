@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { env } from "../config/env";
 import { findByVerificationCode } from "../repositories/certificate.repository";
+import { fallbackDisplayName } from "../utils/userSummary";
 
 export function buildVerificationUrl(verificationCode: string): string {
   return env.PUBLIC_APP_BASE_URL
@@ -34,9 +35,11 @@ export async function verifyCertificate(code: string): Promise<CertificateVerifi
 
   return {
     valid: true,
-    participantName: participant.showcase.displayName || participant.email,
+    // This endpoint is public and unauthenticated (anyone with the QR/code can call it) — never
+    // fall back to the full email, only its local part (see fallbackDisplayName).
+    participantName: participant.showcase.displayName || fallbackDisplayName(participant.email),
     courseTitle: course.title,
-    instructorName: course.instructorId.showcase.displayName || course.instructorId.email,
+    instructorName: course.instructorId.showcase.displayName || fallbackDisplayName(course.instructorId.email),
     issuedAt: certificate.issuedAt,
   };
 }

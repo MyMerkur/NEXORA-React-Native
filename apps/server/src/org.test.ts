@@ -135,10 +135,8 @@ describe("Org endpoints", () => {
       "org-team-member@nexora.dev",
       "hekim",
     );
-    await request(app)
-      .patch("/api/v1/users/me/affiliation")
-      .set("Authorization", `Bearer ${memberToken}`)
-      .send({ orgUserId: orgId });
+    const { UserModel } = await import("./models/User");
+    await UserModel.findByIdAndUpdate(memberId, { affiliatedOrgId: orgId });
 
     await verifyOrgKyc(memberId);
     await request(app)

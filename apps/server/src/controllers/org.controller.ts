@@ -5,6 +5,7 @@ import * as clinicReviewService from "../services/clinicReview.service";
 import * as orgAnnouncementService from "../services/orgAnnouncement.service";
 import * as orgVoteService from "../services/orgVote.service";
 import * as orgDuesService from "../services/orgDues.service";
+import * as affiliationRequestService from "../services/affiliationRequest.service";
 import { rateOrgSchema } from "../validators/review.validator";
 import { createAnnouncementSchema } from "../validators/orgAnnouncement.validator";
 import { createVoteSchema, castBallotSchema } from "../validators/orgVote.validator";
@@ -156,6 +157,41 @@ export async function listDuesSubscribersHandler(req: AuthenticatedRequest, res:
   try {
     const subscribers = await orgDuesService.listDuesSubscribers(req.user!.id, req.params.orgId!);
     res.status(200).json({ subscribers });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listAffiliationRequestsHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await affiliationRequestService.listPendingAffiliationRequests(req.params.orgId!, req.user!.id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function approveAffiliationRequestHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await affiliationRequestService.approveAffiliationRequest(
+      req.params.orgId!,
+      req.user!.id,
+      req.params.requestId!,
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function rejectAffiliationRequestHandler(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  try {
+    const result = await affiliationRequestService.rejectAffiliationRequest(
+      req.params.orgId!,
+      req.user!.id,
+      req.params.requestId!,
+    );
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

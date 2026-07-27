@@ -184,6 +184,10 @@ describe("Course/Enrollment/Certificate endpoints", () => {
     expect(verifyRes.status).toBe(200);
     expect(verifyRes.body.valid).toBe(true);
     expect(verifyRes.body.courseTitle).toBe("Endodontide İleri Teknikler");
+    // Neither account set a showcase displayName — this public, unauthenticated endpoint must
+    // never fall back to the full email, only its local part.
+    expect(verifyRes.body.participantName).toBe("course-flow-participant");
+    expect(verifyRes.body.instructorName).toBe("course-flow-instructor");
 
     const unknownVerifyRes = await request(app).get("/api/v1/certificates/verify/unknown-code");
     expect(unknownVerifyRes.body.valid).toBe(false);

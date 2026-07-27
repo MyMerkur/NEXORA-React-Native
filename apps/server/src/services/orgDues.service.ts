@@ -35,6 +35,9 @@ async function requireDernekOwner(userId: string, orgId: string) {
   if (user.role !== "dernek") {
     throw new HttpError("Bu özellik sadece dernek hesapları için kullanılabilir", 403);
   }
+  if (user.kycLevel < 3) {
+    throw new HttpError("Bu özellik için kurumsal doğrulama (Level 3) gerekli", 403);
+  }
   return user;
 }
 

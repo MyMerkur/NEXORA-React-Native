@@ -6,6 +6,8 @@ import {
   updateCareerHandler,
   avatarUploadUrlHandler,
   updateAffiliationHandler,
+  requestAffiliationHandler,
+  listMyAffiliationRequestsHandler,
 } from "../controllers/user.controller";
 
 export const userRouter = Router();
@@ -16,3 +18,5 @@ userRouter.patch("/users/me/showcase", updateShowcaseHandler);
 userRouter.patch("/users/me/career", updateCareerHandler);
 userRouter.post("/users/me/avatar-upload-url", avatarUploadUrlHandler);
 userRouter.patch("/users/me/affiliation", updateAffiliationHandler);
+userRouter.post("/users/me/affiliation-requests", requestAffiliationHandler);
+userRouter.get("/users/me/affiliation-requests", listMyAffiliationRequestsHandler);

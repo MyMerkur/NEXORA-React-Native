@@ -68,7 +68,7 @@ async function registerAndLogin(email: string) {
   const response = await request(app)
     .post("/api/v1/auth/register")
     .send({ email, password: "Supersecret123", role: "hekim" });
-  return response.body.accessToken as string;
+  return { accessToken: response.body.accessToken as string, userId: response.body.user.id as string };
 }
 
 async function registerAndLoginWithRole(email: string, role: string) {
@@ -83,7 +83,7 @@ describe("KYC endpoints", () => {
   });
 
   it("returns a pre-signed upload URL and storage key", async () => {
-    const accessToken = await registerAndLogin("kyc-upload@nexora.dev");
+    const { accessToken } = await registerAndLogin("kyc-upload@nexora.dev");
 
     const response = await request(app)
       .post("/api/v1/kyc/documents/upload-url")
@@ -95,8 +95,25 @@ describe("KYC endpoints", () => {
     expect(response.body.storageKey).toMatch(/^kyc\/.+\/kimlik\/.+\.jpeg$/);
   });
 
+  it("rejects confirming an upload with a storage key that was not issued to the caller", async () => {
+    const { accessToken } = await registerAndLogin("kyc-storagekey-owner@nexora.dev");
+    const { userId: otherUserId } = await registerAndLogin("kyc-storagekey-other@nexora.dev");
+
+    const response = await request(app)
+      .post("/api/v1/kyc/documents")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({
+        documentType: "kimlik",
+        storageKey: `kyc/${otherUserId}/kimlik/someone-elses-upload.jpeg`,
+        contentType: "image/jpeg",
+        claimedFullName: "Ada Lovelace",
+      });
+
+    expect(response.status).toBe(400);
+  });
+
   it("approves a legible, name-matching kimlik document and raises kycLevel to 1", async () => {
-    const accessToken = await registerAndLogin("kyc-approve@nexora.dev");
+    const { accessToken, userId } = await registerAndLogin("kyc-approve@nexora.dev");
     mockOcrResponse({
       isLegible: true,
       extractedFullName: "Ada Lovelace",
@@ -111,7 +128,7 @@ describe("KYC endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kimlik",
-        storageKey: "kyc/fake/kimlik/fake.jpeg",
+        storageKey: `kyc/${userId}/kimlik/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });
@@ -127,7 +144,7 @@ describe("KYC endpoints", () => {
   });
 
   it("rejects a document when the extracted name does not match the claim", async () => {
-    const accessToken = await registerAndLogin("kyc-mismatch@nexora.dev");
+    const { accessToken, userId } = await registerAndLogin("kyc-mismatch@nexora.dev");
     mockOcrResponse({
       isLegible: true,
       extractedFullName: "Farklı İsim",
@@ -142,7 +159,7 @@ describe("KYC endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kimlik",
-        storageKey: "kyc/fake/kimlik/fake.jpeg",
+        storageKey: `kyc/${userId}/kimlik/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });
@@ -152,7 +169,7 @@ describe("KYC endpoints", () => {
   });
 
   it("marks a low-confidence or illegible document as needs_review", async () => {
-    const accessToken = await registerAndLogin("kyc-blurry@nexora.dev");
+    const { accessToken, userId } = await registerAndLogin("kyc-blurry@nexora.dev");
     mockOcrResponse({
       isLegible: false,
       extractedFullName: null,
@@ -167,7 +184,7 @@ describe("KYC endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kimlik",
-        storageKey: "kyc/fake/kimlik/fake.jpeg",
+        storageKey: `kyc/${userId}/kimlik/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });
@@ -177,14 +194,14 @@ describe("KYC endpoints", () => {
   });
 
   it("rejects a diploma upload before the kimlik document is approved", async () => {
-    const accessToken = await registerAndLogin("kyc-diploma-early@nexora.dev");
+    const { accessToken, userId } = await registerAndLogin("kyc-diploma-early@nexora.dev");
 
     const response = await request(app)
       .post("/api/v1/kyc/documents")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "diploma",
-        storageKey: "kyc/fake/diploma/fake.jpeg",
+        storageKey: `kyc/${userId}/diploma/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });
@@ -193,7 +210,7 @@ describe("KYC endpoints", () => {
   });
 
   it("approves a diploma after kimlik is approved and raises kycLevel to 2", async () => {
-    const accessToken = await registerAndLogin("kyc-diploma-after@nexora.dev");
+    const { accessToken, userId } = await registerAndLogin("kyc-diploma-after@nexora.dev");
 
     mockOcrResponse({
       isLegible: true,
@@ -208,7 +225,7 @@ describe("KYC endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kimlik",
-        storageKey: "kyc/fake/kimlik/fake.jpeg",
+        storageKey: `kyc/${userId}/kimlik/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });
@@ -226,7 +243,7 @@ describe("KYC endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "diploma",
-        storageKey: "kyc/fake/diploma/fake.jpeg",
+        storageKey: `kyc/${userId}/diploma/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Ada Lovelace",
       });
@@ -236,14 +253,14 @@ describe("KYC endpoints", () => {
   });
 
   it("rejects a kurumsal_belge upload from a non-employer role", async () => {
-    const { accessToken } = await registerAndLoginWithRole("kyc-corp-non-employer@nexora.dev", "hekim");
+    const { accessToken, userId } = await registerAndLoginWithRole("kyc-corp-non-employer@nexora.dev", "hekim");
 
     const response = await request(app)
       .post("/api/v1/kyc/documents")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kurumsal_belge",
-        storageKey: "kyc/fake/kurumsal_belge/fake.jpeg",
+        storageKey: `kyc/${userId}/kurumsal_belge/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Nexora Klinik",
       });
@@ -252,7 +269,7 @@ describe("KYC endpoints", () => {
   });
 
   it("approves a kurumsal_belge for an employer role and raises kycLevel to 3", async () => {
-    const { accessToken } = await registerAndLoginWithRole("kyc-corp-approve@nexora.dev", "klinik");
+    const { accessToken, userId } = await registerAndLoginWithRole("kyc-corp-approve@nexora.dev", "klinik");
     mockOcrResponse({
       isLegible: true,
       extractedFullName: "Nexora Klinik",
@@ -267,7 +284,7 @@ describe("KYC endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({
         documentType: "kurumsal_belge",
-        storageKey: "kyc/fake/kurumsal_belge/fake.jpeg",
+        storageKey: `kyc/${userId}/kurumsal_belge/fake.jpeg`,
         contentType: "image/jpeg",
         claimedFullName: "Nexora Klinik",
       });

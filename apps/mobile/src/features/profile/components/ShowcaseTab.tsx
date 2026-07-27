@@ -14,7 +14,13 @@ import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client
 import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { requestAvatarUploadUrl, updateShowcase, getMe, type UserProfile } from "../../../services/profileApi";
-import { searchOrgs, setAffiliation, type OrgSearchResult } from "../../../services/orgApi";
+import {
+  searchOrgs,
+  setAffiliation,
+  requestAffiliation,
+  listMyAffiliationRequests,
+  type OrgSearchResult,
+} from "../../../services/orgApi";
 import {
   getIncomingRequests,
   fulfillRequest,
@@ -46,6 +52,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
   const [affiliationQuery, setAffiliationQuery] = useState("");
   const [affiliationResults, setAffiliationResults] = useState<OrgSearchResult[]>([]);
   const [affiliationSaving, setAffiliationSaving] = useState(false);
+  const [pendingAffiliation, setPendingAffiliation] = useState<{ orgId: string; displayName?: string } | null>(null);
   const [incomingRequests, setIncomingRequests] = useState<ReferenceItem[]>([]);
   const [myReferences, setMyReferences] = useState<ReferenceItem[]>([]);
   const [fulfillingId, setFulfillingId] = useState<string | null>(null);
@@ -66,6 +73,14 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       .catch(() => undefined);
     getMyReferences()
       .then(setMyReferences)
+      .catch(() => undefined);
+    listMyAffiliationRequests()
+      .then((requests) => {
+        const pending = requests.find((item) => item.status === "pending");
+        if (pending) {
+          setPendingAffiliation({ orgId: pending.orgId });
+        }
+      })
       .catch(() => undefined);
   }, [isEmployer]);
 
@@ -169,16 +184,29 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
     }
   }
 
-  async function handleSelectAffiliation(orgUserId: string | null) {
+  async function handleLeaveOrg() {
     setAffiliationSaving(true);
     setError(null);
     try {
-      const updated = await setAffiliation(orgUserId);
+      const updated = await setAffiliation(null);
       onUpdated(updated);
+    } catch (err) {
+      setError(getApiErrorMessage(err, "Kurum bağlantısı güncellenemedi"));
+    } finally {
+      setAffiliationSaving(false);
+    }
+  }
+
+  async function handleRequestAffiliation(org: OrgSearchResult) {
+    setAffiliationSaving(true);
+    setError(null);
+    try {
+      await requestAffiliation(org.id);
+      setPendingAffiliation({ orgId: org.id, displayName: org.displayName });
       setAffiliationQuery("");
       setAffiliationResults([]);
     } catch (err) {
-      setError(getApiErrorMessage(err, "Kurum bağlantısı güncellenemedi"));
+      setError(getApiErrorMessage(err, "İstek gönderilemedi"));
     } finally {
       setAffiliationSaving(false);
     }
@@ -245,10 +273,16 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
           {profile.showcase.affiliatedOrg ? (
             <View style={styles.affiliationChip}>
               <Text style={styles.affiliationChipText}>{profile.showcase.affiliatedOrg.displayName}</Text>
-              <TouchableOpacity onPress={() => handleSelectAffiliation(null)} disabled={affiliationSaving}>
+              <TouchableOpacity onPress={handleLeaveOrg} disabled={affiliationSaving}>
                 <Text style={styles.affiliationChipRemove}>×</Text>
               </TouchableOpacity>
             </View>
+          ) : pendingAffiliation ? (
+            <Text style={styles.affiliationPendingText}>
+              {pendingAffiliation.displayName
+                ? `${pendingAffiliation.displayName} kurumuna isteğiniz gönderildi, onay bekleniyor.`
+                : "Bir kuruma bağlanma isteğiniz onay bekliyor."}
+            </Text>
           ) : (
             <>
               <TextInput
@@ -262,7 +296,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
                 <TouchableOpacity
                   key={org.id}
                   style={styles.affiliationResultRow}
-                  onPress={() => handleSelectAffiliation(org.id)}
+                  onPress={() => handleRequestAffiliation(org)}
                   disabled={affiliationSaving}
                 >
                   <Text style={styles.affiliationResultText}>{org.displayName}</Text>
@@ -480,6 +514,11 @@ const styles = StyleSheet.create({
     color: colors.danger,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
+  },
+  affiliationPendingText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+    fontStyle: "italic",
   },
   affiliationResultRow: {
     paddingVertical: spacing.sm,

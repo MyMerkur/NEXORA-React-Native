@@ -232,3 +232,21 @@ export async function notifyEventTicketPurchased(userId: string, eventTitle: str
   const body = `"${eventTitle}" etkinliği için biletiniz onaylandı`;
   await createNotification(userId, "event_ticket_purchased", title, body);
 }
+
+export async function notifyAffiliationRequested(orgId: string, applicantName: string) {
+  const title = "Yeni aidiyet isteği";
+  const body = `${applicantName} kurumunuza katılmak için istek gönderdi`;
+  await createNotification(orgId, "affiliation_requested", title, body);
+}
+
+export async function notifyAffiliationApproved(userId: string, orgName: string) {
+  const title = "Aidiyet isteğiniz onaylandı";
+  const body = `${orgName} kurumuna aidiyet isteğiniz onaylandı`;
+  await createNotification(userId, "affiliation_approved", title, body);
+}
+
+export async function notifyAffiliationRejected(userId: string, orgName: string) {
+  const title = "Aidiyet isteğiniz reddedildi";
+  const body = `${orgName} kurumuna aidiyet isteğiniz reddedildi`;
+  await createNotification(userId, "affiliation_rejected", title, body);
+}

@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import { findUserById } from "../repositories/user.repository";
 import { buildAvatarStorageKey, createDownloadUrl, createUploadUrl } from "../config/storage";
 import { HttpError } from "../utils/httpError";
@@ -75,20 +74,20 @@ export async function updateCareer(userId: string, patch: CareerPatch) {
   return getMe(userId);
 }
 
+// Only leaving (orgUserId: null) goes through this endpoint — joining requires the org's
+// approval via affiliationRequest.service.ts, since self-service affiliation with no approval
+// let anyone claim membership of any klinik/firma/dernek (ballot-stuffing, fake team members).
 export async function setAffiliation(userId: string, orgUserId: string | null) {
+  if (orgUserId !== null) {
+    throw new HttpError("Bir kuruma bağlanmak için önce kurumdan onay almanız gerekiyor", 400);
+  }
+
   const user = await findUserById(userId);
   if (!user) {
     throw new HttpError("Kullanıcı bulunamadı", 404);
   }
 
-  if (orgUserId) {
-    const org = await findUserById(orgUserId);
-    if (!org || !(EMPLOYER_ROLES as readonly string[]).includes(org.role)) {
-      throw new HttpError("Geçersiz kurum", 400);
-    }
-  }
-
-  user.affiliatedOrgId = orgUserId ? new Types.ObjectId(orgUserId) : null;
+  user.affiliatedOrgId = null;
   await user.save();
 
   return getMe(userId);

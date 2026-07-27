@@ -1,7 +1,6 @@
 import { findUserById } from "../repositories/user.repository";
 import {
-  findThreadBetween,
-  createThread,
+  findOrCreateThread,
   findThreadById,
   listThreadsByUser,
   touchThread,
@@ -66,16 +65,13 @@ export async function startOrGetThread(
     throw new HttpError("Kullanıcı bulunamadı", 404);
   }
 
-  let thread = await findThreadBetween(userId, targetUserId);
-  if (!thread) {
-    thread = await createThread({
-      userIdA: userId,
-      userIdB: targetUserId,
-      category: categoryFromContext(context?.type),
-      contextType: context?.type,
-      contextId: context?.id,
-    });
-  }
+  const thread = await findOrCreateThread({
+    userIdA: userId,
+    userIdB: targetUserId,
+    category: categoryFromContext(context?.type),
+    contextType: context?.type,
+    contextId: context?.id,
+  });
 
   return serializeThread(thread, userId);
 }

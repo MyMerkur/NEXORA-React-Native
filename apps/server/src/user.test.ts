@@ -177,7 +177,7 @@ describe("User profile endpoints", () => {
     expect(response.body.showcase.isVerifiedOrg).toBe(true);
   });
 
-  it("sets and reflects an affiliation with a valid org", async () => {
+  it("rejects setting an affiliation directly — joining requires an approved request", async () => {
     const { accessToken } = await registerAndLoginWithRole("profile-affiliate@nexora.dev", "hekim");
     const { userId: orgId } = await registerAndLoginWithRole("profile-affiliate-org@nexora.dev", "klinik");
 
@@ -186,19 +186,85 @@ describe("User profile endpoints", () => {
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ orgUserId: orgId });
 
-    expect(response.status).toBe(200);
-    expect(response.body.showcase.affiliatedOrg.id).toBe(orgId);
+    expect(response.status).toBe(400);
   });
 
-  it("rejects affiliating with a non-employer-role user", async () => {
+  it("rejects requesting affiliation with a non-employer-role user", async () => {
     const { accessToken } = await registerAndLoginWithRole("profile-affiliate-invalid@nexora.dev", "hekim");
     const { userId: otherHekimId } = await registerAndLoginWithRole("profile-affiliate-target@nexora.dev", "hekim");
 
     const response = await request(app)
-      .patch("/api/v1/users/me/affiliation")
+      .post("/api/v1/users/me/affiliation-requests")
       .set("Authorization", `Bearer ${accessToken}`)
       .send({ orgUserId: otherHekimId });
 
     expect(response.status).toBe(400);
+  });
+
+  it("only affiliates a user once the org approves their request", async () => {
+    const { accessToken, userId } = await registerAndLoginWithRole("profile-affiliate-req@nexora.dev", "hekim");
+    const { accessToken: orgToken, userId: orgId } = await registerAndLoginWithRole(
+      "profile-affiliate-req-org@nexora.dev",
+      "klinik",
+    );
+
+    const requestRes = await request(app)
+      .post("/api/v1/users/me/affiliation-requests")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ orgUserId: orgId });
+    expect(requestRes.status).toBe(201);
+    expect(requestRes.body.status).toBe("pending");
+
+    const meBeforeApproval = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+    expect(meBeforeApproval.body.showcase.affiliatedOrg).toBeNull();
+
+    const pendingRes = await request(app)
+      .get(`/api/v1/orgs/${orgId}/affiliation-requests`)
+      .set("Authorization", `Bearer ${orgToken}`);
+    expect(pendingRes.status).toBe(200);
+    expect(pendingRes.body).toHaveLength(1);
+    expect(pendingRes.body[0].applicant.id).toBe(userId);
+
+    const approveRes = await request(app)
+      .post(`/api/v1/orgs/${orgId}/affiliation-requests/${requestRes.body.id}/approve`)
+      .set("Authorization", `Bearer ${orgToken}`);
+    expect(approveRes.status).toBe(200);
+    expect(approveRes.body.status).toBe("approved");
+
+    const meAfterApproval = await request(app).get("/api/v1/users/me").set("Authorization", `Bearer ${accessToken}`);
+    expect(meAfterApproval.body.showcase.affiliatedOrg.id).toBe(orgId);
+  });
+
+  it("rejects a non-owner reviewing another org's affiliation requests, and allows leaving without approval", async () => {
+    const { accessToken } = await registerAndLoginWithRole("profile-affiliate-leave@nexora.dev", "hekim");
+    const { accessToken: orgToken, userId: orgId } = await registerAndLoginWithRole(
+      "profile-affiliate-leave-org@nexora.dev",
+      "klinik",
+    );
+    const { accessToken: outsiderToken } = await registerAndLoginWithRole(
+      "profile-affiliate-outsider@nexora.dev",
+      "klinik",
+    );
+
+    const requestRes = await request(app)
+      .post("/api/v1/users/me/affiliation-requests")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ orgUserId: orgId });
+
+    const outsiderApproveRes = await request(app)
+      .get(`/api/v1/orgs/${orgId}/affiliation-requests`)
+      .set("Authorization", `Bearer ${outsiderToken}`);
+    expect(outsiderApproveRes.status).toBe(403);
+
+    await request(app)
+      .post(`/api/v1/orgs/${orgId}/affiliation-requests/${requestRes.body.id}/approve`)
+      .set("Authorization", `Bearer ${orgToken}`);
+
+    const leaveRes = await request(app)
+      .patch("/api/v1/users/me/affiliation")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ orgUserId: null });
+    expect(leaveRes.status).toBe(200);
+    expect(leaveRes.body.showcase.affiliatedOrg).toBeNull();
   });
 });

@@ -19,3 +19,10 @@ export async function listCandidateIdsByEmployer(employerId: string): Promise<st
   const unlocks = await SniperUnlockModel.find({ employerId: new Types.ObjectId(employerId) }, { candidateId: 1 });
   return unlocks.map((unlock) => unlock.candidateId.toString());
 }
+
+export async function deleteByEmployerAndCandidate(employerId: string, candidateId: string) {
+  await SniperUnlockModel.deleteOne({
+    employerId: new Types.ObjectId(employerId),
+    candidateId: new Types.ObjectId(candidateId),
+  });
+}

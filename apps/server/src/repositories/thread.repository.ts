@@ -14,15 +14,29 @@ export async function findThreadBetween(userIdA: string, userIdB: string) {
   return ThreadModel.findOne({ participantsKey });
 }
 
-export async function createThread(data: CreateThreadInput) {
+// Mirrors match.repository.ts::findOrCreateMatch — the unique index on participantsKey is the
+// real concurrency guard, not a separate find-then-create (two requests starting a thread with
+// the same counterpart at once would otherwise both pass a "no thread yet" check and race on
+// insert, one of them crashing on the unique-index violation instead of just getting the thread).
+export async function findOrCreateThread(data: CreateThreadInput) {
   const participantsKey = buildParticipantsKey(data.userIdA, data.userIdB);
-  return ThreadModel.create({
-    participantIds: [new Types.ObjectId(data.userIdA), new Types.ObjectId(data.userIdB)],
-    participantsKey,
-    category: data.category,
-    contextType: data.contextType ?? null,
-    contextId: data.contextId ? new Types.ObjectId(data.contextId) : null,
-  });
+  try {
+    return await ThreadModel.create({
+      participantIds: [new Types.ObjectId(data.userIdA), new Types.ObjectId(data.userIdB)],
+      participantsKey,
+      category: data.category,
+      contextType: data.contextType ?? null,
+      contextId: data.contextId ? new Types.ObjectId(data.contextId) : null,
+    });
+  } catch (error) {
+    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 11000) {
+      const existing = await ThreadModel.findOne({ participantsKey });
+      if (existing) {
+        return existing;
+      }
+    }
+    throw error;
+  }
 }
 
 export async function findThreadById(id: string) {

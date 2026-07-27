@@ -207,6 +207,69 @@ describe("Event ticketing endpoints", () => {
     expect(secondCheckoutRes.status).toBe(409);
   });
 
+  it("marks a ticket oversold instead of paid when capacity runs out between checkout and payment", async () => {
+    const { accessToken: organizerToken, userId: organizerId } = await registerAndLogin("organizer-oversell@nexora.dev");
+    await verifyOrgKyc(organizerId);
+
+    const createRes = await request(app)
+      .post("/api/v1/events")
+      .set("Authorization", `Bearer ${organizerToken}`)
+      .send(validEventInput);
+    const eventId = createRes.body.id as string;
+    const ticketTypeId = createRes.body.ticketTypes[0].id as string;
+
+    // Both buyers start checkout while soldCount is still 0 (the soft check at checkout-start
+    // cannot see the other's in-flight purchase) — simulates the race the audit flagged.
+    const { accessToken: firstBuyerToken } = await registerAndLogin("buyer-oversell-1@nexora.dev", "hekim");
+    mockInitializeEventTicketCheckout.mockResolvedValueOnce({
+      token: "ticket-token-oversell-1",
+      checkoutFormContent: "<form></form>",
+    });
+    await request(app)
+      .post(`/api/v1/events/${eventId}/tickets/checkout`)
+      .set("Authorization", `Bearer ${firstBuyerToken}`)
+      .send({ ticketTypeId, ...billingFields });
+
+    const { accessToken: secondBuyerToken } = await registerAndLogin("buyer-oversell-2@nexora.dev", "hekim");
+    mockInitializeEventTicketCheckout.mockResolvedValueOnce({
+      token: "ticket-token-oversell-2",
+      checkoutFormContent: "<form></form>",
+    });
+    await request(app)
+      .post(`/api/v1/events/${eventId}/tickets/checkout`)
+      .set("Authorization", `Bearer ${secondBuyerToken}`)
+      .send({ ticketTypeId, ...billingFields });
+
+    mockRetrieveJobCreditCheckoutResult.mockResolvedValue({ paymentStatus: "SUCCESS", paymentId: "pay-first" });
+    const firstCallbackRes = await request(app)
+      .post("/api/v1/payments/iyzico/event-ticket-callback")
+      .type("form")
+      .send({ token: "ticket-token-oversell-1" });
+    expect(firstCallbackRes.status).toBe(200);
+
+    mockRetrieveJobCreditCheckoutResult.mockResolvedValue({ paymentStatus: "SUCCESS", paymentId: "pay-second" });
+    const secondCallbackRes = await request(app)
+      .post("/api/v1/payments/iyzico/event-ticket-callback")
+      .type("form")
+      .send({ token: "ticket-token-oversell-2" });
+    expect(secondCallbackRes.status).toBe(200);
+
+    const firstBuyerTickets = await request(app)
+      .get("/api/v1/events/tickets/mine")
+      .set("Authorization", `Bearer ${firstBuyerToken}`);
+    expect(firstBuyerTickets.body).toHaveLength(1);
+
+    const secondBuyerTickets = await request(app)
+      .get("/api/v1/events/tickets/mine")
+      .set("Authorization", `Bearer ${secondBuyerToken}`);
+    expect(secondBuyerTickets.body).toHaveLength(0);
+
+    const { EventTicketPurchaseModel } = await import("./models/EventTicketPurchase");
+    const secondPurchase = await EventTicketPurchaseModel.findOne({ checkoutToken: "ticket-token-oversell-2" });
+    expect(secondPurchase!.status).toBe("oversold");
+    expect(secondPurchase!.iyzicoPaymentId).toBe("pay-second");
+  });
+
   it("does not issue a ticket when the payment fails", async () => {
     const { accessToken: organizerToken, userId: organizerId } = await registerAndLogin("organizer-fail@nexora.dev");
     await verifyOrgKyc(organizerId);
