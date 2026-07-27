@@ -15,13 +15,13 @@ Bu dosyayı repo'da `docs/PROJECT_PLAN.md` olarak tutman ve Claude Code'a projey
 | Mobil | **Bare React Native** (Expo değil) — native build zinciri, Xcode + Android Studio gerekiyor |
 | Domain | Şu an yok — ilk aşamada IP/port üzerinden yayın, domain alınınca Nginx + SSL eklenecek |
 | Backend hosting | Mevcut VPS, PM2 ile process yönetimi |
-| Web | Ayrı, sonraki bir faz (Faz 6) — mobil lansmandan sonra ele alınacak |
+| Web | Ayrı, sonraki bir faz (Faz 7) — mobil lansmandan sonra ele alınacak |
 
 ### Faz 0 başında netleşmesi gereken açık kararlar
 Bunlar planı bloke etmiyor ama Faz 0'ın ilk günlerinde karar verilmeli:
 - **Medya depolama:** AWS S3 mi, Cloudflare R2 mi? (Öneri: R2 — egress ücreti yok, S3 API uyumlu, maliyet avantajlı)
 - **Ödeme sağlayıcısı önceliği:** Türkiye pazarı için iyzico mu önce, Stripe mu önce? (Faz 3'e kadar karar verilebilir)
-- **GitHub org adı** ve **Apple Developer (yıllık $99) / Google Play Console ($25 tek seferlik)** hesapları — Bare RN ile store'a çıkarken zorunlu, Faz 5'e kadar açılabilir ama hesap onay süreçleri (özellikle Apple) günler sürebildiği için erken açılması tavsiye edilir.
+- **GitHub org adı** ve **Apple Developer (yıllık $99) / Google Play Console ($25 tek seferlik)** hesapları — Bare RN ile store'a çıkarken zorunlu, Faz 6'ya kadar açılabilir ama hesap onay süreçleri (özellikle Apple) günler sürebildiği için Faz 5 (tasarım) sırasında paralel olarak başvurulması, Faz 6 başında hazır olması tavsiye edilir.
 - **Sentry / izleme hesabı** — ücretsiz plan yeterli, Faz 0'da açılabilir.
 
 ---
@@ -35,7 +35,7 @@ nexora/
 ├── apps/
 │   ├── backend/          # Node.js + Express (TypeScript, MVC)
 │   └── mobile/            # React Native (Bare, TypeScript)
-│   └── web/                # [Faz 6'da eklenecek — şimdilik yok]
+│   └── web/                # [Faz 7'de eklenecek — şimdilik yok]
 ├── packages/
 │   ├── shared-types/       # Ortak TS tipleri (User, Case, Job, ...)
 │   ├── shared-validation/   # Zod şemaları
@@ -90,7 +90,7 @@ Kurallar: `main` ve `develop` doğrudan push'a kapalı (branch protection), her 
 2. **`deploy-staging.yml`** — `develop`'a push'ta: SSH ile VPS'e bağlan, backend'i build edip PM2 staging process'ini reload et.
 3. **`deploy-production.yml`** — `main`'e merge'de: aynı akış, prod PM2 process'i; **GitHub Environments** ile manuel onay (approval) adımı eklenmesi öneriliyor (yanlışlıkla prod'a deploy'u engellemek için).
 
-Not: Mobil tarafta Bare RN olduğu için CI'da native build (özellikle iOS/macOS runner) ayrı ve daha maliyetli bir konu — Faz 0-2'de mobil CI'ı sadece lint/typecheck/JS test ile sınırlı tutup, native build/store dağıtımını Faz 5'te Fastlane ile ele almak öneriliyor.
+Not: Mobil tarafta Bare RN olduğu için CI'da native build (özellikle iOS/macOS runner) ayrı ve daha maliyetli bir konu — Faz 0-2'de mobil CI'ı sadece lint/typecheck/JS test ile sınırlı tutup, native build/store dağıtımını Faz 6'da Fastlane ile ele almak öneriliyor.
 
 ---
 
@@ -145,7 +145,7 @@ apps/mobile/src/
 **Bare RN olduğu için dikkat edilecekler:**
 - Geliştirme makinesinde **Xcode + CocoaPods** (iOS) ve **Android Studio + JDK** (Android) kurulu olmalı; Expo Go ile anlık önizleme yok, simulator/emulator veya fiziksel cihaz + USB debugging ile test edilecek.
 - Native modül eklemek gerektiğinde (kamera, push bildirim, OCR için dosya seçici vb.) `pod install` / Gradle sync adımları manuel yürütülecek.
-- OTA (over-the-air) güncelleme için Expo Updates gibi hazır bir çözüm yok; küçük JS düzeltmeleri bile yeni build + (Faz 5 sonrası) store submission gerektirebilir. İstenirse ileride `react-native-code-push` benzeri bir çözüm ayrıca değerlendirilebilir — plana şimdilik dahil edilmedi.
+- OTA (over-the-air) güncelleme için Expo Updates gibi hazır bir çözüm yok; küçük JS düzeltmeleri bile yeni build + (Faz 6 sonrası) store submission gerektirebilir. İstenirse ileride `react-native-code-push` benzeri bir çözüm ayrıca değerlendirilebilir — plana şimdilik dahil edilmedi.
 - Push bildirim: Firebase Cloud Messaging (FCM) native entegrasyonu (`@react-native-firebase/messaging`).
 - State: Zustand (client state) + React Query/TanStack Query (server state/cache).
 
@@ -197,7 +197,7 @@ Detaylı alan bazlı şema Faz 1 başında Mongoose model dosyaları yazılırke
 
 ## 11. Yol Haritası (Fazlar) — Mobile-First Sıralama
 
-Orijinal teknik dokümandaki 6 fazlık plan, web'in sona alınmasıyla yeniden sıralandı. Backend her fazda mobil ile birlikte ilerliyor; web tamamen ayrı bir faz (Faz 6).
+Orijinal teknik dokümandaki 6 fazlık plan, web'in sona alınmasıyla ve Faz 4 sonrasına ayrı bir tasarım fazı eklenmesiyle yeniden sıralandı. Backend her fazda mobil ile birlikte ilerliyor; web tamamen ayrı bir faz (Faz 7).
 
 ### Faz 0 — Temel Altyapı *(1-2 hafta)*
 - Monorepo kurulumu (pnpm + Turborepo), GitHub org/repo/branch/Projects board kurulumu
@@ -238,7 +238,17 @@ Orijinal teknik dokümandaki 6 fazlık plan, web'in sona alınmasıyla yeniden s
 - B2B "Keskin Nişancı" kredi sistemi ve veri odaklı lead satışı
 - → PRD Aşamaları: 9, 10, 11, 15 (tamamı)
 
-### Faz 5 — Mobil Lansman Hazırlığı *(4-6 hafta)*
+### Faz 5 — Mobil UX/UI Tasarım *(13-18 hafta)*
+Faz 0-4 fonksiyon-öncelikli inşa edildi; `packages/ui-tokens` bare bir token dosyasından (renk/tipografi/spacing/radius) öteye geçmedi, paylaşılan bir bileşen kütüphanesi hiç kurulmadı, boş-durum/animasyon tutarsız, auth sadece giriş ekranından ibaret. Bu faz, mevcut 41 ekran/modalin tamamını profesyonel bir tasarım sistemine taşır — yüzeysel bir "cila" değil, tam bir yeniden inşa. Süreç her adımda **önce Claude Design'da (claude.ai/design) mockup + onay, sonra React Native kodu** şeklinde ilerler.
+- Tasarım sistemi temeli: `ui-tokens` v2 (semantic renk/state, gradient/glassmorphism, elevation, tipografi presetleri + gerçek custom font, motion tokenları, ikon kütüphanesi kararı)
+- Paylaşılan bileşen kütüphanesi: Button/Card/Input/Badge/Avatar/EmptyState/Skeleton/Modal-shell/BottomSheet
+- Navigasyon/modal mimarisi kararı (ADR) ve app-geneli uygulanması
+- Mikro-etkileşim ve animasyon katmanı (`react-native-reanimated`)
+- Auth/Onboarding akışı + ilk sınıf KYC akışı (issue #11 bu kapsamla birleşir)
+- Feed, Profil/Vitrin, İş İlanları/Eşleştirme, Hub/B2B, Mesajlaşma/Bildirim, Etkinlik/Kurs/Dernek/Abonelik ekranlarının tamamının yeni sisteme taşınması
+- **Non-goals:** özel ikon seti yok, light mode yok, backend değişikliği yok, Fastlane/store/waitlist yok (Faz 6'da), AI Onboarding Asistanı davranışı Faz 6'da kalır — bu fazda sadece standart onboarding UI'ı inşa edilir.
+
+### Faz 6 — Mobil Lansman Hazırlığı *(4-6 hafta)*
 - Sinematik waitlist (bu aşamada basit bir statik sayfa/landing yeterli, tam web henüz yok)
 - AI Onboarding Asistanı (hekim/klinik/hoca kayıt akışları)
 - Apple Developer + Google Play Console hesapları, Fastlane ile store build/submit akışı
@@ -246,14 +256,14 @@ Orijinal teknik dokümandaki 6 fazlık plan, web'in sona alınmasıyla yeniden s
 - App Store / Play Store yayına alma
 - → PRD Aşaması: 16
 
-### Faz 6 — Web Uygulaması *(mobil lansman sonrası, 6-8 hafta, ayrı ekip/zaman dilimi)*
+### Faz 7 — Web Uygulaması *(mobil lansman sonrası, 6-8 hafta, ayrı ekip/zaman dilimi)*
 - `apps/web` eklenir (Next.js App Router)
 - Herkese açık sayfalar (iş ilanları SEO, klinik/firma vitrinleri, waitlist) — SSR/ISR
 - Kullanıcı paneli (CSR) — mobil ile aynı backend API'lerini `api-client` üzerinden tüketir
 - Admin paneli (KYC onay, dernek onay, moderasyon)
 - Vercel veya aynı VPS üzerinde ayrı PM2 process olarak barındırma kararı bu fazda verilir
 
-**Kümülatif süre (mobil lansmana kadar, Faz 0-5):** yaklaşık 28-36 hafta, tek full-stack geliştirici + gerektiğinde tasarım/QA desteği varsayımıyla. Faz 6 (web) bu sürenin dışında, ayrıca planlanır.
+**Kümülatif süre (mobil lansmana kadar, Faz 0-6):** yaklaşık 45-58 hafta, tek full-stack geliştirici + gerektiğinde tasarım/QA desteği varsayımıyla. Faz 7 (web) bu sürenin dışında, ayrıca planlanır.
 
 ---
 
