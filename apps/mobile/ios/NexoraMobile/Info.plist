@@ -38,7 +38,7 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil fotoğrafı seçebilmek için galerine erişim gerekiyor.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Profil fotoğrafı çekebilmek için kameraya erişim gerekiyor.</string>
+	<string>Kameraya erişim; profil fotoğrafı çekmek ve etkinlik bilet check-in QR kodlarını okutmak için kullanılır.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

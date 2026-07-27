@@ -226,3 +226,9 @@ export async function notifyOrgDuesCanceled(userId: string, orgName: string) {
   const body = `${orgName} aidat üyeliğiniz iptal edildi`;
   await createNotification(userId, "org_dues_canceled", title, body);
 }
+
+export async function notifyEventTicketPurchased(userId: string, eventTitle: string) {
+  const title = "Biletiniz hazır";
+  const body = `"${eventTitle}" etkinliği için biletiniz onaylandı`;
+  await createNotification(userId, "event_ticket_purchased", title, body);
+}

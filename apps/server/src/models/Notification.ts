@@ -24,6 +24,7 @@ export const NOTIFICATION_TYPES = [
   "org_dues_renewed",
   "org_dues_payment_failed",
   "org_dues_canceled",
+  "event_ticket_purchased",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

@@ -20,6 +20,7 @@ import { courseRouter } from "./course.routes";
 import { certificateRouter } from "./certificate.routes";
 import { jobCreditRouter } from "./jobCredit.routes";
 import { hubRouter } from "./hub.routes";
+import { eventRouter } from "./event.routes";
 
 export const apiV1Router = Router();
 
@@ -50,3 +51,4 @@ apiV1Router.use(instructorInviteRouter);
 apiV1Router.use(courseRouter);
 apiV1Router.use(jobCreditRouter);
 apiV1Router.use(hubRouter);
+apiV1Router.use(eventRouter);

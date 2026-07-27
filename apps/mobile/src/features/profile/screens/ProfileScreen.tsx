@@ -13,6 +13,7 @@ import { InboxModal } from "../../inbox/components/InboxModal";
 import { SubscriptionModal } from "../../subscription/components/SubscriptionModal";
 import { CoursesModal } from "../../courses/components/CoursesModal";
 import { BusinessModal } from "../../business/components/BusinessModal";
+import { EventsModal } from "../../events/components/EventsModal";
 
 type ProfileTab = "showcase" | "career";
 
@@ -28,6 +29,7 @@ export function ProfileScreen() {
   const [subscriptionVisible, setSubscriptionVisible] = useState(false);
   const [coursesVisible, setCoursesVisible] = useState(false);
   const [businessVisible, setBusinessVisible] = useState(false);
+  const [eventsVisible, setEventsVisible] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -89,6 +91,9 @@ export function ProfileScreen() {
         <TouchableOpacity style={styles.notificationsButton} onPress={() => setCoursesVisible(true)}>
           <Text style={styles.notificationsButtonText}>🎓 Kurslar</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.notificationsButton} onPress={() => setEventsVisible(true)}>
+          <Text style={styles.notificationsButtonText}>🎫 Etkinlikler</Text>
+        </TouchableOpacity>
         {(EMPLOYER_ROLES as readonly string[]).includes(profile.role) ? (
           <TouchableOpacity style={styles.notificationsButton} onPress={() => setBusinessVisible(true)}>
             <Text style={styles.notificationsButtonText}>💼 İşletme</Text>
@@ -126,6 +131,11 @@ export function ProfileScreen() {
         isInstructor={profile.kycLevel >= 4}
       />
       <BusinessModal visible={businessVisible} onClose={() => setBusinessVisible(false)} />
+      <EventsModal
+        visible={eventsVisible}
+        onClose={() => setEventsVisible(false)}
+        isOrganizer={(EMPLOYER_ROLES as readonly string[]).includes(profile.role) && profile.kycLevel >= 3}
+      />
     </View>
   );
 }

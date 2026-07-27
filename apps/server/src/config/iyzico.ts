@@ -38,6 +38,9 @@ export const iyzicoConfig = {
   get duesCallbackUrl() {
     return env.IYZICO_DUES_CALLBACK_URL;
   },
+  get eventTicketCallbackUrl() {
+    return env.IYZICO_EVENT_TICKET_CALLBACK_URL;
+  },
 };
 
 function generateRandomKey(): string {

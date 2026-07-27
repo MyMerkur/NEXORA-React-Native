@@ -6,6 +6,7 @@ import {
   jobCreditCallbackHandler,
   hubMembershipCallbackHandler,
   duesCallbackHandler,
+  eventTicketCallbackHandler,
 } from "../controllers/payment.controller";
 
 // No requireAuth: these are server-to-server / browser redirect callbacks from iyzico, not user sessions.
@@ -35,4 +36,10 @@ paymentRouter.post(
   paymentRateLimiter,
   urlencoded({ extended: false }),
   duesCallbackHandler,
+);
+paymentRouter.post(
+  "/payments/iyzico/event-ticket-callback",
+  paymentRateLimiter,
+  urlencoded({ extended: false }),
+  eventTicketCallbackHandler,
 );

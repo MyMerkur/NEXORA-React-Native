@@ -183,6 +183,50 @@ export async function retrieveJobCreditCheckoutResult(token: string): Promise<Jo
   });
 }
 
+export interface InitializeEventTicketCheckoutParams {
+  conversationId: string;
+  price: string;
+  callbackUrl: string;
+  buyer: JobCreditBuyer;
+  ticketLabel: string;
+}
+
+// Structural twin of initializeJobCreditCheckout — same one-time CF endpoint, different basket
+// item label. Kept separate rather than generalizing the job-credit function, to avoid touching
+// its tested call site for a purely cosmetic shared-helper win.
+export async function initializeEventTicketCheckout(
+  params: InitializeEventTicketCheckoutParams,
+): Promise<JobCreditCheckoutInitResult> {
+  const address = {
+    address: params.buyer.registrationAddress,
+    contactName: `${params.buyer.name} ${params.buyer.surname}`,
+    city: params.buyer.city,
+    country: params.buyer.country,
+  };
+
+  return iyzicoRequest<JobCreditCheckoutInitResult>("POST", "/payment/iyzipos/checkoutform/initialize/auth/ecom", {
+    locale: "tr",
+    conversationId: params.conversationId,
+    price: params.price,
+    paidPrice: params.price,
+    currency: "TRY",
+    callbackUrl: params.callbackUrl,
+    paymentGroup: "PRODUCT",
+    buyer: params.buyer,
+    shippingAddress: address,
+    billingAddress: address,
+    basketItems: [
+      {
+        id: "event-ticket",
+        price: params.price,
+        name: params.ticketLabel,
+        category1: "Etkinlik",
+        itemType: "VIRTUAL",
+      },
+    ],
+  });
+}
+
 export interface CreateSubscriptionProductAndPlanParams {
   name: string;
   price: string;
