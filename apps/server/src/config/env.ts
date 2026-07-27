@@ -38,6 +38,8 @@ const envSchema = z.object({
   IYZICO_HUB_MEMBERSHIP_CALLBACK_URL: z.string().default(""),
   IYZICO_DUES_CALLBACK_URL: z.string().default(""),
   IYZICO_EVENT_TICKET_CALLBACK_URL: z.string().default(""),
+  IYZICO_SNIPER_CREDIT_PRICE: z.string().default("149.90"),
+  IYZICO_SNIPER_CREDIT_CALLBACK_URL: z.string().default(""),
   FCM_PROJECT_ID: z.string().default(""),
   FCM_CLIENT_EMAIL: z.string().default(""),
   FCM_PRIVATE_KEY: z.string().default(""),

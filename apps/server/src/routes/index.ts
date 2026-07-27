@@ -21,6 +21,7 @@ import { certificateRouter } from "./certificate.routes";
 import { jobCreditRouter } from "./jobCredit.routes";
 import { hubRouter } from "./hub.routes";
 import { eventRouter } from "./event.routes";
+import { sniperRouter } from "./sniper.routes";
 
 export const apiV1Router = Router();
 
@@ -52,3 +53,4 @@ apiV1Router.use(courseRouter);
 apiV1Router.use(jobCreditRouter);
 apiV1Router.use(hubRouter);
 apiV1Router.use(eventRouter);
+apiV1Router.use(sniperRouter);

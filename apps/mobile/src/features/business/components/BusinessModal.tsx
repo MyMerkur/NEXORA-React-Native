@@ -3,9 +3,12 @@ import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } fr
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 import { getJobCreditBalance } from "../../../services/jobCreditApi";
+import { getSniperCreditBalance } from "../../../services/sniperApi";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
 import { CheckoutWebView } from "../../subscription/components/CheckoutWebView";
 import { JobCreditCheckoutWebView } from "./JobCreditCheckoutWebView";
+import { SniperCreditCheckoutWebView } from "./SniperCreditCheckoutWebView";
+import { SniperSearchModal } from "./SniperSearchModal";
 
 interface BusinessModalProps {
   visible: boolean;
@@ -25,10 +28,13 @@ const STATUS_LABELS: Record<SubscriptionSummary["status"], string> = {
 
 export function BusinessModal({ visible, onClose }: BusinessModalProps) {
   const [balance, setBalance] = useState<number | null>(null);
+  const [sniperBalance, setSniperBalance] = useState<number | null>(null);
   const [summary, setSummary] = useState<SubscriptionSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const [creditCheckoutVisible, setCreditCheckoutVisible] = useState(false);
+  const [sniperCreditCheckoutVisible, setSniperCreditCheckoutVisible] = useState(false);
+  const [sniperSearchVisible, setSniperSearchVisible] = useState(false);
   const [subscriptionCheckoutVisible, setSubscriptionCheckoutVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,6 +43,7 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
       return;
     }
     setCreditCheckoutVisible(false);
+    setSniperCreditCheckoutVisible(false);
     setSubscriptionCheckoutVisible(false);
     loadData();
   }, [visible]);
@@ -44,9 +51,10 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
   function loadData() {
     setLoading(true);
     setError(null);
-    Promise.all([getJobCreditBalance(), getSubscriptionStatus()])
-      .then(([creditResult, subscriptionResult]) => {
+    Promise.all([getJobCreditBalance(), getSniperCreditBalance(), getSubscriptionStatus()])
+      .then(([creditResult, sniperCreditResult, subscriptionResult]) => {
         setBalance(creditResult.balance);
+        setSniperBalance(sniperCreditResult.balance);
         setSummary(subscriptionResult);
       })
       .catch((err) => setError(getApiErrorMessage(err, "Yüklenemedi")))
@@ -73,6 +81,13 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
     }
   }
 
+  function handleSniperCreditCheckoutDone(result: "success" | "cancelled") {
+    setSniperCreditCheckoutVisible(false);
+    if (result === "success") {
+      loadData();
+    }
+  }
+
   function handleSubscriptionCheckoutDone(result: "success" | "cancelled") {
     setSubscriptionCheckoutVisible(false);
     if (result === "success") {
@@ -93,6 +108,8 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
 
           {creditCheckoutVisible ? (
             <JobCreditCheckoutWebView startingBalance={balance ?? 0} onDone={handleCreditCheckoutDone} />
+          ) : sniperCreditCheckoutVisible ? (
+            <SniperCreditCheckoutWebView startingBalance={sniperBalance ?? 0} onDone={handleSniperCreditCheckoutDone} />
           ) : subscriptionCheckoutVisible ? (
             <CheckoutWebView planCode={PLAN_CODE} onDone={handleSubscriptionCheckoutDone} />
           ) : loading ? (
@@ -105,6 +122,15 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
               <Text style={styles.balanceText}>Bakiye: {balance ?? 0} kredi</Text>
               <TouchableOpacity style={styles.primaryButton} onPress={() => setCreditCheckoutVisible(true)}>
                 <Text style={styles.primaryButtonText}>1 Kredi Satın Al</Text>
+              </TouchableOpacity>
+
+              <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Keskin Nişancı Kredisi</Text>
+              <Text style={styles.balanceText}>Bakiye: {sniperBalance ?? 0} kredi</Text>
+              <TouchableOpacity style={styles.primaryButton} onPress={() => setSniperCreditCheckoutVisible(true)}>
+                <Text style={styles.primaryButtonText}>1 Kredi Satın Al</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondaryButton} onPress={() => setSniperSearchVisible(true)}>
+                <Text style={styles.secondaryButtonText}>Aday Ara</Text>
               </TouchableOpacity>
 
               <Text style={[styles.sectionTitle, styles.sectionSpacing]}>Premium Abonelik</Text>
@@ -135,6 +161,7 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
           )}
         </View>
       </View>
+      <SniperSearchModal visible={sniperSearchVisible} onClose={() => setSniperSearchVisible(false)} />
     </Modal>
   );
 }
@@ -208,6 +235,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: "center",
     marginTop: spacing.sm,
+  },
+  secondaryButton: {
+    borderRadius: radii.pill,
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.accentGold,
+  },
+  secondaryButtonText: {
+    color: colors.accentGold,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
   },
   primaryButtonText: {
     color: colors.background,
