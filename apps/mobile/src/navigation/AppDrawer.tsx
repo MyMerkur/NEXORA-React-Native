@@ -7,7 +7,7 @@ import {
   DrawerItem,
   type DrawerContentComponentProps,
 } from "@react-navigation/drawer";
-import { CreditCard, GraduationCap, Ticket, Briefcase, Target, LogOut, Palette } from "lucide-react-native";
+import { CreditCard, GraduationCap, Ticket, Briefcase, Target, LogOut, Palette, ShieldCheck } from "lucide-react-native";
 import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import { fontFamilies, iconSizes, iconStrokeWidth, spacing } from "@nexora/ui-tokens";
 import { useTheme } from "../store/useThemeStore";
@@ -19,6 +19,7 @@ import { CoursesModal } from "../features/courses/components/CoursesModal";
 import { EventsModal } from "../features/events/components/EventsModal";
 import { BusinessModal } from "../features/business/components/BusinessModal";
 import { MatchesModal } from "../features/matching/components/MatchesModal";
+import { KycModal } from "../features/kyc/components/KycModal";
 
 const Drawer = createDrawerNavigator();
 
@@ -27,6 +28,9 @@ interface DrawerIconProps {
   color: string;
 }
 
+function KycIcon({ size, color }: DrawerIconProps) {
+  return <ShieldCheck size={size} color={color} strokeWidth={iconStrokeWidth} />;
+}
 function MatchesIcon({ size, color }: DrawerIconProps) {
   return <Target size={size} color={color} strokeWidth={iconStrokeWidth} />;
 }
@@ -61,6 +65,7 @@ function DrawerContent(props: DrawerContentComponentProps) {
   const [eventsVisible, setEventsVisible] = useState(false);
   const [businessVisible, setBusinessVisible] = useState(false);
   const [matchesVisible, setMatchesVisible] = useState(false);
+  const [kycVisible, setKycVisible] = useState(false);
 
   useEffect(() => {
     getMe()
@@ -82,6 +87,13 @@ function DrawerContent(props: DrawerContentComponentProps) {
     >
       <Text style={[styles.header, { color: colors.textTertiary }]}>NEXORA</Text>
 
+      <DrawerItem
+        label="Kimlik Doğrulama"
+        icon={KycIcon}
+        activeTintColor={colors.accentGold}
+        inactiveTintColor={colors.textPrimary}
+        onPress={() => closeThenOpen(() => setKycVisible(true))}
+      />
       <DrawerItem
         label="Eşleşmelerim"
         icon={MatchesIcon}
@@ -159,6 +171,7 @@ function DrawerContent(props: DrawerContentComponentProps) {
           <MatchesModal visible={matchesVisible} onClose={() => setMatchesVisible(false)} />
         </>
       ) : null}
+      <KycModal visible={kycVisible} onClose={() => setKycVisible(false)} />
     </DrawerContentScrollView>
   );
 }
