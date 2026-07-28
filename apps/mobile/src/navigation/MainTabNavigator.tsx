@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { colors } from "@nexora/ui-tokens";
+import { House, Users, CirclePlus, Briefcase, User } from "lucide-react-native";
+import { colors, iconSizes, iconStrokeWidth } from "@nexora/ui-tokens";
 import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
 import { FeedScreen } from "../features/feed/screens/FeedScreen";
 import { HubsScreen } from "../features/hubs/screens/HubsScreen";
@@ -27,11 +28,41 @@ export function MainTabNavigator() {
         tabBarInactiveTintColor: colors.textSecondary,
       }}
     >
-      <Tab.Screen name="Feed" component={FeedScreen} />
-      <Tab.Screen name="Hubs" component={HubsScreen} />
-      <Tab.Screen name="Create" component={CreateCaseScreen} />
-      <Tab.Screen name="Career" component={CareerScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen
+        name="Feed"
+        component={FeedScreen}
+        options={{
+          tabBarIcon: ({ color }) => <House size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
+        }}
+      />
+      <Tab.Screen
+        name="Hubs"
+        component={HubsScreen}
+        options={{
+          tabBarIcon: ({ color }) => <Users size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
+        }}
+      />
+      <Tab.Screen
+        name="Create"
+        component={CreateCaseScreen}
+        options={{
+          tabBarIcon: ({ color }) => <CirclePlus size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
+        }}
+      />
+      <Tab.Screen
+        name="Career"
+        component={CareerScreen}
+        options={{
+          tabBarIcon: ({ color }) => <Briefcase size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          tabBarIcon: ({ color }) => <User size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
+        }}
+      />
     </Tab.Navigator>
   );
 }
