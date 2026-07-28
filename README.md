@@ -21,7 +21,7 @@ Detaylı faz planı, mimari kararlar ve gerekçeleri için: [docs/PROJECT_PLAN.m
 nexora/
 ├── apps/
 │   ├── server/      # Express + TypeScript backend — auth, MVC/Service/Repository
-│   ├── mobile/       # React Native (Bare, TypeScript) — Faz 0-4 kapsamındaki tüm ekranlar aktif
+│   ├── mobile/       # React Native (Bare, TypeScript) — Faz 0-5 kapsamındaki tüm ekranlar aktif
 │   └── web/            # Next.js — Faz 6'ya kadar placeholder, mobil lansmandan sonra kurulacak
 ├── packages/
 │   ├── shared-types/        # User, Case, Job, Application... ortak TS tipleri
@@ -94,6 +94,6 @@ pnpm --filter @nexora/mobile lint
 
 ## Durum
 
-**Faz 0–4 tamamlandı.** Faz 0 (temel altyapı) VPS/staging kurulumu hariç bitti — o adım bilinçli olarak tüm fazların sonuna ertelendi. Faz 1 (MVP çekirdek döngü), Faz 2 (etkileşim/güven katmanı), Faz 3 (monetizasyon — abonelik altyapısı, eğitmen ekonomisi, sertifika sistemi, B2B ilan/premium) ve Faz 4 (topluluk/kurumsal katman — Nexora Hubs, dernek sayfaları, dernek aidat tahsilatı, etkinlik biletleme, B2B aday arama) tamamen bitti ve kapatıldı.
+**Faz 0–5 tamamlandı.** Faz 0 (temel altyapı) VPS/staging kurulumu hariç bitti — o adım bilinçli olarak tüm fazların sonuna ertelendi. Faz 1 (MVP çekirdek döngü), Faz 2 (etkileşim/güven katmanı), Faz 3 (monetizasyon — abonelik altyapısı, eğitmen ekonomisi, sertifika sistemi, B2B ilan/premium), Faz 4 (topluluk/kurumsal katman — Nexora Hubs, dernek sayfaları, dernek aidat tahsilatı, etkinlik biletleme, B2B aday arama) ve Faz 5 (mobil UX/UI tasarım — paylaşılan bileşen kütüphanesi, dark/light tema, sidebar navigasyonu, auth/onboarding + KYC akışı, 41 ekranın tamamının yeni tasarım sistemine taşınması) tamamen bitti ve kapatıldı.
 
-Sırada **Faz 5 (mobil lansman hazırlığı)** var. İlerlemeyi [GitHub Projects — Nexora Roadmap](https://github.com/users/MyMerkur/projects/2) board'undan takip edebilirsin; her faz ayrı bir milestone olarak tanımlı, kapanan tüm issue'lar ilgili PR'a referans veriyor.
+Sırada **Faz 6 (mobil lansman hazırlığı)** var. İlerlemeyi [GitHub Projects — Nexora Roadmap](https://github.com/users/MyMerkur/projects/2) board'undan takip edebilirsin; her faz ayrı bir milestone olarak tanımlı, kapanan tüm issue'lar ilgili PR'a referans veriyor.
