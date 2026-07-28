@@ -1,19 +1,12 @@
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
 import { createHub, type HubType } from "../../../services/hubApi";
 import { TagPicker } from "../../../components/TagPicker";
 
@@ -86,21 +79,10 @@ export function CreateHubModal({ visible, onClose, canCreatePaid, onCreated }: C
 
           <ScrollView style={styles.content}>
             {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary }]}
-              placeholder="Hub adı"
-              placeholderTextColor={colors.textSecondary}
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              style={[
-                styles.input,
-                styles.multiline,
-                { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-              ]}
+            <Input style={styles.field} placeholder="Hub adı" value={name} onChangeText={setName} />
+            <Input
+              style={[styles.field, styles.multiline]}
               placeholder="Açıklama (opsiyonel)"
-              placeholderTextColor={colors.textSecondary}
               value={description}
               onChangeText={setDescription}
               multiline
@@ -128,10 +110,9 @@ export function CreateHubModal({ visible, onClose, canCreatePaid, onCreated }: C
             </View>
 
             {type === "paid" ? (
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary }]}
+              <Input
+                style={styles.field}
                 placeholder="Aylık üyelik ücreti (₺)"
-                placeholderTextColor={colors.textSecondary}
                 keyboardType="decimal-pad"
                 value={price}
                 onChangeText={setPrice}
@@ -140,17 +121,14 @@ export function CreateHubModal({ visible, onClose, canCreatePaid, onCreated }: C
 
             <TagPicker selected={specialties} onChange={setSpecialties} />
 
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+            <Button
+              label="Oluştur"
               onPress={handleCreate}
-              disabled={!canSubmit || creating}
-            >
-              {creating ? (
-                <ActivityIndicator color={colors.background} />
-              ) : (
-                <Text style={[styles.primaryButtonText, { color: colors.background }]}>Oluştur</Text>
-              )}
-            </TouchableOpacity>
+              disabled={!canSubmit}
+              loading={creating}
+              fullWidth
+              style={styles.submitButton}
+            />
           </ScrollView>
     </ModalShell>
   );
@@ -176,13 +154,8 @@ const styles = StyleSheet.create({
   error: {
     marginBottom: spacing.sm,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.md,
-    fontSize: typography.sizes.md,
   },
   multiline: {
     minHeight: 60,
@@ -207,15 +180,8 @@ const styles = StyleSheet.create({
   typeTextActive: {
     fontWeight: typography.weights.semibold,
   },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
+  submitButton: {
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
 });

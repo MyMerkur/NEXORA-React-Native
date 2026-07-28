@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Users } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography, type ThemeColors } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
@@ -7,6 +8,9 @@ import { getMe, type UserProfile } from "../../../services/profileApi";
 import { discoverHubs, listMyHubs, listManagedHubs, type HubItem } from "../../../services/hubApi";
 import { HubDetailModal } from "../components/HubDetailModal";
 import { CreateHubModal } from "../components/CreateHubModal";
+import { Card } from "../../../components/Card";
+import { EmptyState } from "../../../components/EmptyState";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 type HubsTab = "discover" | "mine" | "managed";
 
@@ -127,26 +131,27 @@ export function HubsScreen() {
       {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
       {loading ? (
-        <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+        <View style={styles.skeletonList}>
+          <SkeletonRow />
+          <SkeletonRow />
+        </View>
       ) : (
         <ScrollView style={styles.content}>
           {hubs.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz Hub yok.</Text>
+            <EmptyState icon={Users} title="Henüz Hub yok" description="Keşfet sekmesinden yeni Hub'lara göz atabilirsin." />
           ) : (
             hubs.map((hub) => (
-              <TouchableOpacity
-                key={hub.id}
-                style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
-                onPress={() => setSelectedHubId(hub.id)}
-              >
-                <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{hub.name}</Text>
-                {hub.description ? (
-                  <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{hub.description}</Text>
-                ) : null}
-                <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
-                  {hub.memberCount} üye · {hub.type === "paid" ? `₺${hub.price}/ay` : "Ücretsiz"}
-                  {hub.isMember ? " · Üyesiniz" : ""}
-                </Text>
+              <TouchableOpacity key={hub.id} onPress={() => setSelectedHubId(hub.id)}>
+                <Card variant="elevated" style={styles.card}>
+                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{hub.name}</Text>
+                  {hub.description ? (
+                    <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{hub.description}</Text>
+                  ) : null}
+                  <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
+                    {hub.memberCount} üye · {hub.type === "paid" ? `₺${hub.price}/ay` : "Ücretsiz"}
+                    {hub.isMember ? " · Üyesiniz" : ""}
+                  </Text>
+                </Card>
               </TouchableOpacity>
             ))
           )}
@@ -212,8 +217,10 @@ const styles = StyleSheet.create({
   tabTextActive: {
     fontWeight: typography.weights.semibold,
   },
-  loader: {
-    marginVertical: spacing.xl,
+  skeletonList: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   content: {
     marginTop: spacing.sm,
@@ -223,14 +230,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
   },
-  emptyText: {
-    fontSize: typography.sizes.sm,
-    textAlign: "center",
-    marginVertical: spacing.lg,
-  },
   card: {
-    borderRadius: radii.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {

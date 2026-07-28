@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import {
   getHub,
   joinFreeHub,
@@ -153,71 +147,54 @@ export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetai
               </Text>
 
               {!hub.isMember ? (
-                <TouchableOpacity
-                  style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                <Button
+                  label={hub.type === "free" ? "Katıl" : `Üye Ol (₺${hub.price}/ay)`}
                   onPress={hub.type === "free" ? handleJoin : () => setCheckoutVisible(true)}
-                  disabled={joining}
-                >
-                  {joining ? (
-                    <ActivityIndicator color={colors.background} />
-                  ) : (
-                    <Text style={[styles.primaryButtonText, { color: colors.background }]}>
-                      {hub.type === "free" ? "Katıl" : `Üye Ol (₺${hub.price}/ay)`}
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                  loading={joining}
+                  fullWidth
+                  style={styles.actionButton}
+                />
               ) : (
                 <>
                   {!hub.isOwner ? (
-                    <TouchableOpacity
-                      style={[styles.dangerButton, { borderColor: colors.danger }]}
+                    <Button
+                      label="Hub'dan Ayrıl"
                       onPress={handleLeave}
-                      disabled={leaving}
-                    >
-                      {leaving ? (
-                        <ActivityIndicator color={colors.danger} />
-                      ) : (
-                        <Text style={[styles.dangerButtonText, { color: colors.danger }]}>Hub'dan Ayrıl</Text>
-                      )}
-                    </TouchableOpacity>
+                      loading={leaving}
+                      variant="danger"
+                      fullWidth
+                      style={styles.leaveButton}
+                    />
                   ) : null}
 
                   <View style={styles.postForm}>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        styles.multiline,
-                        { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                      ]}
+                    <Input
+                      style={styles.multiline}
                       placeholder="Hub'da bir şeyler paylaş…"
-                      placeholderTextColor={colors.textSecondary}
                       value={newPostText}
                       onChangeText={setNewPostText}
                       multiline
                     />
-                    <TouchableOpacity
-                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                    <Button
+                      label="Paylaş"
                       onPress={handlePost}
-                      disabled={posting || newPostText.trim().length === 0}
-                    >
-                      {posting ? (
-                        <ActivityIndicator color={colors.background} />
-                      ) : (
-                        <Text style={[styles.primaryButtonText, { color: colors.background }]}>Paylaş</Text>
-                      )}
-                    </TouchableOpacity>
+                      loading={posting}
+                      disabled={newPostText.trim().length === 0}
+                      fullWidth
+                      style={styles.actionButton}
+                    />
                   </View>
 
                   {posts.length === 0 ? (
                     <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz gönderi yok.</Text>
                   ) : (
                     posts.map((post) => (
-                      <View key={post.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Card key={post.id} variant="elevated" style={styles.card}>
                         <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                           {post.author.displayName}
                         </Text>
                         <Text style={[styles.cardBody, { color: colors.textPrimary }]}>{post.text}</Text>
-                      </View>
+                      </Card>
                     ))
                   )}
                 </>
@@ -260,37 +237,16 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     marginBottom: spacing.md,
   },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
+  actionButton: {
     marginTop: spacing.sm,
   },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-  },
-  dangerButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
+  leaveButton: {
     marginBottom: spacing.md,
-    borderWidth: 1,
-  },
-  dangerButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   postForm: {
     marginTop: spacing.sm,
     marginBottom: spacing.md,
-  },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: typography.sizes.md,
+    gap: spacing.sm,
   },
   multiline: {
     minHeight: 60,
@@ -302,8 +258,6 @@ const styles = StyleSheet.create({
     marginVertical: spacing.lg,
   },
   card: {
-    borderRadius: radii.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardSubtitle: {
