@@ -1,5 +1,14 @@
-import { useRef, type ReactNode } from "react";
-import { Animated, PanResponder, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import type { ReactNode } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
 
 interface SwipeCardProps {
@@ -12,56 +21,56 @@ const SWIPE_THRESHOLD = 120;
 const EXIT_DISTANCE = 500;
 
 export function SwipeCard({ children, onSwipeLeft, onSwipeRight }: SwipeCardProps) {
-  const pan = useRef(new Animated.ValueXY()).current;
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
 
   function forceSwipe(direction: "left" | "right") {
-    Animated.timing(pan, {
-      toValue: { x: direction === "right" ? EXIT_DISTANCE : -EXIT_DISTANCE, y: 0 },
-      duration: 200,
-      useNativeDriver: false,
-    }).start(() => {
-      pan.setValue({ x: 0, y: 0 });
-      if (direction === "right") {
-        onSwipeRight();
-      } else {
-        onSwipeLeft();
-      }
-    });
+    "worklet";
+    translateX.value = withTiming(
+      direction === "right" ? EXIT_DISTANCE : -EXIT_DISTANCE,
+      { duration: 200 },
+      () => {
+        translateX.value = 0;
+        translateY.value = 0;
+        runOnJS(direction === "right" ? onSwipeRight : onSwipeLeft)();
+      },
+    );
   }
 
   function resetPosition() {
-    Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+    "worklet";
+    translateX.value = withSpring(0);
+    translateY.value = withSpring(0);
   }
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 8,
-      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
-      onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx > SWIPE_THRESHOLD) {
-          forceSwipe("right");
-        } else if (gesture.dx < -SWIPE_THRESHOLD) {
-          forceSwipe("left");
-        } else {
-          resetPosition();
-        }
-      },
-    }),
-  ).current;
+  const panGesture = Gesture.Pan()
+    .onChange((event) => {
+      translateX.value += event.changeX;
+      translateY.value += event.changeY;
+    })
+    .onEnd(() => {
+      if (translateX.value > SWIPE_THRESHOLD) {
+        forceSwipe("right");
+      } else if (translateX.value < -SWIPE_THRESHOLD) {
+        forceSwipe("left");
+      } else {
+        resetPosition();
+      }
+    });
 
-  const rotate = pan.x.interpolate({
-    inputRange: [-200, 0, 200],
-    outputRange: ["-12deg", "0deg", "12deg"],
-  });
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { rotate: `${interpolate(translateX.value, [-200, 0, 200], [-12, 0, 12])}deg` },
+    ],
+  }));
 
   return (
     <View style={styles.wrapper}>
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={[styles.card, { transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] }]}
-      >
-        {children}
-      </Animated.View>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[styles.card, cardStyle]}>{children}</Animated.View>
+      </GestureDetector>
 
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.rejectButton} onPress={() => forceSwipe("left")}>

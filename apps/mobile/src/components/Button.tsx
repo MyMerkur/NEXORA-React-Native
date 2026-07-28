@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
-import { colors, fontFamilies, radii, spacing } from "@nexora/ui-tokens";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { colors, duration, fontFamilies, radii, spacing } from "@nexora/ui-tokens";
 
 export type ButtonVariant = "primary" | "gold" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -72,6 +73,20 @@ export function Button({
   const sizeStyle = SIZE_STYLES[size];
   const variantColors = VARIANT_COLORS[variant];
   const isDisabled = disabled || loading;
+  const pressedValue = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 - pressedValue.value * 0.04 }],
+    backgroundColor: isDisabled
+      ? variantColors.backgroundDisabled
+      : pressedValue.value
+        ? variantColors.backgroundPressed
+        : variantColors.background,
+  }));
+  const borderStyle: ViewStyle = {
+    borderWidth: variantColors.border ? 1.5 : 0,
+    borderColor: variantColors.border,
+  };
 
   return (
     <Pressable
@@ -79,37 +94,41 @@ export function Button({
       accessibilityState={{ disabled: isDisabled }}
       disabled={isDisabled}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.base,
-        {
-          paddingVertical: sizeStyle.paddingVertical,
-          paddingHorizontal: sizeStyle.paddingHorizontal,
-          borderRadius: sizeStyle.radius,
-          backgroundColor: isDisabled
-            ? variantColors.backgroundDisabled
-            : pressed
-              ? variantColors.backgroundPressed
-              : variantColors.background,
-          borderWidth: variantColors.border ? 1.5 : 0,
-          borderColor: variantColors.border,
-        },
-        fullWidth && styles.fullWidth,
-        style,
-      ]}
+      onPressIn={() => {
+        pressedValue.value = withTiming(1, { duration: duration.fast });
+      }}
+      onPressOut={() => {
+        pressedValue.value = withTiming(0, { duration: duration.fast });
+      }}
     >
-      {loading ? (
-        <ActivityIndicator size="small" color={variantColors.text} />
-      ) : (
-        <Text
-          style={[
-            styles.label,
-            { fontSize: sizeStyle.fontSize, color: variantColors.text },
-            isDisabled && styles.labelDisabled,
-          ]}
-        >
-          {label}
-        </Text>
-      )}
+      <Animated.View
+        style={[
+          styles.base,
+          {
+            paddingVertical: sizeStyle.paddingVertical,
+            paddingHorizontal: sizeStyle.paddingHorizontal,
+            borderRadius: sizeStyle.radius,
+          },
+          borderStyle,
+          animatedStyle,
+          fullWidth && styles.fullWidth,
+          style,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator size="small" color={variantColors.text} />
+        ) : (
+          <Text
+            style={[
+              styles.label,
+              { fontSize: sizeStyle.fontSize, color: variantColors.text },
+              isDisabled && styles.labelDisabled,
+            ]}
+          >
+            {label}
+          </Text>
+        )}
+      </Animated.View>
     </Pressable>
   );
 }
