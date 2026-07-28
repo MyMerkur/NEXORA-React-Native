@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { Bell } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { EmptyState } from "../../../components/EmptyState";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { getNotifications, markNotificationRead, type NotificationItem } from "../../../services/notificationApi";
 
 interface NotificationsModalProps {
@@ -17,7 +20,6 @@ export function NotificationsModal({ visible, onClose }: NotificationsModalProps
   const { colors } = useTheme();
   const titleStyle = { color: colors.textPrimary };
   const closeTextStyle = { color: colors.accentGold };
-  const emptyTextStyle = { color: colors.textSecondary };
   const errorStyle = { color: colors.danger };
   const rowStyle = { borderTopColor: colors.border };
   const unreadDotStyle = { backgroundColor: colors.accentGold };
@@ -61,13 +63,14 @@ export function NotificationsModal({ visible, onClose }: NotificationsModalProps
           </View>
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.skeletonList}>
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
           ) : (
             <ScrollView>
               {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}
-              {notifications.length === 0 ? (
-                <Text style={[styles.emptyText, emptyTextStyle]}>Henüz bildirimin yok</Text>
-              ) : null}
+              {notifications.length === 0 ? <EmptyState icon={Bell} title="Henüz bildirimin yok" /> : null}
               {notifications.map((notification) => (
                 <TouchableOpacity
                   key={notification.id}
@@ -106,12 +109,8 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.sizes.sm,
   },
-  loader: {
-    marginVertical: spacing.xl,
-  },
-  emptyText: {
-    textAlign: "center",
-    marginVertical: spacing.lg,
+  skeletonList: {
+    gap: spacing.md,
   },
   error: {
     marginBottom: spacing.sm,
