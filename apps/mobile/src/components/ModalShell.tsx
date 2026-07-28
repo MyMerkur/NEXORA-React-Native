@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { colors, radii, spacing } from "@nexora/ui-tokens";
 
 export type ModalShellVariant = "sheet" | "center";
@@ -9,18 +9,22 @@ interface ModalShellProps {
   onClose: () => void;
   variant?: ModalShellVariant;
   children: ReactNode;
+  // Applied to the inner sheet/center surface — mainly for a max/fixed height on
+  // taller sheets (thread lists, forms). Most callers don't need this.
+  contentStyle?: StyleProp<ViewStyle>;
 }
 
 // Wraps RN's core `Modal` with the shared visual shell (backdrop, handle bar, card
-// surface). Whether screens keep driving this with local `useState` or move to a
-// React Navigation modal group is the navigation-architecture decision in Faz 5, #59 —
-// this component only standardizes what the shell looks like either way.
-export function ModalShell({ visible, onClose, variant = "sheet", children }: ModalShellProps) {
+// surface). Faz 5 ADR (#59): screens keep driving visibility with local `useState`
+// (not a React Navigation modal route) — lower risk for a 17-screen rollout, no
+// deep-linking/back-gesture needs identified for these flows. Revisit only if a
+// concrete need for either surfaces later.
+export function ModalShell({ visible, onClose, variant = "sheet", children, contentStyle }: ModalShellProps) {
   return (
     <Modal visible={visible} transparent animationType={variant === "sheet" ? "slide" : "fade"} onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={variant === "sheet" ? styles.sheetWrap : styles.centerWrap} onPress={(e) => e.stopPropagation()}>
-          <View style={variant === "sheet" ? styles.sheet : styles.center}>
+          <View style={[variant === "sheet" ? styles.sheet : styles.center, contentStyle]}>
             {variant === "sheet" ? <View style={styles.handle} /> : null}
             {children}
           </View>

@@ -1,8 +1,18 @@
 import { useState } from "react";
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { createJob, type JobItem } from "../../../services/jobApi";
 import { TagPicker } from "../../../components/TagPicker";
 
@@ -11,6 +21,8 @@ interface CreateJobModalProps {
   onClose: () => void;
   onCreated: (job: JobItem) => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function CreateJobModal({ visible, onClose, onCreated }: CreateJobModalProps) {
   const [title, setTitle] = useState("");
@@ -44,9 +56,7 @@ export function CreateJobModal({ visible, onClose, onCreated }: CreateJobModalPr
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <ScrollView>
             <Text style={styles.title}>Yeni İlan</Text>
             <TextInput
@@ -89,25 +99,11 @@ export function CreateJobModal({ visible, onClose, onCreated }: CreateJobModalPr
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "85%",
-  },
   title: {
     color: colors.textPrimary,
     fontSize: typography.sizes.md,

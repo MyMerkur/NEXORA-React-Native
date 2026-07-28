@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { getJobCreditBalance } from "../../../services/jobCreditApi";
 import { getSniperCreditBalance } from "../../../services/sniperApi";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
@@ -21,6 +22,8 @@ interface BusinessModalProps {
   visible: boolean;
   onClose: () => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 const PLAN_CODE = "clinic_premium_monthly";
 
@@ -148,9 +151,8 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <>
+      <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>💼 İşletme</Text>
             <TouchableOpacity onPress={onClose}>
@@ -238,26 +240,13 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
               ) : null}
             </View>
           )}
-        </View>
-      </View>
+      </ModalShell>
       <SniperSearchModal visible={sniperSearchVisible} onClose={() => setSniperSearchVisible(false)} />
-    </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "85%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

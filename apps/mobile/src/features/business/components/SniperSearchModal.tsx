@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
@@ -9,6 +18,7 @@ import {
   getSniperCreditBalance,
   type SniperCandidate,
 } from "../../../services/sniperApi";
+import { ModalShell } from "../../../components/ModalShell";
 import { TagPicker } from "../../../components/TagPicker";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { SniperCreditCheckoutWebView } from "./SniperCreditCheckoutWebView";
@@ -17,6 +27,8 @@ interface SniperSearchModalProps {
   visible: boolean;
   onClose: () => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) {
   const [balance, setBalance] = useState(0);
@@ -100,9 +112,7 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>🎯 Keskin Nişancı</Text>
             <TouchableOpacity onPress={onClose}>
@@ -194,25 +204,11 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
               ) : null}
             </ScrollView>
           )}
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "85%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

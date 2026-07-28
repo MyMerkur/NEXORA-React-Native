@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { getMatches, type MatchItem } from "../../../services/matchingApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
 import { InboxModal } from "../../inbox/components/InboxModal";
@@ -12,6 +22,8 @@ interface MatchesModalProps {
   visible: boolean;
   onClose: () => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "80%" };
 
 export function MatchesModal({ visible, onClose }: MatchesModalProps) {
   const [matches, setMatches] = useState<MatchItem[]>([]);
@@ -35,9 +47,8 @@ export function MatchesModal({ visible, onClose }: MatchesModalProps) {
   }, [visible]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <>
+      <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>Eşleşmelerim</Text>
             <TouchableOpacity onPress={onClose}>
@@ -77,8 +88,7 @@ export function MatchesModal({ visible, onClose }: MatchesModalProps) {
               ))}
             </ScrollView>
           )}
-        </View>
-      </View>
+      </ModalShell>
 
       <InboxModal visible={chatTarget !== null} onClose={() => setChatTarget(null)} startTarget={chatTarget} />
       <UserProfileModal
@@ -91,23 +101,11 @@ export function MatchesModal({ visible, onClose }: MatchesModalProps) {
         orgUserId={profileTarget?.role === "employer" ? profileTarget.id : null}
         onClose={() => setProfileTarget(null)}
       />
-    </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "80%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Modal,
   ScrollView,
   Share,
   StyleSheet,
@@ -10,10 +9,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import {
   createCourse,
   listCourses,
@@ -35,6 +36,8 @@ interface CoursesModalProps {
 }
 
 type CoursesTab = "browse" | "mine" | "manage";
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 const STATUS_LABELS: Record<"enrolled" | "completed", string> = {
   enrolled: "Devam ediyor",
@@ -154,9 +157,7 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>🎓 Kurslar</Text>
             <TouchableOpacity onPress={onClose}>
@@ -319,25 +320,11 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
               ) : null}
             </ScrollView>
           )}
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "85%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

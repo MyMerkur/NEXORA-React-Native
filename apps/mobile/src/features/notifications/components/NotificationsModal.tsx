@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { getNotifications, markNotificationRead, type NotificationItem } from "../../../services/notificationApi";
 
 interface NotificationsModalProps {
   visible: boolean;
   onClose: () => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "80%" };
 
 export function NotificationsModal({ visible, onClose }: NotificationsModalProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -39,9 +42,7 @@ export function NotificationsModal({ visible, onClose }: NotificationsModalProps
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>Bildirimler</Text>
             <TouchableOpacity onPress={onClose}>
@@ -73,25 +74,11 @@ export function NotificationsModal({ visible, onClose }: NotificationsModalProps
               ))}
             </ScrollView>
           )}
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "80%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
