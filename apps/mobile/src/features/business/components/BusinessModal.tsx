@@ -4,6 +4,7 @@ import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Button } from "../../../components/Button";
 import { getJobCreditBalance } from "../../../services/jobCreditApi";
 import { getSniperCreditBalance } from "../../../services/sniperApi";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
@@ -187,22 +188,19 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
                       {request.applicant.displayName}
                     </Text>
                     <View style={styles.affiliationRequestActions}>
-                      <TouchableOpacity
-                        style={[styles.affiliationApproveButton, { backgroundColor: colors.accentBlue }]}
+                      <Button
+                        label="Onayla"
+                        size="sm"
                         onPress={() => handleApproveAffiliation(request.id)}
                         disabled={respondingRequestId === request.id}
-                      >
-                        <Text style={[styles.affiliationApproveButtonText, { color: colors.background }]}>
-                          Onayla
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.affiliationRejectButton, { borderColor: colors.danger }]}
+                      />
+                      <Button
+                        label="Reddet"
+                        size="sm"
+                        variant="danger"
                         onPress={() => handleRejectAffiliation(request.id)}
                         disabled={respondingRequestId === request.id}
-                      >
-                        <Text style={[styles.affiliationRejectButtonText, { color: colors.danger }]}>Reddet</Text>
-                      </TouchableOpacity>
+                      />
                     </View>
                   </View>
                 ))
@@ -212,12 +210,7 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
                 İlan Kredisi
               </Text>
               <Text style={[styles.balanceText, { color: colors.textSecondary }]}>Bakiye: {balance ?? 0} kredi</Text>
-              <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
-                onPress={() => setCreditCheckoutVisible(true)}
-              >
-                <Text style={[styles.primaryButtonText, { color: colors.background }]}>1 Kredi Satın Al</Text>
-              </TouchableOpacity>
+              <Button label="1 Kredi Satın Al" onPress={() => setCreditCheckoutVisible(true)} fullWidth />
 
               <Text style={[styles.sectionTitle, styles.sectionSpacing, { color: colors.textPrimary }]}>
                 Keskin Nişancı Kredisi
@@ -225,12 +218,7 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
               <Text style={[styles.balanceText, { color: colors.textSecondary }]}>
                 Bakiye: {sniperBalance ?? 0} kredi
               </Text>
-              <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
-                onPress={() => setSniperCreditCheckoutVisible(true)}
-              >
-                <Text style={[styles.primaryButtonText, { color: colors.background }]}>1 Kredi Satın Al</Text>
-              </TouchableOpacity>
+              <Button label="1 Kredi Satın Al" onPress={() => setSniperCreditCheckoutVisible(true)} fullWidth />
               <TouchableOpacity
                 style={[styles.secondaryButton, { borderColor: colors.accentGold }]}
                 onPress={() => setSniperSearchVisible(true)}
@@ -252,24 +240,16 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
                     </Text>
                   ) : null}
                   {summary.status === "active" ? (
-                    <TouchableOpacity
-                      style={[styles.dangerButton, { borderColor: colors.danger }]}
+                    <Button
+                      label="İptal Et"
+                      variant="danger"
                       onPress={handleCancelSubscription}
-                      disabled={canceling}
-                    >
-                      {canceling ? (
-                        <ActivityIndicator color={colors.danger} />
-                      ) : (
-                        <Text style={[styles.dangerButtonText, { color: colors.danger }]}>İptal Et</Text>
-                      )}
-                    </TouchableOpacity>
+                      loading={canceling}
+                      fullWidth
+                      style={styles.dangerButtonSpacing}
+                    />
                   ) : (
-                    <TouchableOpacity
-                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
-                      onPress={() => setSubscriptionCheckoutVisible(true)}
-                    >
-                      <Text style={[styles.primaryButtonText, { color: colors.background }]}>Premium Abone Ol</Text>
-                    </TouchableOpacity>
+                    <Button label="Premium Abone Ol" onPress={() => setSubscriptionCheckoutVisible(true)} fullWidth />
                   )}
                 </>
               ) : null}
@@ -325,12 +305,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    marginTop: spacing.sm,
-  },
   secondaryButton: {
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
@@ -342,20 +316,8 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-  },
-  dangerButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
+  dangerButtonSpacing: {
     marginTop: spacing.md,
-    borderWidth: 1,
-  },
-  dangerButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
   affiliationRequestRow: {
     flexDirection: "row",
@@ -372,24 +334,5 @@ const styles = StyleSheet.create({
   affiliationRequestActions: {
     flexDirection: "row",
     gap: spacing.xs,
-  },
-  affiliationApproveButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-  },
-  affiliationApproveButtonText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-  },
-  affiliationRejectButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-  },
-  affiliationRejectButtonText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
   },
 });
