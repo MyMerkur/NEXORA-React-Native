@@ -1,5 +1,6 @@
 module.exports = {
   preset: '@react-native/jest-preset',
+  resolver: '<rootDir>/jest/resolver.js',
   setupFiles: ['react-native-gesture-handler/jestSetup'],
   transform: {
     '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
@@ -8,10 +9,11 @@ module.exports = {
     ),
   },
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-navigation|react-native-image-picker|react-native-webview|react-native-svg|lucide-react-native)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-navigation|react-native-image-picker|react-native-webview|react-native-svg|lucide-react-native|react-native-reanimated|react-native-worklets)/)',
   ],
   moduleNameMapper: {
     '^react-native-webview$': '<rootDir>/__mocks__/react-native-webview.js',
     '^react-native-vision-camera$': '<rootDir>/__mocks__/react-native-vision-camera.js',
+    '^react-native-reanimated$': require.resolve('react-native-reanimated/mock.js'),
   },
 };

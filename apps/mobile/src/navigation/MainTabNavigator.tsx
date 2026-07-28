@@ -1,6 +1,8 @@
+import { useEffect, type ComponentType } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { House, Users, CirclePlus, Briefcase, User } from "lucide-react-native";
-import { colors, iconSizes, iconStrokeWidth } from "@nexora/ui-tokens";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { colors, duration, iconSizes, iconStrokeWidth } from "@nexora/ui-tokens";
 import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
 import { FeedScreen } from "../features/feed/screens/FeedScreen";
 import { HubsScreen } from "../features/hubs/screens/HubsScreen";
@@ -18,28 +20,43 @@ export type MainTabParamList = {
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 interface TabIconProps {
+  focused: boolean;
   color: string;
 }
 
-function FeedTabIcon({ color }: TabIconProps) {
-  return <House size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+// lucide-react-native doesn't export its icon component type publicly — mirrors the
+// subset every icon actually needs here (see components/EmptyState.tsx for the same pattern).
+interface IconComponentProps {
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
 }
 
-function HubsTabIcon({ color }: TabIconProps) {
-  return <Users size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+function AnimatedTabIcon(Icon: ComponentType<IconComponentProps>) {
+  return function TabIcon({ focused, color }: TabIconProps) {
+    const focusValue = useSharedValue(focused ? 1 : 0);
+
+    useEffect(() => {
+      focusValue.value = withTiming(focused ? 1 : 0, { duration: duration.fast });
+    }, [focused, focusValue]);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: 1 + focusValue.value * 0.12 }],
+    }));
+
+    return (
+      <Animated.View style={animatedStyle}>
+        <Icon size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />
+      </Animated.View>
+    );
+  };
 }
 
-function CreateTabIcon({ color }: TabIconProps) {
-  return <CirclePlus size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
-}
-
-function CareerTabIcon({ color }: TabIconProps) {
-  return <Briefcase size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
-}
-
-function ProfileTabIcon({ color }: TabIconProps) {
-  return <User size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
-}
+const FeedTabIcon = AnimatedTabIcon(House);
+const HubsTabIcon = AnimatedTabIcon(Users);
+const CreateTabIcon = AnimatedTabIcon(CirclePlus);
+const CareerTabIcon = AnimatedTabIcon(Briefcase);
+const ProfileTabIcon = AnimatedTabIcon(User);
 
 export function MainTabNavigator() {
   return (
