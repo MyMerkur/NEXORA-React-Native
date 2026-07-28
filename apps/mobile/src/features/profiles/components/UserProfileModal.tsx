@@ -1,19 +1,13 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Avatar } from "../../../components/Avatar";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { Skeleton } from "../../../components/Skeleton";
 import { getPublicProfile, type PublicProfile } from "../../../services/publicProfileApi";
 import { requestReference, writeReference } from "../../../services/referenceApi";
 import { useAuthStore } from "../../../store/useAuthStore";
@@ -33,12 +27,8 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
   const accentGoldTextStyle = { color: colors.accentGold };
   const dangerTextStyle = { color: colors.danger };
   const successTextStyle = { color: colors.success };
-  const avatarPlaceholderStyle = { backgroundColor: colors.surfaceElevated };
   const textSecondaryStyle = { color: colors.textSecondary };
   const actionButtonBorderStyle = { borderColor: colors.accentGold };
-  const inputStyle = { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary };
-  const submitButtonBgStyle = { backgroundColor: colors.accentGold };
-  const submitButtonTextStyle = { color: colors.background };
   const referenceRowStyle = { borderTopColor: colors.border };
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -113,18 +103,22 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
             </TouchableOpacity>
           </View>
 
-          {loading ? <ActivityIndicator color={colors.accentGold} style={styles.loader} /> : null}
+          {loading ? (
+            <View style={styles.profileHeader}>
+              <Skeleton width={64} height={64} radius={32} />
+              <View style={styles.loadingLines}>
+                <Skeleton width="60%" height={16} />
+                <Skeleton width="40%" height={12} style={styles.loadingLineGap} />
+              </View>
+            </View>
+          ) : null}
           {error ? <Text style={[styles.error, dangerTextStyle]}>{error}</Text> : null}
           {feedback ? <Text style={[styles.feedback, successTextStyle]}>{feedback}</Text> : null}
 
           {profile ? (
             <ScrollView>
               <View style={styles.profileHeader}>
-                {profile.avatarUrl ? (
-                  <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, avatarPlaceholderStyle]} />
-                )}
+                <Avatar name={profile.displayName} imageUrl={profile.avatarUrl} size="lg" />
                 <View style={styles.profileHeaderText}>
                   <Text style={[styles.displayName, textPrimaryStyle]}>{profile.displayName}</Text>
                   {profile.title ? <Text style={[styles.title, accentGoldTextStyle]}>{profile.title}</Text> : null}
@@ -158,24 +152,26 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
 
               {writeFormVisible ? (
                 <View style={styles.writeForm}>
-                  <TextInput
-                    style={[styles.input, inputStyle]}
+                  <Input
+                    style={styles.field}
                     placeholder="İlişkiniz (örn. Birlikte çalıştık)"
-                    placeholderTextColor={colors.textSecondary}
                     value={relationship}
                     onChangeText={setRelationship}
                   />
-                  <TextInput
-                    style={[styles.input, inputStyle, styles.multiline]}
+                  <Input
+                    style={[styles.field, styles.multiline]}
                     placeholder="Referans metni"
-                    placeholderTextColor={colors.textSecondary}
                     value={body}
                     onChangeText={setBody}
                     multiline
                   />
-                  <TouchableOpacity style={[styles.submitButton, submitButtonBgStyle]} onPress={handleWriteReference} disabled={submitting}>
-                    <Text style={[styles.submitButtonText, submitButtonTextStyle]}>Gönder</Text>
-                  </TouchableOpacity>
+                  <Button
+                    label="Gönder"
+                    onPress={handleWriteReference}
+                    loading={submitting}
+                    variant="gold"
+                    size="sm"
+                  />
                 </View>
               ) : null}
 
@@ -216,8 +212,12 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.sizes.sm,
   },
-  loader: {
-    marginVertical: spacing.xl,
+  loadingLines: {
+    flex: 1,
+    marginLeft: spacing.md,
+  },
+  loadingLineGap: {
+    marginTop: spacing.xs,
   },
   error: {
     marginBottom: spacing.sm,
@@ -230,14 +230,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: spacing.md,
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: radii.pill,
-    marginRight: spacing.md,
-  },
   profileHeaderText: {
     flex: 1,
+    marginLeft: spacing.md,
   },
   displayName: {
     fontSize: typography.sizes.lg,
@@ -274,27 +269,12 @@ const styles = StyleSheet.create({
   writeForm: {
     marginBottom: spacing.md,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.sm,
-    fontSize: typography.sizes.sm,
   },
   multiline: {
     minHeight: 70,
     textAlignVertical: "top",
-  },
-  submitButton: {
-    alignSelf: "flex-start",
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  submitButtonText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
   },
   sectionTitle: {
     fontSize: typography.sizes.sm,
