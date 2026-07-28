@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
@@ -19,6 +20,7 @@ import { EventsModal } from "../../events/components/EventsModal";
 type ProfileTab = "showcase" | "career";
 
 export function ProfileScreen() {
+  const navigation = useNavigation();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<ProfileTab>("showcase");
   const [loading, setLoading] = useState(true);
@@ -103,6 +105,14 @@ export function ProfileScreen() {
         <TouchableOpacity style={styles.notificationsButton} onPress={() => logout()}>
           <Text style={styles.notificationsButtonText}>🚪 Çıkış Yap</Text>
         </TouchableOpacity>
+        {__DEV__ ? (
+          <TouchableOpacity
+            style={styles.notificationsButton}
+            onPress={() => navigation.navigate("DesignPreview" as never)}
+          >
+            <Text style={styles.notificationsButtonText}>🎨 Tasarım</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.tabBar}>
