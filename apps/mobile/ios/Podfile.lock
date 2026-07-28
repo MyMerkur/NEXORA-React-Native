@@ -2005,6 +2005,51 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNSVG (15.15.5):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNSVG/common (= 15.15.5)
+    - Yoga
+  - RNSVG/common (15.15.5):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - VisionCamera (3.9.2):
     - React
     - React-callinvoker
@@ -2092,6 +2137,7 @@ DEPENDENCIES:
   - ReactNativeDependencies (from `../../../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - RNGestureHandler (from `../../../node_modules/react-native-gesture-handler`)
   - RNScreens (from `../../../node_modules/react-native-screens`)
+  - RNSVG (from `../../../node_modules/react-native-svg`)
   - VisionCamera (from `../../../node_modules/react-native-vision-camera`)
   - Yoga (from `../../../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2255,6 +2301,8 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/react-native-gesture-handler"
   RNScreens:
     :path: "../../../node_modules/react-native-screens"
+  RNSVG:
+    :path: "../../../node_modules/react-native-svg"
   VisionCamera:
     :path: "../../../node_modules/react-native-vision-camera"
   Yoga:
@@ -2340,6 +2388,7 @@ SPEC CHECKSUMS:
   ReactNativeDependencies: fa0a54b3f5319ae0e3b9aff32bfee7a424b88e66
   RNGestureHandler: a21ad1bb32b203570440c29b7e406a342a690842
   RNScreens: dcd5c85a822d9cbb21fc321bbbbcf918f3d48c23
+  RNSVG: ffe18ba0e8fbad864bf22d6f0060a4ee88ec9bf3
   VisionCamera: 36c460338692788a0d377dce7d32f8ba049fb4f2
   Yoga: fe50ab299e578f397fef753cf309c6703a4db29b
 
