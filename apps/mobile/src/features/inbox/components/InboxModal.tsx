@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -11,9 +10,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { getSocket } from "../../../services/socket";
 import {
@@ -32,6 +33,9 @@ interface InboxModalProps {
   onClose: () => void;
   startTarget?: { userId: string; context?: { type: ThreadContextType; id?: string } } | null;
 }
+
+const SHEET_HEIGHT: ViewStyle = { height: "85%" };
+const FLEX_FILL: ViewStyle = { flex: 1 };
 
 const CATEGORY_LABELS: Record<"all" | ThreadCategory, string> = {
   all: "Tümü",
@@ -149,12 +153,8 @@ export function InboxModal({ visible, onClose, startTarget }: InboxModalProps) {
   const filteredThreads = threads.filter((thread) => categoryFilter === "all" || thread.category === categoryFilter);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <KeyboardAvoidingView
-        style={styles.backdrop}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={handleClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
+      <KeyboardAvoidingView style={FLEX_FILL} behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <View style={styles.header}>
             {view === "thread" ? (
               <TouchableOpacity onPress={handleBack}>
@@ -263,25 +263,12 @@ export function InboxModal({ visible, onClose, startTarget }: InboxModalProps) {
               </View>
             </>
           )}
-        </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    height: "85%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

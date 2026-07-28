@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { getPublicProfile, type PublicProfile } from "../../../services/publicProfileApi";
 import { requestReference, writeReference } from "../../../services/referenceApi";
 import { useAuthStore } from "../../../store/useAuthStore";
@@ -12,6 +23,8 @@ interface UserProfileModalProps {
   userId: string | null;
   onClose: () => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function UserProfileModal({ visible, userId, onClose }: UserProfileModalProps) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
@@ -78,9 +91,8 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
   const isSelf = profile?.id === currentUserId;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <>
+      <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Kullanıcı Profili</Text>
             <TouchableOpacity onPress={onClose}>
@@ -166,27 +178,14 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
               )}
             </ScrollView>
           ) : null}
-        </View>
-      </View>
+      </ModalShell>
 
       <InboxModal visible={messageVisible} onClose={() => setMessageVisible(false)} startTarget={userId ? { userId } : null} />
-    </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "85%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

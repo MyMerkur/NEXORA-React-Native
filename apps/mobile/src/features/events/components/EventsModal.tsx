@@ -10,9 +10,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import {
   createEvent,
   listUpcomingEvents,
@@ -31,6 +33,8 @@ interface EventsModalProps {
   onClose: () => void;
   isOrganizer: boolean;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 type EventsTab = "browse" | "mine" | "manage";
 
@@ -174,9 +178,7 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>🎫 Etkinlikler</Text>
             <TouchableOpacity onPress={onClose}>
@@ -382,9 +384,7 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
               ) : null}
             </ScrollView>
           )}
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 

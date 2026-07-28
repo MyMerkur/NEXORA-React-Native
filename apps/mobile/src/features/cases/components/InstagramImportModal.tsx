@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import {
   getInstagramStatus,
   listInstagramMedia,
@@ -15,6 +25,8 @@ interface InstagramImportModalProps {
   onClose: () => void;
   onSelect: (media: { mediaUrl: string; caption: string }) => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function InstagramImportModal({ visible, onClose, onSelect }: InstagramImportModalProps) {
   const [connected, setConnected] = useState<boolean | null>(null);
@@ -70,9 +82,7 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title}>Instagram'dan İçe Aktar</Text>
             <TouchableOpacity onPress={onClose}>
@@ -121,25 +131,11 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
               ) : null}
             </View>
           )}
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    maxHeight: "85%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

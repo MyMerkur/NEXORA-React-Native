@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ActivityIndicator, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 
 interface ApplyModalProps {
   visible: boolean;
@@ -30,9 +31,7 @@ export function ApplyModal({ visible, jobTitle, onClose, onSubmit }: ApplyModalP
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <ModalShell visible={visible} onClose={onClose} variant="sheet">
           <Text style={styles.title}>{jobTitle}</Text>
           <TextInput
             style={styles.input}
@@ -55,24 +54,11 @@ export function ApplyModal({ visible, jobTitle, onClose, onSubmit }: ApplyModalP
               )}
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
-    </Modal>
+    </ModalShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-  },
   title: {
     color: colors.textPrimary,
     fontSize: typography.sizes.md,

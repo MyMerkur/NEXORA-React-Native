@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { ModalShell } from "../../../components/ModalShell";
 import { getCandidateSwipeFeed, swipeCandidate, type SwipeCandidateCard } from "../../../services/matchingApi";
 import type { JobItem } from "../../../services/jobApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
@@ -13,6 +23,8 @@ interface CandidateSwipeModalProps {
   job: JobItem | null;
   onClose: () => void;
 }
+
+const SHEET_HEIGHT: ViewStyle = { height: "80%" };
 
 export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeModalProps) {
   const [deck, setDeck] = useState<SwipeCandidateCard[]>([]);
@@ -65,9 +77,8 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
   const current = deck[0];
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+    <>
+      <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
             <Text style={styles.title} numberOfLines={1}>
               {job?.title ?? ""} — Adaylar
@@ -116,27 +127,14 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
               </TouchableOpacity>
             </View>
           )}
-        </View>
-      </View>
+      </ModalShell>
 
       <InboxModal visible={chatTarget !== null} onClose={() => setChatTarget(null)} startTarget={chatTarget} />
-    </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: radii.lg,
-    borderTopRightRadius: radii.lg,
-    padding: spacing.lg,
-    height: "80%",
-  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
