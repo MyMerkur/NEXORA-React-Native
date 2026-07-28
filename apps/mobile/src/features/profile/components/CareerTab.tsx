@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import { updateCareer, type ExperienceEntry, type UserProfile } from "../../../services/profileApi";
 import { TagPicker } from "../../../components/TagPicker";
 
@@ -15,14 +18,10 @@ interface CareerTabProps {
 export function CareerTab({ profile, onUpdated }: CareerTabProps) {
   const { colors } = useTheme();
   const textPrimaryStyle = { color: colors.textPrimary };
-  const inputStyle = { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary };
-  const experienceRowStyle = { backgroundColor: colors.surface, borderColor: colors.border };
   const textSecondaryStyle = { color: colors.textSecondary };
   const dangerTextStyle = { color: colors.danger };
   const addButtonBorderStyle = { borderColor: colors.accentGold };
   const accentGoldTextStyle = { color: colors.accentGold };
-  const saveButtonBgStyle = { backgroundColor: colors.accentBlue };
-  const saveButtonTextStyle = { color: colors.background };
   const [openToWork, setOpenToWork] = useState(profile.career.openToWork);
   const [hiddenSearch, setHiddenSearch] = useState(profile.career.hiddenSearch);
   const [desiredPositions, setDesiredPositions] = useState<MicroCompetencyTag[]>(profile.career.desiredPositions);
@@ -96,10 +95,9 @@ export function CareerTab({ profile, onUpdated }: CareerTabProps) {
       <Text style={[styles.label, textPrimaryStyle]}>Aranan pozisyonlar</Text>
       <TagPicker selected={desiredPositions} onChange={setDesiredPositions} />
 
-      <TextInput
-        style={[styles.input, inputStyle]}
+      <Input
+        style={styles.field}
         placeholder="Deneyim (yıl)"
-        placeholderTextColor={colors.textSecondary}
         keyboardType="number-pad"
         value={experienceYears}
         onChangeText={setExperienceYears}
@@ -107,47 +105,35 @@ export function CareerTab({ profile, onUpdated }: CareerTabProps) {
 
       <Text style={[styles.label, textPrimaryStyle]}>İş deneyimi</Text>
       {experience.map((entry, index) => (
-        <View key={`${entry.title}-${entry.startYear}-${index}`} style={[styles.experienceRow, experienceRowStyle]}>
-          <View style={styles.experienceInfo}>
-            <Text style={[styles.experienceTitle, textPrimaryStyle]}>{entry.title}</Text>
-            <Text style={[styles.experienceSubtitle, textSecondaryStyle]}>
-              {entry.workplace} · {entry.startYear} - {entry.endYear ?? "devam ediyor"}
-            </Text>
+        <Card key={`${entry.title}-${entry.startYear}-${index}`} style={styles.experienceRow}>
+          <View style={styles.experienceRowContent}>
+            <View style={styles.experienceInfo}>
+              <Text style={[styles.experienceTitle, textPrimaryStyle]}>{entry.title}</Text>
+              <Text style={[styles.experienceSubtitle, textSecondaryStyle]}>
+                {entry.workplace} · {entry.startYear} - {entry.endYear ?? "devam ediyor"}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => handleRemoveExperience(index)}>
+              <Text style={[styles.removeText, dangerTextStyle]}>Sil</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => handleRemoveExperience(index)}>
-            <Text style={[styles.removeText, dangerTextStyle]}>Sil</Text>
-          </TouchableOpacity>
-        </View>
+        </Card>
       ))}
 
       <View style={styles.addForm}>
-        <TextInput
-          style={[styles.input, inputStyle]}
-          placeholder="Unvan"
-          placeholderTextColor={colors.textSecondary}
-          value={newTitle}
-          onChangeText={setNewTitle}
-        />
-        <TextInput
-          style={[styles.input, inputStyle]}
-          placeholder="İşyeri"
-          placeholderTextColor={colors.textSecondary}
-          value={newWorkplace}
-          onChangeText={setNewWorkplace}
-        />
+        <Input style={styles.field} placeholder="Unvan" value={newTitle} onChangeText={setNewTitle} />
+        <Input style={styles.field} placeholder="İşyeri" value={newWorkplace} onChangeText={setNewWorkplace} />
         <View style={styles.yearRow}>
-          <TextInput
-            style={[styles.input, inputStyle, styles.yearInput]}
+          <Input
+            style={[styles.field, styles.yearInput]}
             placeholder="Başlangıç yılı"
-            placeholderTextColor={colors.textSecondary}
             keyboardType="number-pad"
             value={newStartYear}
             onChangeText={setNewStartYear}
           />
-          <TextInput
-            style={[styles.input, inputStyle, styles.yearInput]}
+          <Input
+            style={[styles.field, styles.yearInput]}
             placeholder="Bitiş yılı (boş = devam)"
-            placeholderTextColor={colors.textSecondary}
             keyboardType="number-pad"
             value={newEndYear}
             onChangeText={setNewEndYear}
@@ -160,13 +146,7 @@ export function CareerTab({ profile, onUpdated }: CareerTabProps) {
 
       {error ? <Text style={[styles.error, dangerTextStyle]}>{error}</Text> : null}
 
-      <TouchableOpacity style={[styles.saveButton, saveButtonBgStyle]} onPress={handleSave} disabled={saving}>
-        {saving ? (
-          <ActivityIndicator color={colors.background} />
-        ) : (
-          <Text style={[styles.saveButtonText, saveButtonTextStyle]}>Kaydet</Text>
-        )}
-      </TouchableOpacity>
+      <Button label="Kaydet" onPress={handleSave} loading={saving} fullWidth style={styles.saveButton} />
     </ScrollView>
   );
 }
@@ -186,22 +166,17 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.md,
-    fontSize: typography.sizes.md,
   },
   experienceRow: {
+    marginBottom: spacing.sm,
+    padding: spacing.md,
+  },
+  experienceRowContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderRadius: radii.md,
-    borderWidth: 1,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
   },
   experienceInfo: {
     flex: 1,
@@ -243,13 +218,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   saveButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
     marginTop: spacing.lg,
-  },
-  saveButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
 });

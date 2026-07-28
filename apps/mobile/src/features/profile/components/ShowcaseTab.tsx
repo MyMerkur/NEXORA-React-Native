@@ -1,19 +1,13 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { Badge } from "../../../components/Badge";
 import { requestAvatarUploadUrl, updateShowcase, getMe, type UserProfile } from "../../../services/profileApi";
 import {
   searchOrgs,
@@ -70,15 +64,11 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
   const textSecondaryStyle = { color: colors.textSecondary };
   const accentGoldTextStyle = { color: colors.accentGold };
   const dangerTextStyle = { color: colors.danger };
-  const inputStyle = { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary };
   const avatarPlaceholderStyle = { backgroundColor: colors.surface, borderColor: colors.border };
-  const verifiedTrueStyle = { color: colors.success };
   const previewButtonBorderStyle = { borderColor: colors.accentGold };
   const affiliationChipBgStyle = { backgroundColor: colors.surfaceElevated };
   const affiliationResultRowStyle = { borderBottomColor: colors.border };
   const referenceRowStyle = { borderTopColor: colors.border };
-  const saveButtonBgStyle = { backgroundColor: colors.accentBlue };
-  const saveButtonTextStyle = { color: colors.background };
 
   useEffect(() => {
     if (isEmployer) {
@@ -245,46 +235,26 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         ) : null}
       </TouchableOpacity>
 
-      <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder="Ad Soyad"
-        placeholderTextColor={colors.textSecondary}
-        value={displayName}
-        onChangeText={setDisplayName}
-      />
-      <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder="Unvan (örn. Diş Hekimi)"
-        placeholderTextColor={colors.textSecondary}
-        value={title}
-        onChangeText={setTitle}
-      />
-      <TextInput
-        style={[styles.input, inputStyle, styles.multiline]}
+      <Input style={styles.field} placeholder="Ad Soyad" value={displayName} onChangeText={setDisplayName} />
+      <Input style={styles.field} placeholder="Unvan (örn. Diş Hekimi)" value={title} onChangeText={setTitle} />
+      <Input
+        style={[styles.field, styles.multiline]}
         placeholder="Kısa biyografi"
-        placeholderTextColor={colors.textSecondary}
         value={bio}
         onChangeText={setBio}
         multiline
       />
-      <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder="Çalıştığı yer"
-        placeholderTextColor={colors.textSecondary}
-        value={workplace}
-        onChangeText={setWorkplace}
-      />
+      <Input style={styles.field} placeholder="Çalıştığı yer" value={workplace} onChangeText={setWorkplace} />
       {isEmployer ? (
         <>
-          <Text
-            style={[
-              styles.verifiedBadge,
-              profile.showcase.isVerifiedOrg ? verifiedTrueStyle : textSecondaryStyle,
-            ]}
+          <Badge
+            label={profile.showcase.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
+            variant={profile.showcase.isVerifiedOrg ? "success" : "warning"}
+          />
+          <TouchableOpacity
+            style={[styles.previewButton, previewButtonBorderStyle]}
+            onPress={() => setPreviewVisible(true)}
           >
-            {profile.showcase.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
-          </Text>
-          <TouchableOpacity style={[styles.previewButton, previewButtonBorderStyle]} onPress={() => setPreviewVisible(true)}>
             <Text style={[styles.previewButtonText, accentGoldTextStyle]}>Vitrinimi Görüntüle</Text>
           </TouchableOpacity>
         </>
@@ -306,10 +276,9 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
             </Text>
           ) : (
             <>
-              <TextInput
-                style={[styles.input, inputStyle]}
+              <Input
+                style={styles.field}
                 placeholder="Kurumunu Nexora'da bul"
-                placeholderTextColor={colors.textSecondary}
                 value={affiliationQuery}
                 onChangeText={handleSearchAffiliation}
               />
@@ -330,34 +299,29 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
           )}
         </View>
       )}
-      <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder="Şehir"
-        placeholderTextColor={colors.textSecondary}
-        value={city}
-        onChangeText={setCity}
-      />
+      <Input style={styles.field} placeholder="Şehir" value={city} onChangeText={setCity} />
 
       <Text style={[styles.label, textPrimaryStyle]}>Mikro-yetkinlikler</Text>
       <TagPicker selected={specialties} onChange={setSpecialties} />
 
-      {!isEmployer && isInstructor ? (
-        <Text style={[styles.instructorBadge, accentGoldTextStyle]}>🎓 Eğitmen</Text>
-      ) : null}
+      {!isEmployer && isInstructor ? <Badge label="🎓 Eğitmen" variant="gold" /> : null}
 
       {!isEmployer && !isInstructor ? (
         <View style={styles.inviteSection}>
           <Text style={[styles.label, textPrimaryStyle]}>Eğitmen daveti var mı?</Text>
-          <TextInput
-            style={[styles.input, inputStyle]}
+          <Input
+            style={styles.field}
             placeholder="Davet kodu"
-            placeholderTextColor={colors.textSecondary}
             value={inviteToken}
             onChangeText={setInviteToken}
             autoCapitalize="none"
+            error={inviteError ?? undefined}
           />
-          {inviteError ? <Text style={[styles.error, dangerTextStyle]}>{inviteError}</Text> : null}
-          <TouchableOpacity style={[styles.previewButton, previewButtonBorderStyle]} onPress={handleAcceptInvite} disabled={inviteSubmitting}>
+          <TouchableOpacity
+            style={[styles.previewButton, previewButtonBorderStyle]}
+            onPress={handleAcceptInvite}
+            disabled={inviteSubmitting}
+          >
             <Text style={[styles.previewButtonText, accentGoldTextStyle]}>Kabul Et</Text>
           </TouchableOpacity>
         </View>
@@ -382,17 +346,15 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
                   </View>
                   {fulfillingId === request.id ? (
                     <View style={styles.fulfillForm}>
-                      <TextInput
-                        style={[styles.input, inputStyle]}
+                      <Input
+                        style={styles.field}
                         placeholder="İlişkiniz (opsiyonel)"
-                        placeholderTextColor={colors.textSecondary}
                         value={fulfillRelationship}
                         onChangeText={setFulfillRelationship}
                       />
-                      <TextInput
-                        style={[styles.input, inputStyle, styles.multiline]}
+                      <Input
+                        style={[styles.field, styles.multiline]}
                         placeholder="Referans metni"
-                        placeholderTextColor={colors.textSecondary}
                         value={fulfillBody}
                         onChangeText={setFulfillBody}
                         multiline
@@ -434,13 +396,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
 
       {error ? <Text style={[styles.error, dangerTextStyle]}>{error}</Text> : null}
 
-      <TouchableOpacity style={[styles.saveButton, saveButtonBgStyle]} onPress={handleSave} disabled={saving}>
-        {saving ? (
-          <ActivityIndicator color={colors.background} />
-        ) : (
-          <Text style={[styles.saveButtonText, saveButtonTextStyle]}>Kaydet</Text>
-        )}
-      </TouchableOpacity>
+      <Button label="Kaydet" onPress={handleSave} loading={saving} fullWidth style={styles.saveButton} />
 
       <OrgProfileModal visible={previewVisible} orgUserId={profile.id} onClose={() => setPreviewVisible(false)} />
     </ScrollView>
@@ -481,25 +437,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.md,
-    fontSize: typography.sizes.md,
   },
   multiline: {
     minHeight: 80,
     textAlignVertical: "top",
   },
-  verifiedBadge: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-    marginBottom: spacing.md,
-  },
   previewButton: {
     alignSelf: "flex-start",
+    marginTop: spacing.sm,
     marginBottom: spacing.md,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
@@ -548,11 +495,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
-  instructorBadge: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    marginTop: spacing.md,
-  },
   inviteSection: {
     marginTop: spacing.md,
   },
@@ -600,13 +542,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   saveButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
     marginTop: spacing.lg,
-  },
-  saveButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
 });
