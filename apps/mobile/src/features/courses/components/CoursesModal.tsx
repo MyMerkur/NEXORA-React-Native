@@ -1,21 +1,15 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ActivityIndicator, Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { GraduationCap } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Card } from "../../../components/Card";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { EmptyState } from "../../../components/EmptyState";
 import {
   createCourse,
   listCourses,
@@ -228,10 +222,10 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
             <ScrollView style={styles.content}>
               {activeTab === "browse" ? (
                 courses.length === 0 ? (
-                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz kurs yok.</Text>
+                  <EmptyState icon={GraduationCap} title="Henüz kurs yok" />
                 ) : (
                   courses.map((course) => (
-                    <View key={course.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                    <Card key={course.id} variant="elevated" style={styles.card}>
                       <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{course.title}</Text>
                       <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                         {course.instructor.displayName}
@@ -239,30 +233,24 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                       {course.description ? (
                         <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{course.description}</Text>
                       ) : null}
-                      <TouchableOpacity
-                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                      <Button
+                        label="Katıl"
                         onPress={() => handleEnroll(course.id)}
-                        disabled={enrollingCourseId === course.id}
-                      >
-                        {enrollingCourseId === course.id ? (
-                          <ActivityIndicator color={colors.background} />
-                        ) : (
-                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Katıl</Text>
-                        )}
-                      </TouchableOpacity>
-                    </View>
+                        loading={enrollingCourseId === course.id}
+                        fullWidth
+                        style={styles.cardButton}
+                      />
+                    </Card>
                   ))
                 )
               ) : null}
 
               {activeTab === "mine" ? (
                 enrollments.length === 0 ? (
-                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                    Henüz bir kursa kayıtlı değilsiniz.
-                  </Text>
+                  <EmptyState icon={GraduationCap} title="Henüz bir kursa kayıtlı değilsiniz" />
                 ) : (
                   enrollments.map((enrollment) => (
-                    <View key={enrollment.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                    <Card key={enrollment.id} variant="elevated" style={styles.card}>
                       <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{enrollment.course.title}</Text>
                       <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                         {STATUS_LABELS[enrollment.status]}
@@ -281,7 +269,7 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                           </TouchableOpacity>
                         </View>
                       ) : null}
-                    </View>
+                    </Card>
                   ))
                 )
               ) : null}
@@ -293,10 +281,10 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                       <Text style={[styles.backLink, { color: colors.accentGold }]}>{"< Geri"}</Text>
                     </TouchableOpacity>
                     {participants.length === 0 ? (
-                      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz katılımcı yok.</Text>
+                      <EmptyState icon={GraduationCap} title="Henüz katılımcı yok" />
                     ) : (
                       participants.map((participant) => (
-                        <View key={participant.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                        <Card key={participant.id} variant="elevated" style={styles.card}>
                           <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
                             {participant.participant.displayName}
                           </Text>
@@ -304,71 +292,51 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                             {STATUS_LABELS[participant.status]}
                           </Text>
                           {participant.status === "enrolled" ? (
-                            <TouchableOpacity
-                              style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                            <Button
+                              label="Tamamlandı İşaretle"
                               onPress={() => handleComplete(participant.id)}
-                              disabled={completingId === participant.id}
-                            >
-                              {completingId === participant.id ? (
-                                <ActivityIndicator color={colors.background} />
-                              ) : (
-                                <Text style={[styles.primaryButtonText, { color: colors.background }]}>
-                                  Tamamlandı İşaretle
-                                </Text>
-                              )}
-                            </TouchableOpacity>
+                              loading={completingId === participant.id}
+                              fullWidth
+                              style={styles.cardButton}
+                            />
                           ) : null}
-                        </View>
+                        </Card>
                       ))
                     )}
                   </View>
                 ) : (
                   <View>
-                    <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                    <Card variant="elevated" style={styles.card}>
                       <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>+ Kurs Oluştur</Text>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
-                        ]}
+                      <Input
+                        style={styles.field}
                         placeholder="Kurs başlığı"
-                        placeholderTextColor={colors.textSecondary}
                         value={newTitle}
                         onChangeText={setNewTitle}
                       />
-                      <TextInput
-                        style={[
-                          styles.input,
-                          styles.multiline,
-                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
-                        ]}
+                      <Input
+                        style={[styles.field, styles.multiline]}
                         placeholder="Açıklama (opsiyonel)"
-                        placeholderTextColor={colors.textSecondary}
                         value={newDescription}
                         onChangeText={setNewDescription}
                         multiline
                       />
                       <TagPicker selected={newSpecialties} onChange={setNewSpecialties} />
-                      <TouchableOpacity
-                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                      <Button
+                        label="Oluştur"
                         onPress={handleCreateCourse}
-                        disabled={newTitle.length < 3 || creating}
-                      >
-                        {creating ? (
-                          <ActivityIndicator color={colors.background} />
-                        ) : (
-                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Oluştur</Text>
-                        )}
-                      </TouchableOpacity>
-                    </View>
+                        loading={creating}
+                        disabled={newTitle.length < 3}
+                        fullWidth
+                        style={styles.cardButton}
+                      />
+                    </Card>
 
                     {myCourses.map((course) => (
-                      <TouchableOpacity
-                        key={course.id}
-                        style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
-                        onPress={() => handleSelectCourseToManage(course.id)}
-                      >
-                        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{course.title}</Text>
+                      <TouchableOpacity key={course.id} onPress={() => handleSelectCourseToManage(course.id)}>
+                        <Card variant="elevated" style={styles.card}>
+                          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{course.title}</Text>
+                        </Card>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -419,17 +387,10 @@ const styles = StyleSheet.create({
   content: {
     maxHeight: "100%",
   },
-  emptyText: {
-    fontSize: typography.sizes.sm,
-    textAlign: "center",
-    marginVertical: spacing.lg,
-  },
   error: {
     marginBottom: spacing.sm,
   },
   card: {
-    borderRadius: radii.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {
@@ -444,27 +405,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  cardButton: {
     marginTop: spacing.sm,
-    fontSize: typography.sizes.md,
+  },
+  field: {
+    marginTop: spacing.sm,
   },
   multiline: {
     minHeight: 60,
     textAlignVertical: "top",
-  },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-    marginTop: spacing.sm,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   secondaryButton: {
     borderRadius: radii.pill,

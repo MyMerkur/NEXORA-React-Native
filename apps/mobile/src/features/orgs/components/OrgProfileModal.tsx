@@ -1,20 +1,14 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import { radii, spacing, typography, type ThemeColors } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Avatar } from "../../../components/Avatar";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import {
   getOrgProfile,
   rateOrg,
@@ -303,11 +297,7 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
           ) : profile ? (
             <ScrollView>
               <View style={styles.profileHeader}>
-                {profile.avatarUrl ? (
-                  <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
-                )}
+                <Avatar name={profile.displayName} imageUrl={profile.avatarUrl} size="lg" />
                 <View style={styles.profileHeaderText}>
                   <Text style={[styles.displayName, { color: colors.textPrimary }]}>{profile.displayName}</Text>
                   {profile.workplace ? (
@@ -329,12 +319,13 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
               {profile.bio ? <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text> : null}
 
               {profile.id !== currentUser?.id ? (
-                <TouchableOpacity
-                  style={[styles.messageButton, { backgroundColor: colors.accentGold }]}
+                <Button
+                  label="Mesaj Gönder"
                   onPress={() => setMessageVisible(true)}
-                >
-                  <Text style={[styles.messageButtonText, { color: colors.background }]}>Mesaj Gönder</Text>
-                </TouchableOpacity>
+                  variant="gold"
+                  size="sm"
+                  style={styles.messageButton}
+                />
               ) : null}
 
               {canRate ? (
@@ -377,11 +368,7 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
               ) : (
                 profile.team.map((member) => (
                   <View key={member.id} style={styles.teamRow}>
-                    {member.avatarUrl ? (
-                      <Image source={{ uri: member.avatarUrl }} style={styles.teamAvatar} />
-                    ) : (
-                      <View style={[styles.teamAvatar, { backgroundColor: colors.surfaceElevated }]} />
-                    )}
+                    <Avatar name={member.displayName} imageUrl={member.avatarUrl} size="sm" />
                     <Text style={[styles.teamName, { color: colors.textPrimary }]}>{member.displayName}</Text>
                   </View>
                 ))
@@ -436,39 +423,27 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                   </Text>
                   {isOwnProfile ? (
                     <View style={styles.communityForm}>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                        ]}
+                      <Input
+                        style={styles.field}
                         placeholder="Duyuru başlığı"
-                        placeholderTextColor={colors.textSecondary}
                         value={newAnnouncementTitle}
                         onChangeText={setNewAnnouncementTitle}
                       />
-                      <TextInput
-                        style={[
-                          styles.input,
-                          styles.multiline,
-                          { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                        ]}
+                      <Input
+                        style={[styles.field, styles.multiline]}
                         placeholder="Duyuru içeriği"
-                        placeholderTextColor={colors.textSecondary}
                         value={newAnnouncementBody}
                         onChangeText={setNewAnnouncementBody}
                         multiline
                       />
-                      <TouchableOpacity
-                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                      <Button
+                        label="Duyuru Paylaş"
                         onPress={handleCreateAnnouncement}
-                        disabled={creatingAnnouncement || newAnnouncementTitle.trim().length === 0 || newAnnouncementBody.trim().length === 0}
-                      >
-                        {creatingAnnouncement ? (
-                          <ActivityIndicator color={colors.background} />
-                        ) : (
-                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Duyuru Paylaş</Text>
-                        )}
-                      </TouchableOpacity>
+                        loading={creatingAnnouncement}
+                        disabled={newAnnouncementTitle.trim().length === 0 || newAnnouncementBody.trim().length === 0}
+                        fullWidth
+                        style={styles.field}
+                      />
                     </View>
                   ) : null}
                   {announcements.length === 0 ? (
@@ -485,25 +460,17 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                   <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Oylamalar ({votes.length})</Text>
                   {isOwnProfile ? (
                     <View style={styles.communityForm}>
-                      <TextInput
-                        style={[
-                          styles.input,
-                          { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                        ]}
+                      <Input
+                        style={styles.field}
                         placeholder="Oylama sorusu"
-                        placeholderTextColor={colors.textSecondary}
                         value={newVoteQuestion}
                         onChangeText={setNewVoteQuestion}
                       />
                       {newVoteOptions.map((option, index) => (
-                        <TextInput
+                        <Input
                           key={index}
-                          style={[
-                            styles.input,
-                            { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                          ]}
+                          style={styles.field}
                           placeholder={`Seçenek ${index + 1}`}
-                          placeholderTextColor={colors.textSecondary}
                           value={option}
                           onChangeText={(value) =>
                             setNewVoteOptions((current) => current.map((item, i) => (i === index ? value : item)))
@@ -513,24 +480,21 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                       <TouchableOpacity onPress={() => setNewVoteOptions((current) => [...current, ""])}>
                         <Text style={[styles.backLink, { color: colors.accentGold }]}>+ Seçenek Ekle</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                      <Button
+                        label="Oylama Aç"
                         onPress={handleCreateVote}
-                        disabled={creatingVote || newVoteQuestion.trim().length === 0}
-                      >
-                        {creatingVote ? (
-                          <ActivityIndicator color={colors.background} />
-                        ) : (
-                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Oylama Aç</Text>
-                        )}
-                      </TouchableOpacity>
+                        loading={creatingVote}
+                        disabled={newVoteQuestion.trim().length === 0}
+                        fullWidth
+                        style={styles.field}
+                      />
                     </View>
                   ) : null}
                   {votes.length === 0 ? (
                     <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz oylama yok</Text>
                   ) : (
                     votes.map((vote) => (
-                      <View key={vote.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Card key={vote.id} variant="elevated" style={styles.card}>
                         <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{vote.question}</Text>
                         <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                           {vote.status === "open" ? "Açık" : "Kapalı"}
@@ -552,19 +516,16 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                           </View>
                         ))}
                         {isOwnProfile && vote.status === "open" ? (
-                          <TouchableOpacity
-                            style={[styles.dangerButton, { borderColor: colors.danger }]}
+                          <Button
+                            label="Oylamayı Kapat"
                             onPress={() => handleCloseVote(vote.id)}
-                            disabled={closingVoteId === vote.id}
-                          >
-                            {closingVoteId === vote.id ? (
-                              <ActivityIndicator color={colors.danger} />
-                            ) : (
-                              <Text style={[styles.dangerButtonText, { color: colors.danger }]}>Oylamayı Kapat</Text>
-                            )}
-                          </TouchableOpacity>
+                            loading={closingVoteId === vote.id}
+                            variant="danger"
+                            fullWidth
+                            style={styles.field}
+                          />
                         ) : null}
-                      </View>
+                      </Card>
                     ))
                   )}
 
@@ -572,23 +533,15 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                   {isOwnProfile ? (
                     !duesPlan ? (
                       <View style={styles.communityForm}>
-                        <TextInput
-                          style={[
-                            styles.input,
-                            { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                          ]}
+                        <Input
+                          style={styles.field}
                           placeholder="Plan adı (opsiyonel)"
-                          placeholderTextColor={colors.textSecondary}
                           value={newDuesName}
                           onChangeText={setNewDuesName}
                         />
-                        <TextInput
-                          style={[
-                            styles.input,
-                            { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                          ]}
+                        <Input
+                          style={styles.field}
                           placeholder="Tutar (₺)"
-                          placeholderTextColor={colors.textSecondary}
                           keyboardType="decimal-pad"
                           value={newDuesPrice}
                           onChangeText={setNewDuesPrice}
@@ -611,17 +564,13 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                             </Text>
                           </TouchableOpacity>
                         </View>
-                        <TouchableOpacity
-                          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                        <Button
+                          label="Aidat Planı Oluştur"
                           onPress={handleCreateDuesPlan}
-                          disabled={creatingDuesPlan || newDuesPrice.trim().length === 0}
-                        >
-                          {creatingDuesPlan ? (
-                            <ActivityIndicator color={colors.background} />
-                          ) : (
-                            <Text style={[styles.primaryButtonText, { color: colors.background }]}>Aidat Planı Oluştur</Text>
-                          )}
-                        </TouchableOpacity>
+                          loading={creatingDuesPlan}
+                          disabled={newDuesPrice.trim().length === 0}
+                          fullWidth
+                        />
                       </View>
                     ) : (
                       <View>
@@ -652,24 +601,15 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                         {duesPlan.name} — ₺{duesPlan.price} / {duesPlan.paymentInterval === "MONTHLY" ? "ay" : "yıl"}
                       </Text>
                       {myDuesStatus?.status === "active" ? (
-                        <TouchableOpacity
-                          style={[styles.dangerButton, { borderColor: colors.danger }]}
+                        <Button
+                          label="Aidat Üyeliğini İptal Et"
                           onPress={handleCancelDues}
-                          disabled={cancelingDues}
-                        >
-                          {cancelingDues ? (
-                            <ActivityIndicator color={colors.danger} />
-                          ) : (
-                            <Text style={[styles.dangerButtonText, { color: colors.danger }]}>Aidat Üyeliğini İptal Et</Text>
-                          )}
-                        </TouchableOpacity>
+                          loading={cancelingDues}
+                          variant="danger"
+                          fullWidth
+                        />
                       ) : (
-                        <TouchableOpacity
-                          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
-                          onPress={() => setDuesCheckoutVisible(true)}
-                        >
-                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Aidat Öde</Text>
-                        </TouchableOpacity>
+                        <Button label="Aidat Öde" onPress={() => setDuesCheckoutVisible(true)} fullWidth />
                       )}
                     </View>
                   )}
@@ -711,13 +651,8 @@ const styles = StyleSheet.create({
   profileHeader: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.md,
     marginBottom: spacing.md,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: radii.pill,
-    marginRight: spacing.md,
   },
   profileHeaderText: {
     flex: 1,
@@ -767,14 +702,7 @@ const styles = StyleSheet.create({
   },
   messageButton: {
     alignSelf: "flex-start",
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
     marginBottom: spacing.md,
-  },
-  messageButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   sectionTitle: {
     fontSize: typography.sizes.sm,
@@ -788,13 +716,8 @@ const styles = StyleSheet.create({
   teamRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.sm,
     paddingVertical: spacing.xs,
-  },
-  teamAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.pill,
-    marginRight: spacing.sm,
   },
   teamName: {
     fontSize: typography.sizes.sm,
@@ -828,35 +751,18 @@ const styles = StyleSheet.create({
   communityForm: {
     marginBottom: spacing.sm,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.sm,
-    fontSize: typography.sizes.md,
   },
   multiline: {
     minHeight: 60,
     textAlignVertical: "top",
-  },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-    marginTop: spacing.xs,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   backLink: {
     fontSize: typography.sizes.sm,
     marginBottom: spacing.sm,
   },
   card: {
-    borderRadius: radii.md,
-    padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {
@@ -887,17 +793,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-  },
-  dangerButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.xs,
-    alignItems: "center",
-    marginTop: spacing.sm,
-    borderWidth: 1,
-  },
-  dangerButtonText: {
-    fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   typeRow: {

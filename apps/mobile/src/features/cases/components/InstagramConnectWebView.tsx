@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
+import { Button } from "../../../components/Button";
 import { getConnectAuthorizeUrl, getInstagramStatus } from "../../../services/instagramApi";
 
 interface InstagramConnectWebViewProps {
@@ -12,8 +13,6 @@ interface InstagramConnectWebViewProps {
 
 export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps) {
   const { colors } = useTheme();
-  const primaryButtonStyle = { backgroundColor: colors.accentBlue };
-  const primaryButtonTextStyle = { color: colors.background };
   const confirmingTextStyle = { color: colors.textSecondary };
   const errorStyle = { color: colors.danger };
   const cancelLinkTextStyle = { color: colors.textSecondary };
@@ -57,9 +56,7 @@ export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps
     return (
       <View style={styles.centered}>
         <Text style={[styles.error, errorStyle]}>{error}</Text>
-        <TouchableOpacity style={[styles.primaryButton, primaryButtonStyle]} onPress={() => onDone("cancelled")}>
-          <Text style={[styles.primaryButtonText, primaryButtonTextStyle]}>Kapat</Text>
-        </TouchableOpacity>
+        <Button label="Kapat" onPress={() => onDone("cancelled")} style={styles.actionButton} />
       </View>
     );
   }
@@ -101,16 +98,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: spacing.xl,
   },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
+  actionButton: {
     marginTop: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
   confirmingText: {
     fontSize: typography.sizes.sm,
