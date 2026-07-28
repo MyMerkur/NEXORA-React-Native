@@ -1,27 +1,29 @@
-import { NavigationContainer, DarkTheme } from "@react-navigation/native";
+import { NavigationContainer, DarkTheme, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { colors } from "@nexora/ui-tokens";
 import { LoginScreen } from "../features/auth/screens/LoginScreen";
 import { DesignPreviewScreen } from "../features/devPreview/screens/DesignPreviewScreen";
 import { MainTabNavigator } from "./MainTabNavigator";
 import { useAuthStore } from "../store/useAuthStore";
+import { useTheme } from "../store/useThemeStore";
 
 const Stack = createNativeStackNavigator();
 
-const navigationTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: colors.background,
-    card: colors.surface,
-    text: colors.textPrimary,
-    border: colors.border,
-    primary: colors.accentGold,
-  },
-};
-
 export function RootNavigator() {
   const isAuthenticated = useAuthStore((state) => Boolean(state.accessToken));
+  const { scheme, colors } = useTheme();
+  const base = scheme === "light" ? DefaultTheme : DarkTheme;
+
+  const navigationTheme = {
+    ...base,
+    colors: {
+      ...base.colors,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.textPrimary,
+      border: colors.border,
+      primary: colors.accentGold,
+    },
+  };
 
   return (
     <NavigationContainer theme={navigationTheme}>

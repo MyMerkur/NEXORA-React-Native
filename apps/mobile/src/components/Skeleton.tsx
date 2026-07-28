@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View, type DimensionValue } from "react-native";
-import { colors, radii } from "@nexora/ui-tokens";
+import { radii } from "@nexora/ui-tokens";
+import { useTheme } from "../store/useThemeStore";
 
 interface SkeletonProps {
   width?: DimensionValue;
@@ -9,9 +10,11 @@ interface SkeletonProps {
   style?: object;
 }
 
-// Simple opacity-pulse shimmer built on RN's core Animated API — deliberately not using
-// react-native-reanimated, which only arrives with the animation layer (Faz 5, #60).
+// Simple opacity-pulse shimmer built on RN's core Animated API — deliberately not
+// react-native-reanimated, since a JS-thread interval timer is fine for a non-gesture,
+// non-interactive loop like this one.
 export function Skeleton({ width = "100%", height = 14, radius = radii.sm, style }: SkeletonProps) {
+  const { colors } = useTheme();
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -27,7 +30,7 @@ export function Skeleton({ width = "100%", height = 14, radius = radii.sm, style
 
   return (
     <Animated.View
-      style={[styles.base, { width, height, borderRadius: radius, opacity }, style]}
+      style={[styles.base, { width, height, borderRadius: radius, opacity, backgroundColor: colors.surfaceElevated }, style]}
     />
   );
 }
@@ -37,8 +40,10 @@ interface SkeletonRowProps {
 }
 
 export function SkeletonRow({ avatarSize = 44 }: SkeletonRowProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
       <Skeleton width={avatarSize} height={avatarSize} radius={avatarSize / 2} />
       <View style={styles.lines}>
         <Skeleton width="70%" height={11} />
@@ -49,16 +54,12 @@ export function SkeletonRow({ avatarSize = 44 }: SkeletonRowProps) {
 }
 
 const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.surfaceElevated,
-  },
+  base: {},
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.borderSubtle,
     borderRadius: radii.md + 2,
     padding: 16,
   },

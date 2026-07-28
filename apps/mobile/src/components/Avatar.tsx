@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { BadgeCheck } from "lucide-react-native";
 import { colors, fontFamilies } from "@nexora/ui-tokens";
+import { useTheme } from "../store/useThemeStore";
 
 export type AvatarSize = "sm" | "md" | "lg";
 
@@ -23,6 +24,9 @@ function getInitials(name: string): string {
 }
 
 export function Avatar({ name, imageUrl, size = "md", verified = false }: AvatarProps) {
+  // accentBlue/accentGold/textOnAccent/background: only `background` actually varies by theme
+  // (it's the badge's cutout border, meant to match whatever page it sits on).
+  const { colors: themeColors } = useTheme();
   const dimension = SIZE_PX[size];
   const badgeSize = BADGE_SIZE[size];
 
@@ -40,7 +44,12 @@ export function Avatar({ name, imageUrl, size = "md", verified = false }: Avatar
         </View>
       )}
       {verified ? (
-        <View style={[styles.badge, { width: badgeSize, height: badgeSize, borderRadius: badgeSize / 2 }]}>
+        <View
+          style={[
+            styles.badge,
+            { width: badgeSize, height: badgeSize, borderRadius: badgeSize / 2, borderColor: themeColors.background },
+          ]}
+        >
           <BadgeCheck size={badgeSize - 4} color={colors.textOnAccent} strokeWidth={2} />
         </View>
       ) : null}
@@ -67,7 +76,6 @@ const styles = StyleSheet.create({
     right: -2,
     backgroundColor: colors.accentGold,
     borderWidth: 2,
-    borderColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
