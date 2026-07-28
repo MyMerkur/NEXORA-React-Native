@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import {
   searchCandidates,
   unlockCandidate,
@@ -31,6 +32,7 @@ interface SniperSearchModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) {
+  const { colors } = useTheme();
   const [balance, setBalance] = useState(0);
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [messagingCandidateId, setMessagingCandidateId] = useState<string | null>(null);
@@ -114,9 +116,9 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>🎯 Keskin Nişancı</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>🎯 Keskin Nişancı</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -125,18 +127,21 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
           ) : (
             <ScrollView>
               <View style={styles.balanceRow}>
-                <Text style={styles.balanceText}>Kredi bakiyesi: {balance}</Text>
-                <TouchableOpacity style={styles.secondaryButton} onPress={() => setCheckoutVisible(true)}>
-                  <Text style={styles.secondaryButtonText}>1 Kredi Satın Al</Text>
+                <Text style={[styles.balanceText, { color: colors.textPrimary }]}>Kredi bakiyesi: {balance}</Text>
+                <TouchableOpacity
+                  style={[styles.secondaryButton, { borderColor: colors.accentGold }]}
+                  onPress={() => setCheckoutVisible(true)}
+                >
+                  <Text style={[styles.secondaryButtonText, { color: colors.accentGold }]}>1 Kredi Satın Al</Text>
                 </TouchableOpacity>
               </View>
 
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
-              <Text style={styles.sectionTitle}>Uzmanlık</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Uzmanlık</Text>
               <TagPicker selected={specialties} onChange={setSpecialties} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
                 placeholder="Şehir (opsiyonel)"
                 placeholderTextColor={colors.textSecondary}
                 value={city}
@@ -144,7 +149,11 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
               />
               <View style={styles.rangeRow}>
                 <TextInput
-                  style={[styles.input, styles.rangeInput]}
+                  style={[
+                    styles.input,
+                    styles.rangeInput,
+                    { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                  ]}
                   placeholder="Min. deneyim (yıl)"
                   placeholderTextColor={colors.textSecondary}
                   keyboardType="number-pad"
@@ -152,7 +161,11 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
                   onChangeText={setMinExperienceYears}
                 />
                 <TextInput
-                  style={[styles.input, styles.rangeInput]}
+                  style={[
+                    styles.input,
+                    styles.rangeInput,
+                    { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                  ]}
                   placeholder="Maks. deneyim (yıl)"
                   placeholderTextColor={colors.textSecondary}
                   keyboardType="number-pad"
@@ -160,41 +173,58 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
                   onChangeText={setMaxExperienceYears}
                 />
               </View>
-              <TouchableOpacity style={styles.primaryButton} onPress={handleSearch} disabled={loading}>
-                {loading ? <ActivityIndicator color={colors.background} /> : <Text style={styles.primaryButtonText}>Ara</Text>}
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                onPress={handleSearch}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.background} />
+                ) : (
+                  <Text style={[styles.primaryButtonText, { color: colors.background }]}>Ara</Text>
+                )}
               </TouchableOpacity>
 
               {searched && !loading ? (
                 results.length === 0 ? (
-                  <Text style={styles.emptyText}>Kriterlere uyan aday bulunamadı.</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                    Kriterlere uyan aday bulunamadı.
+                  </Text>
                 ) : (
                   results.map((candidate) => (
-                    <View key={candidate.candidateId} style={styles.card}>
-                      <Text style={styles.cardTitle}>{candidate.unlocked ? candidate.displayName : "Gizli Aday"}</Text>
-                      <Text style={styles.cardSubtitle}>
+                    <View
+                      key={candidate.candidateId}
+                      style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+                    >
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
+                        {candidate.unlocked ? candidate.displayName : "Gizli Aday"}
+                      </Text>
+                      <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                         {candidate.specialties.join(", ") || "Uzmanlık belirtilmemiş"}
                       </Text>
-                      <Text style={styles.cardBody}>
+                      <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
                         {candidate.city || "Şehir belirtilmemiş"}
                         {candidate.experienceYears !== null ? ` · ${candidate.experienceYears} yıl deneyim` : ""}
                       </Text>
                       {candidate.unlocked ? (
                         <TouchableOpacity
-                          style={styles.primaryButton}
+                          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                           onPress={() => setMessagingCandidateId(candidate.candidateId)}
                         >
-                          <Text style={styles.primaryButtonText}>Mesaj Gönder</Text>
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Mesaj Gönder</Text>
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity
-                          style={styles.primaryButton}
+                          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                           onPress={() => handleUnlock(candidate.candidateId)}
                           disabled={unlockingId === candidate.candidateId}
                         >
                           {unlockingId === candidate.candidateId ? (
                             <ActivityIndicator color={colors.background} />
                           ) : (
-                            <Text style={styles.primaryButtonText}>Kredi ile Aç (1 kredi)</Text>
+                            <Text style={[styles.primaryButtonText, { color: colors.background }]}>
+                              Kredi ile Aç (1 kredi)
+                            </Text>
                           )}
                         </TouchableOpacity>
                       )}
@@ -216,12 +246,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   balanceRow: {
@@ -231,7 +259,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   balanceText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
   },
@@ -240,25 +267,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   secondaryButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
   sectionTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
   input: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginTop: spacing.sm,
@@ -272,45 +293,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
     marginTop: spacing.sm,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
     marginTop: spacing.md,
   },
   cardTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   cardSubtitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
   cardBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },

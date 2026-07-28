@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography, type ThemeColors } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import { discoverHubs, listMyHubs, listManagedHubs, type HubItem } from "../../../services/hubApi";
 import { HubDetailModal } from "../components/HubDetailModal";
@@ -11,7 +12,12 @@ type HubsTab = "discover" | "mine" | "managed";
 
 const PAID_HUB_CREATION_KYC_LEVEL = 4;
 
+function getTabTextColor(isActive: boolean, colors: ThemeColors): string {
+  return isActive ? colors.accentGold : colors.textSecondary;
+}
+
 export function HubsScreen() {
+  const { colors } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<HubsTab>("discover");
   const [hubs, setHubs] = useState<HubItem[]>([]);
@@ -57,52 +63,87 @@ export function HubsScreen() {
     setActiveTab("managed");
   }
 
+  const activeTabBorderStyle = { borderBottomColor: colors.accentGold };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Hubs</Text>
+        <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Hubs</Text>
         {profile && profile.kycLevel >= 1 ? (
-          <TouchableOpacity style={styles.createButton} onPress={() => setCreateVisible(true)}>
-            <Text style={styles.createButtonText}>+ Hub Oluştur</Text>
+          <TouchableOpacity
+            style={[styles.createButton, { borderColor: colors.accentGold }]}
+            onPress={() => setCreateVisible(true)}
+          >
+            <Text style={[styles.createButtonText, { color: colors.accentGold }]}>+ Hub Oluştur</Text>
           </TouchableOpacity>
         ) : null}
       </View>
 
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { borderBottomColor: colors.border }]}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "discover" && styles.tabButtonActive]}
+          style={[styles.tabButton, activeTab === "discover" && activeTabBorderStyle]}
           onPress={() => setActiveTab("discover")}
         >
-          <Text style={[styles.tabText, activeTab === "discover" && styles.tabTextActive]}>Keşfet</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "discover" && styles.tabTextActive,
+              { color: getTabTextColor(activeTab === "discover", colors) },
+            ]}
+          >
+            Keşfet
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "mine" && styles.tabButtonActive]}
+          style={[styles.tabButton, activeTab === "mine" && activeTabBorderStyle]}
           onPress={() => setActiveTab("mine")}
         >
-          <Text style={[styles.tabText, activeTab === "mine" && styles.tabTextActive]}>Hublarım</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "mine" && styles.tabTextActive,
+              { color: getTabTextColor(activeTab === "mine", colors) },
+            ]}
+          >
+            Hublarım
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === "managed" && styles.tabButtonActive]}
+          style={[styles.tabButton, activeTab === "managed" && activeTabBorderStyle]}
           onPress={() => setActiveTab("managed")}
         >
-          <Text style={[styles.tabText, activeTab === "managed" && styles.tabTextActive]}>Yönettiklerim</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "managed" && styles.tabTextActive,
+              { color: getTabTextColor(activeTab === "managed", colors) },
+            ]}
+          >
+            Yönettiklerim
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
       {loading ? (
         <ActivityIndicator color={colors.accentGold} style={styles.loader} />
       ) : (
         <ScrollView style={styles.content}>
           {hubs.length === 0 ? (
-            <Text style={styles.emptyText}>Henüz Hub yok.</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz Hub yok.</Text>
           ) : (
             hubs.map((hub) => (
-              <TouchableOpacity key={hub.id} style={styles.card} onPress={() => setSelectedHubId(hub.id)}>
-                <Text style={styles.cardTitle}>{hub.name}</Text>
-                {hub.description ? <Text style={styles.cardBody}>{hub.description}</Text> : null}
-                <Text style={styles.cardMeta}>
+              <TouchableOpacity
+                key={hub.id}
+                style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+                onPress={() => setSelectedHubId(hub.id)}
+              >
+                <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{hub.name}</Text>
+                {hub.description ? (
+                  <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{hub.description}</Text>
+                ) : null}
+                <Text style={[styles.cardMeta, { color: colors.textSecondary }]}>
                   {hub.memberCount} üye · {hub.type === "paid" ? `₺${hub.price}/ay` : "Ücretsiz"}
                   {hub.isMember ? " · Üyesiniz" : ""}
                 </Text>
@@ -130,7 +171,6 @@ export function HubsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: "row",
@@ -140,7 +180,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   headerTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
   },
@@ -149,17 +188,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   createButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   tabBar: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     marginHorizontal: spacing.md,
   },
   tabButton: {
@@ -169,16 +205,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
   },
-  tabButtonActive: {
-    borderBottomColor: colors.accentGold,
-  },
   tabText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   tabTextActive: {
-    color: colors.accentGold,
     fontWeight: typography.weights.semibold,
   },
   loader: {
@@ -189,34 +220,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   error: {
-    color: colors.danger,
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   cardBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
   cardMeta: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginTop: spacing.xs,
   },

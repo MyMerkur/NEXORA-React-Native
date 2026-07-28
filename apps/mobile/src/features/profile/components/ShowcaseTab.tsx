@@ -12,7 +12,8 @@ import {
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { requestAvatarUploadUrl, updateShowcase, getMe, type UserProfile } from "../../../services/profileApi";
 import {
   searchOrgs,
@@ -38,6 +39,7 @@ interface ShowcaseTabProps {
 }
 
 export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
+  const { colors } = useTheme();
   const isEmployer = (EMPLOYER_ROLES as readonly string[]).includes(profile.role);
   const [displayName, setDisplayName] = useState(profile.showcase.displayName);
   const [title, setTitle] = useState(profile.showcase.title);
@@ -63,6 +65,20 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const isInstructor = profile.kycLevel >= 4;
+
+  const textPrimaryStyle = { color: colors.textPrimary };
+  const textSecondaryStyle = { color: colors.textSecondary };
+  const accentGoldTextStyle = { color: colors.accentGold };
+  const dangerTextStyle = { color: colors.danger };
+  const inputStyle = { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary };
+  const avatarPlaceholderStyle = { backgroundColor: colors.surface, borderColor: colors.border };
+  const verifiedTrueStyle = { color: colors.success };
+  const previewButtonBorderStyle = { borderColor: colors.accentGold };
+  const affiliationChipBgStyle = { backgroundColor: colors.surfaceElevated };
+  const affiliationResultRowStyle = { borderBottomColor: colors.border };
+  const referenceRowStyle = { borderTopColor: colors.border };
+  const saveButtonBgStyle = { backgroundColor: colors.accentBlue };
+  const saveButtonTextStyle = { color: colors.background };
 
   useEffect(() => {
     if (isEmployer) {
@@ -218,8 +234,8 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         {profile.showcase.avatarUrl ? (
           <Image source={{ uri: profile.showcase.avatarUrl }} style={styles.avatar} />
         ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <Text style={styles.avatarPlaceholderText}>Fotoğraf Ekle</Text>
+          <View style={[styles.avatar, styles.avatarPlaceholder, avatarPlaceholderStyle]}>
+            <Text style={[styles.avatarPlaceholderText, textSecondaryStyle]}>Fotoğraf Ekle</Text>
           </View>
         )}
         {uploadingAvatar ? (
@@ -230,21 +246,21 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       </TouchableOpacity>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder="Ad Soyad"
         placeholderTextColor={colors.textSecondary}
         value={displayName}
         onChangeText={setDisplayName}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder="Unvan (örn. Diş Hekimi)"
         placeholderTextColor={colors.textSecondary}
         value={title}
         onChangeText={setTitle}
       />
       <TextInput
-        style={[styles.input, styles.multiline]}
+        style={[styles.input, inputStyle, styles.multiline]}
         placeholder="Kısa biyografi"
         placeholderTextColor={colors.textSecondary}
         value={bio}
@@ -252,7 +268,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         multiline
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder="Çalıştığı yer"
         placeholderTextColor={colors.textSecondary}
         value={workplace}
@@ -260,25 +276,30 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
       />
       {isEmployer ? (
         <>
-          <Text style={[styles.verifiedBadge, profile.showcase.isVerifiedOrg ? styles.verifiedTrue : styles.verifiedFalse]}>
+          <Text
+            style={[
+              styles.verifiedBadge,
+              profile.showcase.isVerifiedOrg ? verifiedTrueStyle : textSecondaryStyle,
+            ]}
+          >
             {profile.showcase.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
           </Text>
-          <TouchableOpacity style={styles.previewButton} onPress={() => setPreviewVisible(true)}>
-            <Text style={styles.previewButtonText}>Vitrinimi Görüntüle</Text>
+          <TouchableOpacity style={[styles.previewButton, previewButtonBorderStyle]} onPress={() => setPreviewVisible(true)}>
+            <Text style={[styles.previewButtonText, accentGoldTextStyle]}>Vitrinimi Görüntüle</Text>
           </TouchableOpacity>
         </>
       ) : (
         <View style={styles.affiliationSection}>
-          <Text style={styles.label}>Bağlı olduğun kurum (opsiyonel)</Text>
+          <Text style={[styles.label, textPrimaryStyle]}>Bağlı olduğun kurum (opsiyonel)</Text>
           {profile.showcase.affiliatedOrg ? (
-            <View style={styles.affiliationChip}>
-              <Text style={styles.affiliationChipText}>{profile.showcase.affiliatedOrg.displayName}</Text>
+            <View style={[styles.affiliationChip, affiliationChipBgStyle]}>
+              <Text style={[styles.affiliationChipText, textPrimaryStyle]}>{profile.showcase.affiliatedOrg.displayName}</Text>
               <TouchableOpacity onPress={handleLeaveOrg} disabled={affiliationSaving}>
-                <Text style={styles.affiliationChipRemove}>×</Text>
+                <Text style={[styles.affiliationChipRemove, dangerTextStyle]}>×</Text>
               </TouchableOpacity>
             </View>
           ) : pendingAffiliation ? (
-            <Text style={styles.affiliationPendingText}>
+            <Text style={[styles.affiliationPendingText, textSecondaryStyle]}>
               {pendingAffiliation.displayName
                 ? `${pendingAffiliation.displayName} kurumuna isteğiniz gönderildi, onay bekleniyor.`
                 : "Bir kuruma bağlanma isteğiniz onay bekliyor."}
@@ -286,7 +307,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
           ) : (
             <>
               <TextInput
-                style={styles.input}
+                style={[styles.input, inputStyle]}
                 placeholder="Kurumunu Nexora'da bul"
                 placeholderTextColor={colors.textSecondary}
                 value={affiliationQuery}
@@ -295,12 +316,14 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
               {affiliationResults.map((org) => (
                 <TouchableOpacity
                   key={org.id}
-                  style={styles.affiliationResultRow}
+                  style={[styles.affiliationResultRow, affiliationResultRowStyle]}
                   onPress={() => handleRequestAffiliation(org)}
                   disabled={affiliationSaving}
                 >
-                  <Text style={styles.affiliationResultText}>{org.displayName}</Text>
-                  {org.workplace ? <Text style={styles.affiliationResultSubtext}>{org.workplace}</Text> : null}
+                  <Text style={[styles.affiliationResultText, textPrimaryStyle]}>{org.displayName}</Text>
+                  {org.workplace ? (
+                    <Text style={[styles.affiliationResultSubtext, textSecondaryStyle]}>{org.workplace}</Text>
+                  ) : null}
                 </TouchableOpacity>
               ))}
             </>
@@ -308,64 +331,66 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         </View>
       )}
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder="Şehir"
         placeholderTextColor={colors.textSecondary}
         value={city}
         onChangeText={setCity}
       />
 
-      <Text style={styles.label}>Mikro-yetkinlikler</Text>
+      <Text style={[styles.label, textPrimaryStyle]}>Mikro-yetkinlikler</Text>
       <TagPicker selected={specialties} onChange={setSpecialties} />
 
-      {!isEmployer && isInstructor ? <Text style={styles.instructorBadge}>🎓 Eğitmen</Text> : null}
+      {!isEmployer && isInstructor ? (
+        <Text style={[styles.instructorBadge, accentGoldTextStyle]}>🎓 Eğitmen</Text>
+      ) : null}
 
       {!isEmployer && !isInstructor ? (
         <View style={styles.inviteSection}>
-          <Text style={styles.label}>Eğitmen daveti var mı?</Text>
+          <Text style={[styles.label, textPrimaryStyle]}>Eğitmen daveti var mı?</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, inputStyle]}
             placeholder="Davet kodu"
             placeholderTextColor={colors.textSecondary}
             value={inviteToken}
             onChangeText={setInviteToken}
             autoCapitalize="none"
           />
-          {inviteError ? <Text style={styles.error}>{inviteError}</Text> : null}
-          <TouchableOpacity style={styles.previewButton} onPress={handleAcceptInvite} disabled={inviteSubmitting}>
-            <Text style={styles.previewButtonText}>Kabul Et</Text>
+          {inviteError ? <Text style={[styles.error, dangerTextStyle]}>{inviteError}</Text> : null}
+          <TouchableOpacity style={[styles.previewButton, previewButtonBorderStyle]} onPress={handleAcceptInvite} disabled={inviteSubmitting}>
+            <Text style={[styles.previewButtonText, accentGoldTextStyle]}>Kabul Et</Text>
           </TouchableOpacity>
         </View>
       ) : null}
 
       {!isEmployer ? (
         <View style={styles.referencesSection}>
-          <Text style={styles.label}>Referanslarım</Text>
+          <Text style={[styles.label, textPrimaryStyle]}>Referanslarım</Text>
 
           {incomingRequests.length > 0 ? (
             <>
-              <Text style={styles.referencesSubLabel}>Bekleyen istekler</Text>
+              <Text style={[styles.referencesSubLabel, textSecondaryStyle]}>Bekleyen istekler</Text>
               {incomingRequests.map((request) => (
                 <View key={request.id}>
-                  <View style={styles.referenceRow}>
-                    <Text style={styles.referenceName}>{request.counterpart.displayName}</Text>
+                  <View style={[styles.referenceRow, referenceRowStyle]}>
+                    <Text style={[styles.referenceName, textPrimaryStyle]}>{request.counterpart.displayName}</Text>
                     {fulfillingId !== request.id ? (
                       <TouchableOpacity onPress={() => setFulfillingId(request.id)}>
-                        <Text style={styles.referenceAction}>Yaz</Text>
+                        <Text style={[styles.referenceAction, accentGoldTextStyle]}>Yaz</Text>
                       </TouchableOpacity>
                     ) : null}
                   </View>
                   {fulfillingId === request.id ? (
                     <View style={styles.fulfillForm}>
                       <TextInput
-                        style={styles.input}
+                        style={[styles.input, inputStyle]}
                         placeholder="İlişkiniz (opsiyonel)"
                         placeholderTextColor={colors.textSecondary}
                         value={fulfillRelationship}
                         onChangeText={setFulfillRelationship}
                       />
                       <TextInput
-                        style={[styles.input, styles.multiline]}
+                        style={[styles.input, inputStyle, styles.multiline]}
                         placeholder="Referans metni"
                         placeholderTextColor={colors.textSecondary}
                         value={fulfillBody}
@@ -373,11 +398,11 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
                         multiline
                       />
                       <TouchableOpacity
-                        style={styles.previewButton}
+                        style={[styles.previewButton, previewButtonBorderStyle]}
                         onPress={() => handleFulfill(request.id)}
                         disabled={referenceSaving}
                       >
-                        <Text style={styles.previewButtonText}>Gönder</Text>
+                        <Text style={[styles.previewButtonText, accentGoldTextStyle]}>Gönder</Text>
                       </TouchableOpacity>
                     </View>
                   ) : null}
@@ -386,18 +411,20 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
             </>
           ) : null}
 
-          <Text style={styles.referencesSubLabel}>Yazılmış referanslarım ({myReferences.length})</Text>
+          <Text style={[styles.referencesSubLabel, textSecondaryStyle]}>Yazılmış referanslarım ({myReferences.length})</Text>
           {myReferences.length === 0 ? (
-            <Text style={styles.referencesEmptyText}>Henüz bir referansın yok</Text>
+            <Text style={[styles.referencesEmptyText, textSecondaryStyle]}>Henüz bir referansın yok</Text>
           ) : (
             myReferences.map((reference) => (
-              <View key={reference.id} style={styles.referenceRow}>
+              <View key={reference.id} style={[styles.referenceRow, referenceRowStyle]}>
                 <View style={styles.referenceInfo}>
-                  <Text style={styles.referenceName}>{reference.counterpart.displayName}</Text>
-                  <Text style={styles.referenceBody}>{reference.body}</Text>
+                  <Text style={[styles.referenceName, textPrimaryStyle]}>{reference.counterpart.displayName}</Text>
+                  <Text style={[styles.referenceBody, textSecondaryStyle]}>{reference.body}</Text>
                 </View>
                 <TouchableOpacity onPress={() => handleToggleVisibility(reference)} disabled={referenceSaving}>
-                  <Text style={styles.referenceAction}>{reference.status === "hidden" ? "Göster" : "Gizle"}</Text>
+                  <Text style={[styles.referenceAction, accentGoldTextStyle]}>
+                    {reference.status === "hidden" ? "Göster" : "Gizle"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             ))
@@ -405,10 +432,14 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         </View>
       ) : null}
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, dangerTextStyle]}>{error}</Text> : null}
 
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={saving}>
-        {saving ? <ActivityIndicator color={colors.background} /> : <Text style={styles.saveButtonText}>Kaydet</Text>}
+      <TouchableOpacity style={[styles.saveButton, saveButtonBgStyle]} onPress={handleSave} disabled={saving}>
+        {saving ? (
+          <ActivityIndicator color={colors.background} />
+        ) : (
+          <Text style={[styles.saveButtonText, saveButtonTextStyle]}>Kaydet</Text>
+        )}
       </TouchableOpacity>
 
       <OrgProfileModal visible={previewVisible} orgUserId={profile.id} onClose={() => setPreviewVisible(false)} />
@@ -430,14 +461,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   avatarPlaceholder: {
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarPlaceholderText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     textAlign: "center",
     paddingHorizontal: spacing.xs,
@@ -454,11 +482,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   input: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
@@ -473,12 +498,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.md,
   },
-  verifiedTrue: {
-    color: colors.success,
-  },
-  verifiedFalse: {
-    color: colors.textSecondary,
-  },
   previewButton: {
     alignSelf: "flex-start",
     marginBottom: spacing.md,
@@ -486,10 +505,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   previewButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -500,47 +517,38 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   affiliationChipText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     marginRight: spacing.xs,
   },
   affiliationChipRemove: {
-    color: colors.danger,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   affiliationPendingText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     fontStyle: "italic",
   },
   affiliationResultRow: {
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   affiliationResultText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
   },
   affiliationResultSubtext: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
   label: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
   instructorBadge: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginTop: spacing.md,
@@ -552,14 +560,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   referencesSubLabel: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
   },
   referencesEmptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
   referenceRow: {
@@ -567,7 +573,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingVertical: spacing.sm,
   },
   referenceInfo: {
@@ -575,17 +580,14 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   referenceName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   referenceBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   referenceAction: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -594,19 +596,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   error: {
-    color: colors.danger,
     marginTop: spacing.md,
     textAlign: "center",
   },
   saveButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
     marginTop: spacing.lg,
   },
   saveButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },

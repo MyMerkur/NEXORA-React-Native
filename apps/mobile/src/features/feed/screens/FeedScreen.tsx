@@ -1,13 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { getFeed, type CaseItem } from "../../../services/caseApi";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { UserProfileModal } from "../../profiles/components/UserProfileModal";
 
 export function FeedScreen() {
+  const { colors } = useTheme();
+  const containerStyle = { backgroundColor: colors.background };
+  const emptyTextStyle = { color: colors.textSecondary };
+  const cardStyle = { backgroundColor: colors.surface, borderColor: colors.border };
+  const avatarPlaceholderStyle = { backgroundColor: colors.surfaceElevated };
+  const authorNameStyle = { color: colors.textPrimary };
+  const imageStyle = { backgroundColor: colors.surfaceElevated };
+  const titleStyle = { color: colors.textPrimary };
+  const descriptionStyle = { color: colors.textSecondary };
+  const messageLinkStyle = { color: colors.accentGold };
   const [cases, setCases] = useState<CaseItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,7 +87,7 @@ export function FeedScreen() {
   return (
     <>
       <FlatList
-        style={styles.container}
+        style={[styles.container, containerStyle]}
         data={cases}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accentGold} />}
@@ -84,28 +95,28 @@ export function FeedScreen() {
         onEndReached={handleLoadMore}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>{error ?? "Henüz vaka paylaşılmamış"}</Text>
+            <Text style={[styles.emptyText, emptyTextStyle]}>{error ?? "Henüz vaka paylaşılmamış"}</Text>
           </View>
         }
         ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerLoader} color={colors.accentGold} /> : null}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <View style={[styles.card, cardStyle]}>
             <View style={styles.authorRow}>
               {item.author.avatarUrl ? (
                 <Image source={{ uri: item.author.avatarUrl }} style={styles.avatar} />
               ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                <View style={[styles.avatar, avatarPlaceholderStyle]} />
               )}
               <TouchableOpacity onPress={() => setProfileTargetId(item.author.id)}>
-                <Text style={styles.authorName}>{item.author.displayName}</Text>
+                <Text style={[styles.authorName, authorNameStyle]}>{item.author.displayName}</Text>
               </TouchableOpacity>
             </View>
 
-            {item.images[0] ? <Image source={{ uri: item.images[0].url }} style={styles.image} /> : null}
+            {item.images[0] ? <Image source={{ uri: item.images[0].url }} style={[styles.image, imageStyle]} /> : null}
 
-            <Text style={styles.title}>{item.title}</Text>
+            <Text style={[styles.title, titleStyle]}>{item.title}</Text>
             {item.description ? (
-              <Text style={styles.description} numberOfLines={3}>
+              <Text style={[styles.description, descriptionStyle]} numberOfLines={3}>
                 {item.description}
               </Text>
             ) : null}
@@ -114,7 +125,7 @@ export function FeedScreen() {
               <TouchableOpacity
                 onPress={() => setMessageTarget({ authorId: item.author.id, caseId: item.id })}
               >
-                <Text style={styles.messageLink}>Yazara Mesaj</Text>
+                <Text style={[styles.messageLink, messageLinkStyle]}>Yazara Mesaj</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -136,7 +147,6 @@ export function FeedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
@@ -145,17 +155,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
   },
   footerLoader: {
     marginVertical: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
     margin: spacing.md,
     marginBottom: 0,
     padding: spacing.md,
@@ -171,11 +178,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     marginRight: spacing.sm,
   },
-  avatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
-  },
   authorName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
@@ -184,20 +187,16 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     borderRadius: radii.sm,
     marginBottom: spacing.sm,
-    backgroundColor: colors.surfaceElevated,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
   description: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
   messageLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     marginTop: spacing.sm,

@@ -13,7 +13,8 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import {
   createEvent,
@@ -43,6 +44,7 @@ function formatDate(value: string) {
 }
 
 export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps) {
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<EventsTab>("browse");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,11 +154,14 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
     newTicketPrice.trim().length > 0 &&
     Number(newTicketCapacity) > 0;
 
+  const activeTabBorderStyle = { borderBottomColor: colors.accentGold };
+  const activeTabTextStyle = { color: colors.accentGold };
+
   if (checkoutTarget) {
     return (
       <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setCheckoutTarget(null)}>
         <View style={styles.backdrop}>
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
             <EventTicketCheckoutWebView
               eventId={checkoutTarget.eventId}
               ticketTypeId={checkoutTarget.ticketTypeId}
@@ -180,36 +185,63 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>🎫 Etkinlikler</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>🎫 Etkinlikler</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tabBar}>
+          <View style={[styles.tabBar, { borderBottomColor: colors.border }]}>
             <TouchableOpacity
-              style={[styles.tabButton, activeTab === "browse" && styles.tabButtonActive]}
+              style={[styles.tabButton, activeTab === "browse" && activeTabBorderStyle]}
               onPress={() => setActiveTab("browse")}
             >
-              <Text style={[styles.tabText, activeTab === "browse" && styles.tabTextActive]}>Keşfet</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: colors.textSecondary },
+                  activeTab === "browse" && styles.tabTextActive,
+                  activeTab === "browse" && activeTabTextStyle,
+                ]}
+              >
+                Keşfet
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabButton, activeTab === "mine" && styles.tabButtonActive]}
+              style={[styles.tabButton, activeTab === "mine" && activeTabBorderStyle]}
               onPress={() => setActiveTab("mine")}
             >
-              <Text style={[styles.tabText, activeTab === "mine" && styles.tabTextActive]}>Biletlerim</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: colors.textSecondary },
+                  activeTab === "mine" && styles.tabTextActive,
+                  activeTab === "mine" && activeTabTextStyle,
+                ]}
+              >
+                Biletlerim
+              </Text>
             </TouchableOpacity>
             {isOrganizer ? (
               <TouchableOpacity
-                style={[styles.tabButton, activeTab === "manage" && styles.tabButtonActive]}
+                style={[styles.tabButton, activeTab === "manage" && activeTabBorderStyle]}
                 onPress={() => setActiveTab("manage")}
               >
-                <Text style={[styles.tabText, activeTab === "manage" && styles.tabTextActive]}>Yönettiklerim</Text>
+                <Text
+                  style={[
+                    styles.tabText,
+                    { color: colors.textSecondary },
+                    activeTab === "manage" && styles.tabTextActive,
+                    activeTab === "manage" && activeTabTextStyle,
+                  ]}
+                >
+                  Yönettiklerim
+                </Text>
               </TouchableOpacity>
             ) : null}
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {loading ? (
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
@@ -217,28 +249,40 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
             <ScrollView style={styles.content}>
               {activeTab === "browse" ? (
                 events.length === 0 ? (
-                  <Text style={styles.emptyText}>Yaklaşan etkinlik yok.</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Yaklaşan etkinlik yok.</Text>
                 ) : (
                   events.map((event) => (
-                    <View key={event.id} style={styles.card}>
-                      <Text style={styles.cardTitle}>{event.title}</Text>
-                      <Text style={styles.cardSubtitle}>{event.organizer.displayName}</Text>
-                      <Text style={styles.cardBody}>{formatDate(event.startsAt)}</Text>
-                      {event.location ? <Text style={styles.cardBody}>{event.location}</Text> : null}
+                    <View key={event.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{event.title}</Text>
+                      <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                        {event.organizer.displayName}
+                      </Text>
+                      <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
+                        {formatDate(event.startsAt)}
+                      </Text>
+                      {event.location ? (
+                        <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{event.location}</Text>
+                      ) : null}
                       {event.ticketTypes.map((ticket) => (
-                        <View key={ticket.id} style={styles.ticketRow}>
+                        <View key={ticket.id} style={[styles.ticketRow, { borderTopColor: colors.border }]}>
                           <View>
-                            <Text style={styles.ticketName}>{ticket.name}</Text>
-                            <Text style={styles.cardSubtitle}>
+                            <Text style={[styles.ticketName, { color: colors.textPrimary }]}>{ticket.name}</Text>
+                            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                               {ticket.price} ₺ · {ticket.capacity - ticket.soldCount} kontenjan kaldı
                             </Text>
                           </View>
                           <TouchableOpacity
-                            style={[styles.primaryButton, ticket.soldOut && styles.primaryButtonDisabled]}
+                            style={[
+                              styles.primaryButton,
+                              { backgroundColor: colors.accentBlue },
+                              ticket.soldOut && styles.primaryButtonDisabled,
+                            ]}
                             onPress={() => setCheckoutTarget({ eventId: event.id, ticketTypeId: ticket.id })}
                             disabled={ticket.soldOut}
                           >
-                            <Text style={styles.primaryButtonText}>{ticket.soldOut ? "Doldu" : "Satın Al"}</Text>
+                            <Text style={[styles.primaryButtonText, { color: colors.background }]}>
+                              {ticket.soldOut ? "Doldu" : "Satın Al"}
+                            </Text>
                           </TouchableOpacity>
                         </View>
                       ))}
@@ -249,21 +293,30 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
 
               {activeTab === "mine" ? (
                 myTickets.length === 0 ? (
-                  <Text style={styles.emptyText}>Henüz bir biletiniz yok.</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz bir biletiniz yok.</Text>
                 ) : (
                   myTickets.map((ticket) => (
-                    <View key={ticket.id} style={styles.card}>
-                      <Text style={styles.cardTitle}>{ticket.event.title}</Text>
-                      <Text style={styles.cardSubtitle}>{ticket.ticketTypeName}</Text>
-                      <Text style={styles.cardBody}>{formatDate(ticket.event.startsAt)}</Text>
-                      <Text style={styles.cardSubtitle}>{ticket.checkedInAt ? "Check-in yapıldı" : "Check-in bekleniyor"}</Text>
+                    <View key={ticket.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{ticket.event.title}</Text>
+                      <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                        {ticket.ticketTypeName}
+                      </Text>
+                      <Text style={[styles.cardBody, { color: colors.textSecondary }]}>
+                        {formatDate(ticket.event.startsAt)}
+                      </Text>
+                      <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                        {ticket.checkedInAt ? "Check-in yapıldı" : "Check-in bekleniyor"}
+                      </Text>
                       <View style={styles.certificateBlock}>
-                        <Image source={{ uri: ticket.qrCodeDataUrl }} style={styles.qrImage} />
+                        <Image
+                          source={{ uri: ticket.qrCodeDataUrl }}
+                          style={[styles.qrImage, { backgroundColor: colors.surface }]}
+                        />
                         <TouchableOpacity
-                          style={styles.secondaryButton}
+                          style={[styles.secondaryButton, { borderColor: colors.accentGold }]}
                           onPress={() => handleShareTicket(ticket.verificationUrl)}
                         >
-                          <Text style={styles.secondaryButtonText}>Paylaş</Text>
+                          <Text style={[styles.secondaryButtonText, { color: colors.accentGold }]}>Paylaş</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -275,18 +328,25 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
                 selectedEventId ? (
                   <View>
                     <TouchableOpacity onPress={() => setSelectedEventId(null)}>
-                      <Text style={styles.backLink}>{"< Geri"}</Text>
+                      <Text style={[styles.backLink, { color: colors.accentGold }]}>{"< Geri"}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.primaryButton} onPress={() => setScannerVisible(true)}>
-                      <Text style={styles.primaryButtonText}>Check-in için Kamerayı Aç</Text>
+                    <TouchableOpacity
+                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                      onPress={() => setScannerVisible(true)}
+                    >
+                      <Text style={[styles.primaryButtonText, { color: colors.background }]}>
+                        Check-in için Kamerayı Aç
+                      </Text>
                     </TouchableOpacity>
                     {attendees.length === 0 ? (
-                      <Text style={styles.emptyText}>Henüz katılımcı yok.</Text>
+                      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz katılımcı yok.</Text>
                     ) : (
                       attendees.map((attendee) => (
-                        <View key={attendee.id} style={styles.card}>
-                          <Text style={styles.cardTitle}>{attendee.attendee.displayName}</Text>
-                          <Text style={styles.cardSubtitle}>
+                        <View key={attendee.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
+                            {attendee.attendee.displayName}
+                          </Text>
+                          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                             {attendee.checkedInAt ? "Check-in yapıldı" : "Check-in bekleniyor"}
                           </Text>
                         </View>
@@ -295,17 +355,24 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
                   </View>
                 ) : (
                   <View>
-                    <View style={styles.card}>
-                      <Text style={styles.cardTitle}>+ Etkinlik Oluştur</Text>
+                    <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>+ Etkinlik Oluştur</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Etkinlik başlığı"
                         placeholderTextColor={colors.textSecondary}
                         value={newTitle}
                         onChangeText={setNewTitle}
                       />
                       <TextInput
-                        style={[styles.input, styles.multiline]}
+                        style={[
+                          styles.input,
+                          styles.multiline,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Açıklama (opsiyonel)"
                         placeholderTextColor={colors.textSecondary}
                         value={newDescription}
@@ -313,35 +380,50 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
                         multiline
                       />
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Konum (opsiyonel)"
                         placeholderTextColor={colors.textSecondary}
                         value={newLocation}
                         onChangeText={setNewLocation}
                       />
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Başlangıç (YYYY-AA-GG SS:DD)"
                         placeholderTextColor={colors.textSecondary}
                         value={newStartsAt}
                         onChangeText={setNewStartsAt}
                       />
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Bitiş (YYYY-AA-GG SS:DD)"
                         placeholderTextColor={colors.textSecondary}
                         value={newEndsAt}
                         onChangeText={setNewEndsAt}
                       />
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Bilet tipi adı"
                         placeholderTextColor={colors.textSecondary}
                         value={newTicketName}
                         onChangeText={setNewTicketName}
                       />
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Bilet fiyatı (₺)"
                         placeholderTextColor={colors.textSecondary}
                         keyboardType="decimal-pad"
@@ -349,7 +431,10 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
                         onChangeText={setNewTicketPrice}
                       />
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Kontenjan"
                         placeholderTextColor={colors.textSecondary}
                         keyboardType="number-pad"
@@ -357,14 +442,14 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
                         onChangeText={setNewTicketCapacity}
                       />
                       <TouchableOpacity
-                        style={styles.primaryButton}
+                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                         onPress={handleCreateEvent}
                         disabled={!isFormValid || creating}
                       >
                         {creating ? (
                           <ActivityIndicator color={colors.background} />
                         ) : (
-                          <Text style={styles.primaryButtonText}>Oluştur</Text>
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Oluştur</Text>
                         )}
                       </TouchableOpacity>
                     </View>
@@ -372,11 +457,13 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
                     {myEvents.map((event) => (
                       <TouchableOpacity
                         key={event.id}
-                        style={styles.card}
+                        style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
                         onPress={() => handleSelectEventToManage(event.id)}
                       >
-                        <Text style={styles.cardTitle}>{event.title}</Text>
-                        <Text style={styles.cardSubtitle}>{formatDate(event.startsAt)}</Text>
+                        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{event.title}</Text>
+                        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                          {formatDate(event.startsAt)}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -395,7 +482,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: colors.surface,
     borderTopLeftRadius: radii.lg,
     borderTopRightRadius: radii.lg,
     padding: spacing.lg,
@@ -408,18 +494,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   tabBar: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     marginBottom: spacing.sm,
   },
   tabButton: {
@@ -429,16 +512,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
   },
-  tabButtonActive: {
-    borderBottomColor: colors.accentGold,
-  },
   tabText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   tabTextActive: {
-    color: colors.accentGold,
     fontWeight: typography.weights.semibold,
   },
   loader: {
@@ -448,33 +526,27 @@ const styles = StyleSheet.create({
     maxHeight: "100%",
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   cardSubtitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
   cardBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
@@ -485,19 +557,14 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   ticketName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   input: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginTop: spacing.sm,
@@ -508,7 +575,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -519,7 +585,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -528,11 +593,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accentGold,
     alignSelf: "flex-start",
   },
   secondaryButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -544,11 +607,9 @@ const styles = StyleSheet.create({
   qrImage: {
     width: 120,
     height: 120,
-    backgroundColor: colors.surface,
     borderRadius: radii.sm,
   },
   backLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.sm,
   },

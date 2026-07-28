@@ -10,13 +10,14 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
 import { getMatches, type MatchItem } from "../../../services/matchingApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { UserProfileModal } from "../../profiles/components/UserProfileModal";
 import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 interface MatchesModalProps {
   visible: boolean;
@@ -26,6 +27,7 @@ interface MatchesModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "80%" };
 
 export function MatchesModal({ visible, onClose }: MatchesModalProps) {
+  const { colors } = useTheme();
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +52,9 @@ export function MatchesModal({ visible, onClose }: MatchesModalProps) {
     <>
       <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>Eşleşmelerim</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>Eşleşmelerim</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -60,29 +62,33 @@ export function MatchesModal({ visible, onClose }: MatchesModalProps) {
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
           ) : (
             <ScrollView>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              {matches.length === 0 ? <Text style={styles.emptyText}>Henüz bir eşleşmen yok</Text> : null}
+              {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+              {matches.length === 0 ? (
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz bir eşleşmen yok</Text>
+              ) : null}
               {matches.map((match) => (
-                <View key={match.id} style={styles.row}>
+                <View key={match.id} style={[styles.row, { borderTopColor: colors.border }]}>
                   {match.counterpart.avatarUrl ? (
                     <Image source={{ uri: match.counterpart.avatarUrl }} style={styles.avatar} />
                   ) : (
-                    <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                    <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
                   )}
                   <View style={styles.rowContent}>
                     <TouchableOpacity
                       onPress={() => setProfileTarget({ id: match.counterpart.id, role: match.counterpartRole })}
                     >
-                      <Text style={styles.name}>{match.counterpart.displayName}</Text>
+                      <Text style={[styles.name, { color: colors.textPrimary }]}>
+                        {match.counterpart.displayName}
+                      </Text>
                     </TouchableOpacity>
-                    <Text style={styles.jobTitle}>{match.job.title}</Text>
+                    <Text style={[styles.jobTitle, { color: colors.textSecondary }]}>{match.job.title}</Text>
                   </View>
                   <TouchableOpacity
                     onPress={() =>
                       setChatTarget({ userId: match.counterpart.id, context: { type: "job", id: match.job.id } })
                     }
                   >
-                    <Text style={styles.chatLink}>Sohbeti Aç</Text>
+                    <Text style={[styles.chatLink, { color: colors.accentGold }]}>Sohbeti Aç</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -113,31 +119,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   emptyText: {
-    color: colors.textSecondary,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingVertical: spacing.md,
   },
   avatar: {
@@ -146,24 +147,18 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     marginRight: spacing.sm,
   },
-  avatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
-  },
   rowContent: {
     flex: 1,
   },
   name: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
   },
   jobTitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   chatLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },

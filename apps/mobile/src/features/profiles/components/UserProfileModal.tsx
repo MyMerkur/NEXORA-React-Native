@@ -11,7 +11,8 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { getPublicProfile, type PublicProfile } from "../../../services/publicProfileApi";
 import { requestReference, writeReference } from "../../../services/referenceApi";
@@ -27,6 +28,18 @@ interface UserProfileModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function UserProfileModal({ visible, userId, onClose }: UserProfileModalProps) {
+  const { colors } = useTheme();
+  const textPrimaryStyle = { color: colors.textPrimary };
+  const accentGoldTextStyle = { color: colors.accentGold };
+  const dangerTextStyle = { color: colors.danger };
+  const successTextStyle = { color: colors.success };
+  const avatarPlaceholderStyle = { backgroundColor: colors.surfaceElevated };
+  const textSecondaryStyle = { color: colors.textSecondary };
+  const actionButtonBorderStyle = { borderColor: colors.accentGold };
+  const inputStyle = { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary };
+  const submitButtonBgStyle = { backgroundColor: colors.accentGold };
+  const submitButtonTextStyle = { color: colors.background };
+  const referenceRowStyle = { borderTopColor: colors.border };
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,15 +107,15 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
     <>
       <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Kullanıcı Profili</Text>
+            <Text style={[styles.headerTitle, textPrimaryStyle]}>Kullanıcı Profili</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, accentGoldTextStyle]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
           {loading ? <ActivityIndicator color={colors.accentGold} style={styles.loader} /> : null}
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          {feedback ? <Text style={styles.feedback}>{feedback}</Text> : null}
+          {error ? <Text style={[styles.error, dangerTextStyle]}>{error}</Text> : null}
+          {feedback ? <Text style={[styles.feedback, successTextStyle]}>{feedback}</Text> : null}
 
           {profile ? (
             <ScrollView>
@@ -110,31 +123,35 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
                 {profile.avatarUrl ? (
                   <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
                 ) : (
-                  <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                  <View style={[styles.avatar, avatarPlaceholderStyle]} />
                 )}
                 <View style={styles.profileHeaderText}>
-                  <Text style={styles.displayName}>{profile.displayName}</Text>
-                  {profile.title ? <Text style={styles.title}>{profile.title}</Text> : null}
-                  {profile.workplace ? <Text style={styles.workplace}>{profile.workplace}</Text> : null}
-                  {profile.city ? <Text style={styles.workplace}>{profile.city}</Text> : null}
+                  <Text style={[styles.displayName, textPrimaryStyle]}>{profile.displayName}</Text>
+                  {profile.title ? <Text style={[styles.title, accentGoldTextStyle]}>{profile.title}</Text> : null}
+                  {profile.workplace ? <Text style={[styles.workplace, textSecondaryStyle]}>{profile.workplace}</Text> : null}
+                  {profile.city ? <Text style={[styles.workplace, textSecondaryStyle]}>{profile.city}</Text> : null}
                 </View>
               </View>
 
-              {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+              {profile.bio ? <Text style={[styles.bio, textSecondaryStyle]}>{profile.bio}</Text> : null}
 
               {!isSelf ? (
                 <View style={styles.actionRow}>
-                  <TouchableOpacity style={styles.actionButton} onPress={() => setMessageVisible(true)}>
-                    <Text style={styles.actionButtonText}>Mesaj Gönder</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.actionButton} onPress={handleRequestReference} disabled={submitting}>
-                    <Text style={styles.actionButtonText}>Referans İste</Text>
+                  <TouchableOpacity style={[styles.actionButton, actionButtonBorderStyle]} onPress={() => setMessageVisible(true)}>
+                    <Text style={[styles.actionButtonText, accentGoldTextStyle]}>Mesaj Gönder</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.actionButton}
+                    style={[styles.actionButton, actionButtonBorderStyle]}
+                    onPress={handleRequestReference}
+                    disabled={submitting}
+                  >
+                    <Text style={[styles.actionButtonText, accentGoldTextStyle]}>Referans İste</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, actionButtonBorderStyle]}
                     onPress={() => setWriteFormVisible((current) => !current)}
                   >
-                    <Text style={styles.actionButtonText}>Referans Yaz</Text>
+                    <Text style={[styles.actionButtonText, accentGoldTextStyle]}>Referans Yaz</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
@@ -142,37 +159,37 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
               {writeFormVisible ? (
                 <View style={styles.writeForm}>
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, inputStyle]}
                     placeholder="İlişkiniz (örn. Birlikte çalıştık)"
                     placeholderTextColor={colors.textSecondary}
                     value={relationship}
                     onChangeText={setRelationship}
                   />
                   <TextInput
-                    style={[styles.input, styles.multiline]}
+                    style={[styles.input, inputStyle, styles.multiline]}
                     placeholder="Referans metni"
                     placeholderTextColor={colors.textSecondary}
                     value={body}
                     onChangeText={setBody}
                     multiline
                   />
-                  <TouchableOpacity style={styles.submitButton} onPress={handleWriteReference} disabled={submitting}>
-                    <Text style={styles.submitButtonText}>Gönder</Text>
+                  <TouchableOpacity style={[styles.submitButton, submitButtonBgStyle]} onPress={handleWriteReference} disabled={submitting}>
+                    <Text style={[styles.submitButtonText, submitButtonTextStyle]}>Gönder</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
 
-              <Text style={styles.sectionTitle}>Referanslar ({profile.references.length})</Text>
+              <Text style={[styles.sectionTitle, textPrimaryStyle]}>Referanslar ({profile.references.length})</Text>
               {profile.references.length === 0 ? (
-                <Text style={styles.emptyText}>Henüz referans yok</Text>
+                <Text style={[styles.emptyText, textSecondaryStyle]}>Henüz referans yok</Text>
               ) : (
                 profile.references.map((reference) => (
-                  <View key={reference.id} style={styles.referenceRow}>
-                    <Text style={styles.referenceAuthor}>{reference.counterpart.displayName}</Text>
+                  <View key={reference.id} style={[styles.referenceRow, referenceRowStyle]}>
+                    <Text style={[styles.referenceAuthor, textPrimaryStyle]}>{reference.counterpart.displayName}</Text>
                     {reference.relationship ? (
-                      <Text style={styles.referenceRelationship}>{reference.relationship}</Text>
+                      <Text style={[styles.referenceRelationship, textSecondaryStyle]}>{reference.relationship}</Text>
                     ) : null}
-                    <Text style={styles.referenceBody}>{reference.body}</Text>
+                    <Text style={[styles.referenceBody, textSecondaryStyle]}>{reference.body}</Text>
                   </View>
                 ))
               )}
@@ -193,23 +210,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   headerTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   feedback: {
-    color: colors.success,
     marginBottom: spacing.sm,
   },
   profileHeader: {
@@ -223,29 +236,22 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     marginRight: spacing.md,
   },
-  avatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
-  },
   profileHeaderText: {
     flex: 1,
   },
   displayName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
   },
   title: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   workplace: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   bio: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
@@ -260,10 +266,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   actionButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -271,11 +275,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   input: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
@@ -287,44 +288,36 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     alignSelf: "flex-start",
-    backgroundColor: colors.accentGold,
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   submitButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
   sectionTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
   referenceRow: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingVertical: spacing.sm,
   },
   referenceAuthor: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   referenceRelationship: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginTop: 1,
   },
   referenceBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },

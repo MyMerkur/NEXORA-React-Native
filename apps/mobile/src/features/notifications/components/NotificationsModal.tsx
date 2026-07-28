@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { getNotifications, markNotificationRead, type NotificationItem } from "../../../services/notificationApi";
 
@@ -13,6 +14,15 @@ interface NotificationsModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "80%" };
 
 export function NotificationsModal({ visible, onClose }: NotificationsModalProps) {
+  const { colors } = useTheme();
+  const titleStyle = { color: colors.textPrimary };
+  const closeTextStyle = { color: colors.accentGold };
+  const emptyTextStyle = { color: colors.textSecondary };
+  const errorStyle = { color: colors.danger };
+  const rowStyle = { borderTopColor: colors.border };
+  const unreadDotStyle = { backgroundColor: colors.accentGold };
+  const notificationTitleStyle = { color: colors.textPrimary };
+  const notificationBodyStyle = { color: colors.textSecondary };
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +54,9 @@ export function NotificationsModal({ visible, onClose }: NotificationsModalProps
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>Bildirimler</Text>
+            <Text style={[styles.title, titleStyle]}>Bildirimler</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, closeTextStyle]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -54,21 +64,25 @@ export function NotificationsModal({ visible, onClose }: NotificationsModalProps
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
           ) : (
             <ScrollView>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              {notifications.length === 0 ? <Text style={styles.emptyText}>Henüz bildirimin yok</Text> : null}
+              {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}
+              {notifications.length === 0 ? (
+                <Text style={[styles.emptyText, emptyTextStyle]}>Henüz bildirimin yok</Text>
+              ) : null}
               {notifications.map((notification) => (
                 <TouchableOpacity
                   key={notification.id}
-                  style={styles.row}
+                  style={[styles.row, rowStyle]}
                   onPress={() => handlePress(notification)}
                   disabled={notification.read}
                 >
                   <View style={styles.rowContent}>
                     <View style={styles.rowHeader}>
-                      {!notification.read ? <View style={styles.unreadDot} /> : null}
-                      <Text style={styles.notificationTitle}>{notification.title}</Text>
+                      {!notification.read ? <View style={[styles.unreadDot, unreadDotStyle]} /> : null}
+                      <Text style={[styles.notificationTitle, notificationTitleStyle]}>{notification.title}</Text>
                     </View>
-                    {notification.body ? <Text style={styles.notificationBody}>{notification.body}</Text> : null}
+                    {notification.body ? (
+                      <Text style={[styles.notificationBody, notificationBodyStyle]}>{notification.body}</Text>
+                    ) : null}
                   </View>
                 </TouchableOpacity>
               ))}
@@ -86,29 +100,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   emptyText: {
-    color: colors.textSecondary,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   row: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingVertical: spacing.md,
   },
   rowContent: {
@@ -122,17 +131,14 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: radii.pill,
-    backgroundColor: colors.accentGold,
     marginRight: spacing.xs,
   },
   notificationTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
     flexShrink: 1,
   },
   notificationBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },

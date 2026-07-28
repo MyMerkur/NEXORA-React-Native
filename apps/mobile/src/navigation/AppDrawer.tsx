@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -53,6 +54,7 @@ function LogoutIcon({ size, color }: DrawerIconProps) {
 // from the sidebar icon on Ana Sayfa (Faz 5, #72).
 function DrawerContent(props: DrawerContentComponentProps) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [subscriptionVisible, setSubscriptionVisible] = useState(false);
   const [coursesVisible, setCoursesVisible] = useState(false);
@@ -74,7 +76,10 @@ function DrawerContent(props: DrawerContentComponentProps) {
   }
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.content}>
+    <DrawerContentScrollView
+      {...props}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]}
+    >
       <Text style={[styles.header, { color: colors.textTertiary }]}>NEXORA</Text>
 
       <DrawerItem

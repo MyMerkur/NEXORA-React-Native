@@ -9,7 +9,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 
 interface SwipeCardProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ const SWIPE_THRESHOLD = 120;
 const EXIT_DISTANCE = 500;
 
 export function SwipeCard({ children, onSwipeLeft, onSwipeRight }: SwipeCardProps) {
+  const { colors } = useTheme();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
@@ -69,15 +71,22 @@ export function SwipeCard({ children, onSwipeLeft, onSwipeRight }: SwipeCardProp
   return (
     <View style={styles.wrapper}>
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.card, cardStyle]}>{children}</Animated.View>
+        <Animated.View
+          style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, cardStyle]}
+        >
+          {children}
+        </Animated.View>
       </GestureDetector>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.rejectButton} onPress={() => forceSwipe("left")}>
-          <Text style={styles.rejectButtonText}>Geç</Text>
+        <TouchableOpacity style={[styles.rejectButton, { borderColor: colors.danger }]} onPress={() => forceSwipe("left")}>
+          <Text style={[styles.rejectButtonText, { color: colors.danger }]}>Geç</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.acceptButton} onPress={() => forceSwipe("right")}>
-          <Text style={styles.acceptButtonText}>İlgileniyorum</Text>
+        <TouchableOpacity
+          style={[styles.acceptButton, { backgroundColor: colors.accentGold }]}
+          onPress={() => forceSwipe("right")}
+        >
+          <Text style={[styles.acceptButtonText, { color: colors.background }]}>İlgileniyorum</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -91,10 +100,8 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    backgroundColor: colors.surface,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.lg,
   },
   actionRow: {
@@ -108,10 +115,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     borderWidth: 1,
-    borderColor: colors.danger,
   },
   rejectButtonText: {
-    color: colors.danger,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
@@ -120,10 +125,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
-    backgroundColor: colors.accentGold,
   },
   acceptButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },

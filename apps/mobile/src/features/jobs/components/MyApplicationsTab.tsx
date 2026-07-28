@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMyApplications, type MyApplicationItem } from "../../../services/jobApi";
 import { statusColor, statusLabel } from "../statusStyles";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 export function MyApplicationsTab() {
+  const { colors } = useTheme();
   const [applications, setApplications] = useState<MyApplicationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,18 +52,20 @@ export function MyApplicationsTab() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accentGold} />}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>{error ?? "Henüz başvurun yok"}</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{error ?? "Henüz başvurun yok"}</Text>
           </View>
         }
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.title}>{item.job.title}</Text>
-            {item.message ? <Text style={styles.message}>{item.message}</Text> : null}
+          <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>{item.job.title}</Text>
+            {item.message ? (
+              <Text style={[styles.message, { color: colors.textSecondary }]}>{item.message}</Text>
+            ) : null}
             <Text style={[styles.status, { color: statusColor(item.status) }]}>{statusLabel(item.status)}</Text>
             <TouchableOpacity
               onPress={() => setMessageTarget({ employerId: item.job.employerId, jobId: item.job.id })}
             >
-              <Text style={styles.messageLink}>İşverene Mesaj Gönder</Text>
+              <Text style={[styles.messageLink, { color: colors.accentGold }]}>İşverene Mesaj Gönder</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -88,25 +92,20 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
   },
   card: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
     margin: spacing.md,
     marginBottom: 0,
     padding: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   message: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
@@ -116,7 +115,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   messageLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     marginTop: spacing.xs,

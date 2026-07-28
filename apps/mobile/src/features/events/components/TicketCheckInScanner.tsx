@@ -2,7 +2,8 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from "react-native-vision-camera";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { checkInTicket, type CheckInResult } from "../../../services/eventApi";
 
 interface TicketCheckInScannerProps {
@@ -22,6 +23,7 @@ function extractVerificationCode(scannedValue: string): string {
 }
 
 export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
+  const { colors } = useTheme();
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice("back");
   const [processing, setProcessing] = useState(false);
@@ -65,13 +67,15 @@ export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
 
   if (!hasPermission) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.permissionText}>Check-in için kamera izni gerekiyor.</Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={requestPermission}>
-          <Text style={styles.primaryButtonText}>İzin Ver</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.permissionText, { color: colors.textPrimary }]}>
+          Check-in için kamera izni gerekiyor.
+        </Text>
+        <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={requestPermission}>
+          <Text style={[styles.primaryButtonText, { color: colors.background }]}>İzin Ver</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelLink} onPress={onClose}>
-          <Text style={styles.cancelLinkText}>Kapat</Text>
+          <Text style={[styles.cancelLinkText, { color: colors.textSecondary }]}>Kapat</Text>
         </TouchableOpacity>
       </View>
     );
@@ -79,17 +83,19 @@ export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
 
   if (!device) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.permissionText}>Kamera bulunamadı.</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Text style={[styles.permissionText, { color: colors.textPrimary }]}>Kamera bulunamadı.</Text>
         <TouchableOpacity style={styles.cancelLink} onPress={onClose}>
-          <Text style={styles.cancelLinkText}>Kapat</Text>
+          <Text style={[styles.cancelLinkText, { color: colors.textSecondary }]}>Kapat</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
+  const resultTextColor = result?.alreadyCheckedIn ? colors.danger : colors.accentGold;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.cameraContainer}>
         <Camera
           style={StyleSheet.absoluteFill}
@@ -104,30 +110,35 @@ export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
         ) : null}
       </View>
 
-      <View style={styles.resultPanel}>
+      <View style={[styles.resultPanel, { backgroundColor: colors.surface }]}>
         {result ? (
           <View>
-            <Text style={result.alreadyCheckedIn ? styles.warningText : styles.successText}>
+            <Text
+              style={[
+                result.alreadyCheckedIn ? styles.warningText : styles.successText,
+                { color: resultTextColor },
+              ]}
+            >
               {result.alreadyCheckedIn ? "Bu bilet zaten check-in yapılmış" : "Check-in başarılı"}
             </Text>
-            <Text style={styles.attendeeText}>{result.attendeeName}</Text>
-            <Text style={styles.eventText}>{result.eventTitle}</Text>
-            <TouchableOpacity style={styles.primaryButton} onPress={handleScanNext}>
-              <Text style={styles.primaryButtonText}>Sıradaki Bileti Okut</Text>
+            <Text style={[styles.attendeeText, { color: colors.textPrimary }]}>{result.attendeeName}</Text>
+            <Text style={[styles.eventText, { color: colors.textSecondary }]}>{result.eventTitle}</Text>
+            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={handleScanNext}>
+              <Text style={[styles.primaryButtonText, { color: colors.background }]}>Sıradaki Bileti Okut</Text>
             </TouchableOpacity>
           </View>
         ) : error ? (
           <View>
-            <Text style={styles.error}>{error}</Text>
-            <TouchableOpacity style={styles.primaryButton} onPress={handleScanNext}>
-              <Text style={styles.primaryButtonText}>Tekrar Dene</Text>
+            <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={handleScanNext}>
+              <Text style={[styles.primaryButtonText, { color: colors.background }]}>Tekrar Dene</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.hintText}>Bilet QR kodunu kameraya gösterin</Text>
+          <Text style={[styles.hintText, { color: colors.textSecondary }]}>Bilet QR kodunu kameraya gösterin</Text>
         )}
         <TouchableOpacity style={styles.cancelLink} onPress={onClose}>
-          <Text style={styles.cancelLinkText}>Kapat</Text>
+          <Text style={[styles.cancelLinkText, { color: colors.textSecondary }]}>Kapat</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -137,7 +148,6 @@ export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   cameraContainer: {
     flex: 1,
@@ -157,57 +167,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: spacing.lg,
-    backgroundColor: colors.background,
   },
   permissionText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     textAlign: "center",
     marginBottom: spacing.md,
   },
   resultPanel: {
     padding: spacing.lg,
-    backgroundColor: colors.surface,
   },
   hintText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
   },
   successText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   warningText: {
-    color: colors.danger,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   attendeeText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     marginTop: spacing.xs,
   },
   eventText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
   error: {
-    color: colors.danger,
     fontSize: typography.sizes.sm,
     textAlign: "center",
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
     marginTop: spacing.md,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -216,7 +215,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   cancelLinkText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
 });

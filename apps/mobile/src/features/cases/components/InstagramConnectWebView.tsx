@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { getConnectAuthorizeUrl, getInstagramStatus } from "../../../services/instagramApi";
 
 interface InstagramConnectWebViewProps {
@@ -10,6 +11,12 @@ interface InstagramConnectWebViewProps {
 }
 
 export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps) {
+  const { colors } = useTheme();
+  const primaryButtonStyle = { backgroundColor: colors.accentBlue };
+  const primaryButtonTextStyle = { color: colors.background };
+  const confirmingTextStyle = { color: colors.textSecondary };
+  const errorStyle = { color: colors.danger };
+  const cancelLinkTextStyle = { color: colors.textSecondary };
   const [authorizeUrl, setAuthorizeUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
@@ -49,9 +56,9 @@ export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.error}>{error}</Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={() => onDone("cancelled")}>
-          <Text style={styles.primaryButtonText}>Kapat</Text>
+        <Text style={[styles.error, errorStyle]}>{error}</Text>
+        <TouchableOpacity style={[styles.primaryButton, primaryButtonStyle]} onPress={() => onDone("cancelled")}>
+          <Text style={[styles.primaryButtonText, primaryButtonTextStyle]}>Kapat</Text>
         </TouchableOpacity>
       </View>
     );
@@ -61,7 +68,7 @@ export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.accentGold} />
-        <Text style={styles.confirmingText}>Bağlantı doğrulanıyor…</Text>
+        <Text style={[styles.confirmingText, confirmingTextStyle]}>Bağlantı doğrulanıyor…</Text>
       </View>
     );
   }
@@ -81,7 +88,7 @@ export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps
         }}
       />
       <TouchableOpacity style={styles.cancelLink} onPress={() => onDone("cancelled")}>
-        <Text style={styles.cancelLinkText}>Vazgeç</Text>
+        <Text style={[styles.cancelLinkText, cancelLinkTextStyle]}>Vazgeç</Text>
       </TouchableOpacity>
     </View>
   );
@@ -95,7 +102,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
@@ -103,17 +109,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   confirmingText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.md,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
     textAlign: "center",
   },
@@ -125,7 +128,6 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   cancelLinkText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
 });
