@@ -1,8 +1,14 @@
 module.exports = {
   preset: '@react-native/jest-preset',
   setupFiles: ['react-native-gesture-handler/jestSetup'],
+  transform: {
+    '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
+    '^.+\\.(bmp|gif|jpg|jpeg|mp4|png|psd|svg|webp)$': require.resolve(
+      '@react-native/jest-preset/jest/assetFileTransformer.js',
+    ),
+  },
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-navigation|react-native-image-picker|react-native-webview)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-navigation|react-native-image-picker|react-native-webview|react-native-svg|lucide-react-native)/)',
   ],
   moduleNameMapper: {
     '^react-native-webview$': '<rootDir>/__mocks__/react-native-webview.js',

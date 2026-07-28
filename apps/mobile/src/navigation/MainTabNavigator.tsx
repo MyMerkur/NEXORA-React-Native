@@ -17,6 +17,30 @@ export type MainTabParamList = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+interface TabIconProps {
+  color: string;
+}
+
+function FeedTabIcon({ color }: TabIconProps) {
+  return <House size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+}
+
+function HubsTabIcon({ color }: TabIconProps) {
+  return <Users size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+}
+
+function CreateTabIcon({ color }: TabIconProps) {
+  return <CirclePlus size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+}
+
+function CareerTabIcon({ color }: TabIconProps) {
+  return <Briefcase size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+}
+
+function ProfileTabIcon({ color }: TabIconProps) {
+  return <User size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />;
+}
+
 export function MainTabNavigator() {
   return (
     <Tab.Navigator
@@ -28,41 +52,11 @@ export function MainTabNavigator() {
         tabBarInactiveTintColor: colors.textSecondary,
       }}
     >
-      <Tab.Screen
-        name="Feed"
-        component={FeedScreen}
-        options={{
-          tabBarIcon: ({ color }) => <House size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
-        }}
-      />
-      <Tab.Screen
-        name="Hubs"
-        component={HubsScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Users size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
-        }}
-      />
-      <Tab.Screen
-        name="Create"
-        component={CreateCaseScreen}
-        options={{
-          tabBarIcon: ({ color }) => <CirclePlus size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
-        }}
-      />
-      <Tab.Screen
-        name="Career"
-        component={CareerScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Briefcase size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => <User size={iconSizes.md} color={color} strokeWidth={iconStrokeWidth} />,
-        }}
-      />
+      <Tab.Screen name="Feed" component={FeedScreen} options={{ tabBarIcon: FeedTabIcon }} />
+      <Tab.Screen name="Hubs" component={HubsScreen} options={{ tabBarIcon: HubsTabIcon }} />
+      <Tab.Screen name="Create" component={CreateCaseScreen} options={{ tabBarIcon: CreateTabIcon }} />
+      <Tab.Screen name="Career" component={CareerScreen} options={{ tabBarIcon: CareerTabIcon }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarIcon: ProfileTabIcon }} />
     </Tab.Navigator>
   );
 }
