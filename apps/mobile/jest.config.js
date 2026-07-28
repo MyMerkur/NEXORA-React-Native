@@ -9,7 +9,7 @@ module.exports = {
     ),
   },
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-navigation|react-native-image-picker|react-native-webview|react-native-svg|lucide-react-native|react-native-reanimated|react-native-worklets)/)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@react-navigation|react-native-image-picker|react-native-webview|react-native-svg|lucide-react-native|react-native-reanimated|react-native-worklets|react-native-drawer-layout)/)',
   ],
   moduleNameMapper: {
     '^react-native-webview$': '<rootDir>/__mocks__/react-native-webview.js',
