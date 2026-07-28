@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Briefcase } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMyJobs, updateJobStatus, type JobItem } from "../../../services/jobApi";
@@ -7,6 +8,11 @@ import { CreateJobModal } from "./CreateJobModal";
 import { ApplicantsModal } from "./ApplicantsModal";
 import { CandidateSwipeModal } from "../../matching/components/CandidateSwipeModal";
 import { useTheme } from "../../../store/useThemeStore";
+import { Card } from "../../../components/Card";
+import { Badge } from "../../../components/Badge";
+import { Button } from "../../../components/Button";
+import { EmptyState } from "../../../components/EmptyState";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 export function MyPostingsTab() {
   const { colors } = useTheme();
@@ -55,20 +61,16 @@ export function MyPostingsTab() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+      <View style={styles.skeletonList}>
+        <SkeletonRow />
+        <SkeletonRow />
       </View>
     );
   }
 
   return (
     <>
-      <TouchableOpacity
-        style={[styles.createButton, { backgroundColor: colors.accentBlue }]}
-        onPress={() => setCreateVisible(true)}
-      >
-        <Text style={[styles.createButtonText, { color: colors.background }]}>+ Yeni İlan</Text>
-      </TouchableOpacity>
+      <Button label="+ Yeni İlan" onPress={() => setCreateVisible(true)} style={styles.createButton} />
 
       <FlatList
         data={jobs}
@@ -76,23 +78,19 @@ export function MyPostingsTab() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accentGold} />}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              {error ?? "Henüz ilan yayınlamadın"}
-            </Text>
+            {error ? (
+              <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
+            ) : (
+              <EmptyState icon={Briefcase} title="Henüz ilan yayınlamadın" description="Yukarıdaki butonla ilk ilanını oluştur." />
+            )}
           </View>
         }
-        renderItem={({ item }) => {
-          const statusColorValue = item.status === "open" ? colors.success : colors.textSecondary;
-          return (
-            <TouchableOpacity
-              style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => setApplicantsTarget(item)}
-            >
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => setApplicantsTarget(item)}>
+            <Card style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={[styles.title, { color: colors.textPrimary }]}>{item.title}</Text>
-                <Text style={[styles.status, { color: statusColorValue }]}>
-                  {item.status === "open" ? "Açık" : "Kapalı"}
-                </Text>
+                <Badge label={item.status === "open" ? "Açık" : "Kapalı"} variant={item.status === "open" ? "success" : "neutral"} />
               </View>
               {item.location ? (
                 <Text style={[styles.location, { color: colors.textSecondary }]}>{item.location}</Text>
@@ -114,9 +112,9 @@ export function MyPostingsTab() {
                   <Text style={[styles.toggleButtonText, { color: colors.accentGold }]}>Aday Bul</Text>
                 </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-          );
-        }}
+            </Card>
+          </TouchableOpacity>
+        )}
       />
 
       <CreateJobModal
@@ -135,45 +133,37 @@ export function MyPostingsTab() {
 }
 
 const styles = StyleSheet.create({
+  skeletonList: {
+    padding: spacing.md,
+    gap: spacing.md,
+  },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingTop: spacing.xxl,
+    paddingHorizontal: spacing.md,
   },
-  emptyText: {
+  errorText: {
     fontSize: typography.sizes.md,
   },
   createButton: {
     margin: spacing.md,
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-  },
-  createButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   card: {
-    borderRadius: radii.md,
-    borderWidth: 1,
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
-    padding: spacing.md,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: spacing.sm,
   },
   title: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     flexShrink: 1,
-  },
-  status: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
   },
   location: {
     fontSize: typography.sizes.sm,

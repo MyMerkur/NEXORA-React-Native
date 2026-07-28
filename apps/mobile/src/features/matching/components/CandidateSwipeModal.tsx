@@ -1,17 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { RefreshCw } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
+import { Avatar } from "../../../components/Avatar";
+import { Badge } from "../../../components/Badge";
+import { EmptyState } from "../../../components/EmptyState";
+import { Skeleton } from "../../../components/Skeleton";
 import { getCandidateSwipeFeed, swipeCandidate, type SwipeCandidateCard } from "../../../services/matchingApi";
 import type { JobItem } from "../../../services/jobApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
@@ -93,7 +89,7 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <Skeleton height={360} radius={20} />
           ) : current ? (
             <View style={styles.deckArea}>
               <SwipeCard
@@ -101,11 +97,9 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
                 onSwipeLeft={() => handleSwipe(current, "left")}
                 onSwipeRight={() => handleSwipe(current, "right")}
               >
-                {current.avatarUrl ? (
-                  <Image source={{ uri: current.avatarUrl }} style={styles.avatar} />
-                ) : (
-                  <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
-                )}
+                <View style={styles.avatarWrapper}>
+                  <Avatar name={current.displayName} imageUrl={current.avatarUrl} size="lg" />
+                </View>
                 <Text style={[styles.candidateName, { color: colors.textPrimary }]}>{current.displayName}</Text>
                 {current.experienceYears != null ? (
                   <Text style={[styles.experience, { color: colors.textSecondary }]}>
@@ -115,9 +109,7 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
                 {current.desiredPositions.length > 0 ? (
                   <View style={styles.tagRow}>
                     {current.desiredPositions.map((tag) => (
-                      <View key={tag} style={[styles.tag, { borderColor: colors.border }]}>
-                        <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
-                      </View>
+                      <Badge key={tag} label={tag} variant="neutral" />
                     ))}
                   </View>
                 ) : null}
@@ -125,10 +117,12 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
             </View>
           ) : (
             <View style={styles.centered}>
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Şu an gösterilecek yeni aday yok</Text>
-              <TouchableOpacity style={[styles.refreshButton, { borderColor: colors.accentGold }]} onPress={load}>
-                <Text style={[styles.refreshButtonText, { color: colors.accentGold }]}>Yenile</Text>
-              </TouchableOpacity>
+              <EmptyState
+                icon={RefreshCw}
+                title="Şu an gösterilecek yeni aday yok"
+                ctaLabel="Yenile"
+                onCtaPress={load}
+              />
             </View>
           )}
       </ModalShell>
@@ -153,9 +147,6 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.sizes.sm,
   },
-  loader: {
-    marginVertical: spacing.xl,
-  },
   error: {
     marginBottom: spacing.sm,
   },
@@ -167,32 +158,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  emptyText: {
-    fontSize: typography.sizes.md,
-    textAlign: "center",
-    marginBottom: spacing.md,
-  },
-  refreshButton: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-  },
-  refreshButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: radii.pill,
+  avatarWrapper: {
     alignSelf: "center",
-    marginBottom: spacing.md,
   },
   candidateName: {
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
     textAlign: "center",
+    marginTop: spacing.md,
   },
   experience: {
     fontSize: typography.sizes.sm,
@@ -205,14 +178,5 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginTop: spacing.md,
     justifyContent: "center",
-  },
-  tag: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderWidth: 1,
-  },
-  tagText: {
-    fontSize: typography.sizes.xs,
   },
 });

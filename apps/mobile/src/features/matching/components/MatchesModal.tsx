@@ -1,17 +1,12 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { Target } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
+import { Avatar } from "../../../components/Avatar";
+import { EmptyState } from "../../../components/EmptyState";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { getMatches, type MatchItem } from "../../../services/matchingApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
 import { InboxModal } from "../../inbox/components/InboxModal";
@@ -59,20 +54,17 @@ export function MatchesModal({ visible, onClose }: MatchesModalProps) {
           </View>
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.skeletonList}>
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
           ) : (
             <ScrollView>
               {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
-              {matches.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz bir eşleşmen yok</Text>
-              ) : null}
+              {matches.length === 0 ? <EmptyState icon={Target} title="Henüz bir eşleşmen yok" /> : null}
               {matches.map((match) => (
                 <View key={match.id} style={[styles.row, { borderTopColor: colors.border }]}>
-                  {match.counterpart.avatarUrl ? (
-                    <Image source={{ uri: match.counterpart.avatarUrl }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
-                  )}
+                  <Avatar name={match.counterpart.displayName} imageUrl={match.counterpart.avatarUrl} size="md" />
                   <View style={styles.rowContent}>
                     <TouchableOpacity
                       onPress={() => setProfileTarget({ id: match.counterpart.id, role: match.counterpartRole })}
@@ -125,12 +117,8 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.sizes.sm,
   },
-  loader: {
-    marginVertical: spacing.xl,
-  },
-  emptyText: {
-    textAlign: "center",
-    marginVertical: spacing.lg,
+  skeletonList: {
+    gap: spacing.md,
   },
   error: {
     marginBottom: spacing.sm,
@@ -140,12 +128,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderTopWidth: 1,
     paddingVertical: spacing.md,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.pill,
-    marginRight: spacing.sm,
+    gap: spacing.sm,
   },
   rowContent: {
     flex: 1,

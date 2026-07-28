@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
 import { useTheme } from "../../../store/useThemeStore";
 
 interface ApplyModalProps {
@@ -35,37 +37,17 @@ export function ApplyModal({ visible, jobTitle, onClose, onSubmit }: ApplyModalP
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet">
           <Text style={[styles.title, { color: colors.textPrimary }]}>{jobTitle}</Text>
-          <TextInput
-            style={[
-              styles.input,
-              { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-            ]}
+          <Input
+            style={styles.multiline}
             placeholder="Kısa bir mesaj (opsiyonel)"
-            placeholderTextColor={colors.textSecondary}
             value={message}
             onChangeText={setMessage}
             multiline
           />
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
           <View style={styles.buttonRow}>
-            <TouchableOpacity
-              style={[styles.secondaryButton, { borderColor: colors.border }]}
-              onPress={onClose}
-              disabled={submitting}
-            >
-              <Text style={[styles.secondaryButtonText, { color: colors.textSecondary }]}>İptal</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
-              onPress={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <ActivityIndicator color={colors.background} />
-              ) : (
-                <Text style={[styles.primaryButtonText, { color: colors.background }]}>Başvur</Text>
-              )}
-            </TouchableOpacity>
+            <Button label="İptal" onPress={onClose} disabled={submitting} variant="secondary" style={styles.flexButton} />
+            <Button label="Başvur" onPress={handleSubmit} loading={submitting} style={styles.flexButton} />
           </View>
     </ModalShell>
   );
@@ -77,14 +59,9 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.md,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  multiline: {
     minHeight: 80,
     textAlignVertical: "top",
-    fontSize: typography.sizes.md,
   },
   error: {
     marginTop: spacing.sm,
@@ -94,25 +71,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.md,
   },
-  secondaryButton: {
+  flexButton: {
     flex: 1,
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  secondaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.medium,
-  },
-  primaryButton: {
-    flex: 1,
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
 });
