@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { Users } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
+import { Avatar } from "../../../components/Avatar";
+import { Badge } from "../../../components/Badge";
+import { EmptyState } from "../../../components/EmptyState";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { getJobApplications, updateApplicationStatus, type JobApplicantItem, type JobItem } from "../../../services/jobApi";
-import { statusColor, statusLabel } from "../statusStyles";
+import { statusLabel, statusBadgeVariant } from "../statusStyles";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { UserProfileModal } from "../../profiles/components/UserProfileModal";
 import { useTheme } from "../../../store/useThemeStore";
@@ -70,20 +66,17 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
           </View>
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.skeletonList}>
+              <SkeletonRow />
+              <SkeletonRow />
+            </View>
           ) : (
             <ScrollView>
               {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
-              {applicants.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz başvuru yok</Text>
-              ) : null}
+              {applicants.length === 0 ? <EmptyState icon={Users} title="Henüz başvuru yok" /> : null}
               {applicants.map((applicant) => (
                 <View key={applicant.id} style={[styles.row, { borderTopColor: colors.border }]}>
-                  {applicant.applicant.avatarUrl ? (
-                    <Image source={{ uri: applicant.applicant.avatarUrl }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
-                  )}
+                  <Avatar name={applicant.applicant.displayName} imageUrl={applicant.applicant.avatarUrl} size="md" />
                   <View style={styles.rowContent}>
                     <TouchableOpacity onPress={() => setProfileTargetId(applicant.applicant.id)}>
                       <Text style={[styles.applicantName, { color: colors.textPrimary }]}>
@@ -93,9 +86,9 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
                     {applicant.message ? (
                       <Text style={[styles.message, { color: colors.textSecondary }]}>{applicant.message}</Text>
                     ) : null}
-                    <Text style={[styles.status, { color: statusColor(applicant.status) }]}>
-                      {statusLabel(applicant.status)}
-                    </Text>
+                    <View style={styles.statusRow}>
+                      <Badge label={statusLabel(applicant.status)} variant={statusBadgeVariant(applicant.status)} />
+                    </View>
                     <TouchableOpacity onPress={() => setMessageTargetId(applicant.applicant.id)}>
                       <Text style={[styles.messageLink, { color: colors.accentGold }]}>Mesaj Gönder</Text>
                     </TouchableOpacity>
@@ -151,12 +144,8 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: typography.sizes.sm,
   },
-  loader: {
-    marginVertical: spacing.xl,
-  },
-  emptyText: {
-    textAlign: "center",
-    marginVertical: spacing.lg,
+  skeletonList: {
+    gap: spacing.md,
   },
   error: {
     marginBottom: spacing.sm,
@@ -165,12 +154,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderTopWidth: 1,
     paddingVertical: spacing.md,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.pill,
-    marginRight: spacing.sm,
+    gap: spacing.sm,
   },
   rowContent: {
     flex: 1,
@@ -183,10 +167,8 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
-  status: {
-    fontSize: typography.sizes.xs,
+  statusRow: {
     marginTop: spacing.xs,
-    fontWeight: typography.weights.semibold,
   },
   messageLink: {
     fontSize: typography.sizes.xs,

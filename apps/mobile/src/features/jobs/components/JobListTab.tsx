@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Briefcase } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { applyToJob, getJobs, type JobItem } from "../../../services/jobApi";
 import { ApplyModal } from "./ApplyModal";
 import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
 import { useTheme } from "../../../store/useThemeStore";
+import { Card } from "../../../components/Card";
+import { Badge } from "../../../components/Badge";
+import { Button } from "../../../components/Button";
+import { EmptyState } from "../../../components/EmptyState";
+import { SkeletonRow } from "../../../components/Skeleton";
 
 export function JobListTab() {
   const { colors } = useTheme();
@@ -76,8 +82,10 @@ export function JobListTab() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+      <View style={styles.skeletonList}>
+        <SkeletonRow />
+        <SkeletonRow />
+        <SkeletonRow />
       </View>
     );
   }
@@ -92,15 +100,18 @@ export function JobListTab() {
         onEndReached={handleLoadMore}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{error ?? "Şu anda açık ilan yok"}</Text>
+            {error ? (
+              <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
+            ) : (
+              <EmptyState icon={Briefcase} title="Şu anda açık ilan yok" description="Yeni ilanlar yayınlandığında burada göreceksin." />
+            )}
           </View>
         }
-        ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerLoader} color={colors.accentGold} /> : null}
+        ListFooterComponent={loadingMore ? <SkeletonRow /> : null}
         renderItem={({ item }) => {
           const alreadyApplied = appliedIds.has(item.id);
-          const applyButtonBackground = alreadyApplied ? colors.surfaceElevated : colors.accentBlue;
           return (
-            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Card style={styles.card}>
               <TouchableOpacity onPress={() => setOrgTarget(item.employer.id)}>
                 <Text style={[styles.employerName, { color: colors.textSecondary }]}>{item.employer.displayName}</Text>
               </TouchableOpacity>
@@ -116,22 +127,18 @@ export function JobListTab() {
               {item.specialties.length > 0 ? (
                 <View style={styles.tagRow}>
                   {item.specialties.map((tag) => (
-                    <View key={tag} style={[styles.tag, { borderColor: colors.border }]}>
-                      <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
-                    </View>
+                    <Badge key={tag} label={tag} variant="neutral" />
                   ))}
                 </View>
               ) : null}
-              <TouchableOpacity
-                style={[styles.applyButton, { backgroundColor: applyButtonBackground }]}
+              <Button
+                label={alreadyApplied ? "Başvuruldu" : "Başvur"}
                 onPress={() => setApplyTarget(item)}
                 disabled={alreadyApplied}
-              >
-                <Text style={[styles.applyButtonText, { color: colors.background }]}>
-                  {alreadyApplied ? "Başvuruldu" : "Başvur"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                fullWidth
+                style={styles.applyButton}
+              />
+            </Card>
           );
         }}
       />
@@ -147,24 +154,23 @@ export function JobListTab() {
 }
 
 const styles = StyleSheet.create({
+  skeletonList: {
+    padding: spacing.md,
+    gap: spacing.md,
+  },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingTop: spacing.xxl,
+    paddingHorizontal: spacing.md,
   },
-  emptyText: {
+  errorText: {
     fontSize: typography.sizes.md,
   },
-  footerLoader: {
-    marginVertical: spacing.lg,
-  },
   card: {
-    borderRadius: radii.md,
-    borderWidth: 1,
     margin: spacing.md,
     marginBottom: 0,
-    padding: spacing.md,
   },
   employerName: {
     fontSize: typography.sizes.xs,
@@ -188,23 +194,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginTop: spacing.sm,
   },
-  tag: {
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  tagText: {
-    fontSize: typography.sizes.xs,
-  },
   applyButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
     marginTop: spacing.md,
-  },
-  applyButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
 });

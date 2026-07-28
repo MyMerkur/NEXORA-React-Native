@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import { RefreshCw } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { getJobSwipeFeed, swipeJob, type SwipeJobCard } from "../../../services/matchingApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
 import { SwipeCard } from "./SwipeCard";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { useTheme } from "../../../store/useThemeStore";
+import { Badge } from "../../../components/Badge";
+import { EmptyState } from "../../../components/EmptyState";
+import { Skeleton } from "../../../components/Skeleton";
 
 export function JobSwipeTab() {
   const { colors } = useTheme();
@@ -50,8 +54,8 @@ export function JobSwipeTab() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+      <View style={styles.skeletonWrapper}>
+        <Skeleton height={420} radius={20} />
       </View>
     );
   }
@@ -61,12 +65,13 @@ export function JobSwipeTab() {
   if (!current) {
     return (
       <View style={styles.centered}>
-        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-          {error ?? "Şu an gösterilecek yeni ilan yok"}
-        </Text>
-        <TouchableOpacity style={[styles.refreshButton, { borderColor: colors.accentGold }]} onPress={load}>
-          <Text style={[styles.refreshButtonText, { color: colors.accentGold }]}>Yenile</Text>
-        </TouchableOpacity>
+        <EmptyState
+          icon={RefreshCw}
+          title="Şu an gösterilecek yeni ilan yok"
+          description={error ?? undefined}
+          ctaLabel="Yenile"
+          onCtaPress={load}
+        />
       </View>
     );
   }
@@ -91,9 +96,7 @@ export function JobSwipeTab() {
         {current.specialties.length > 0 ? (
           <View style={styles.tagRow}>
             {current.specialties.map((tag) => (
-              <View key={tag} style={[styles.tag, { borderColor: colors.border }]}>
-                <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
-              </View>
+              <Badge key={tag} label={tag} variant="neutral" />
             ))}
           </View>
         ) : null}
@@ -108,26 +111,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  skeletonWrapper: {
+    flex: 1,
+    padding: spacing.lg,
+  },
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
-  },
-  emptyText: {
-    fontSize: typography.sizes.md,
-    textAlign: "center",
-    marginBottom: spacing.md,
-  },
-  refreshButton: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderWidth: 1,
-  },
-  refreshButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   title: {
     fontSize: typography.sizes.lg,
@@ -151,14 +143,5 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.xs,
     marginTop: spacing.md,
-  },
-  tag: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderWidth: 1,
-  },
-  tagText: {
-    fontSize: typography.sizes.xs,
   },
 });

@@ -1,15 +1,5 @@
-import { colors } from "@nexora/ui-tokens";
 import type { ApplicationStatus } from "../../services/jobApi";
-
-export function statusColor(status: ApplicationStatus): string {
-  if (status === "accepted") {
-    return colors.success;
-  }
-  if (status === "rejected") {
-    return colors.danger;
-  }
-  return colors.textSecondary;
-}
+import type { BadgeVariant } from "../../components/Badge";
 
 export function statusLabel(status: ApplicationStatus): string {
   if (status === "accepted") {
@@ -19,4 +9,14 @@ export function statusLabel(status: ApplicationStatus): string {
     return "Reddedildi";
   }
   return "Beklemede";
+}
+
+export function statusBadgeVariant(status: ApplicationStatus): BadgeVariant {
+  if (status === "accepted") {
+    return "success";
+  }
+  if (status === "rejected") {
+    return "danger";
+  }
+  return "neutral";
 }
