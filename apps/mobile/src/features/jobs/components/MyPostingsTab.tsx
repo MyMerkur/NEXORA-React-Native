@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { getMyJobs, updateJobStatus, type JobItem } from "../../../services/jobApi";
 import { CreateJobModal } from "./CreateJobModal";
 import { ApplicantsModal } from "./ApplicantsModal";
 import { CandidateSwipeModal } from "../../matching/components/CandidateSwipeModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 export function MyPostingsTab() {
+  const { colors } = useTheme();
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,8 +63,11 @@ export function MyPostingsTab() {
 
   return (
     <>
-      <TouchableOpacity style={styles.createButton} onPress={() => setCreateVisible(true)}>
-        <Text style={styles.createButtonText}>+ Yeni İlan</Text>
+      <TouchableOpacity
+        style={[styles.createButton, { backgroundColor: colors.accentBlue }]}
+        onPress={() => setCreateVisible(true)}
+      >
+        <Text style={[styles.createButtonText, { color: colors.background }]}>+ Yeni İlan</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -71,32 +76,47 @@ export function MyPostingsTab() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accentGold} />}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>{error ?? "Henüz ilan yayınlamadın"}</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              {error ?? "Henüz ilan yayınlamadın"}
+            </Text>
           </View>
         }
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => setApplicantsTarget(item)}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={[styles.status, item.status === "open" ? styles.statusOpen : styles.statusClosed]}>
-                {item.status === "open" ? "Açık" : "Kapalı"}
-              </Text>
-            </View>
-            {item.location ? <Text style={styles.location}>{item.location}</Text> : null}
-            <View style={styles.actionRow}>
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={() => handleToggleStatus(item)}
-                disabled={togglingId === item.id}
-              >
-                <Text style={styles.toggleButtonText}>{item.status === "open" ? "Kapat" : "Yeniden Aç"}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.toggleButton} onPress={() => setCandidatesTarget(item)}>
-                <Text style={styles.toggleButtonText}>Aday Bul</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+          const statusColorValue = item.status === "open" ? colors.success : colors.textSecondary;
+          return (
+            <TouchableOpacity
+              style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={() => setApplicantsTarget(item)}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={[styles.title, { color: colors.textPrimary }]}>{item.title}</Text>
+                <Text style={[styles.status, { color: statusColorValue }]}>
+                  {item.status === "open" ? "Açık" : "Kapalı"}
+                </Text>
+              </View>
+              {item.location ? (
+                <Text style={[styles.location, { color: colors.textSecondary }]}>{item.location}</Text>
+              ) : null}
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={[styles.toggleButton, { borderColor: colors.accentGold }]}
+                  onPress={() => handleToggleStatus(item)}
+                  disabled={togglingId === item.id}
+                >
+                  <Text style={[styles.toggleButtonText, { color: colors.accentGold }]}>
+                    {item.status === "open" ? "Kapat" : "Yeniden Aç"}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.toggleButton, { borderColor: colors.accentGold }]}
+                  onPress={() => setCandidatesTarget(item)}
+                >
+                  <Text style={[styles.toggleButtonText, { color: colors.accentGold }]}>Aday Bul</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
       />
 
       <CreateJobModal
@@ -122,26 +142,21 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
   },
   createButton: {
     margin: spacing.md,
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
   },
   createButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   card: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
     marginHorizontal: spacing.md,
     marginBottom: spacing.md,
     padding: spacing.md,
@@ -152,7 +167,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     flexShrink: 1,
@@ -161,14 +175,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
-  statusOpen: {
-    color: colors.success,
-  },
-  statusClosed: {
-    color: colors.textSecondary,
-  },
   location: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
@@ -183,10 +190,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   toggleButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },

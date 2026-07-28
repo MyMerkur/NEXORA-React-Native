@@ -3,7 +3,8 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { WebView } from "react-native-webview";
 import axios from "axios";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { startTicketCheckout, listMyTickets } from "../../../services/eventApi";
 import type { BillingInfoInput } from "../../../services/subscriptionApi";
 
@@ -23,6 +24,7 @@ export function EventTicketCheckoutWebView({
   startingTicketCount,
   onDone,
 }: EventTicketCheckoutWebViewProps) {
+  const { colors } = useTheme();
   const [checkoutFormContent, setCheckoutFormContent] = useState<string | null>(null);
   const [needsBillingInfo, setNeedsBillingInfo] = useState(false);
   const [billingInfo, setBillingInfo] = useState<BillingInfoInput>({});
@@ -74,10 +76,12 @@ export function EventTicketCheckoutWebView({
   if (needsBillingInfo) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Fatura Bilgileri</Text>
-        <Text style={styles.subtitle}>Bu bilgiler bir kere istenir, sonraki satın alımlarda tekrar sorulmaz.</Text>
+        <Text style={[styles.title, { color: colors.textPrimary }]}>Fatura Bilgileri</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Bu bilgiler bir kere istenir, sonraki satın alımlarda tekrar sorulmaz.
+        </Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
           placeholder="TC Kimlik No"
           placeholderTextColor={colors.textSecondary}
           keyboardType="number-pad"
@@ -86,7 +90,7 @@ export function EventTicketCheckoutWebView({
           onChangeText={(value) => setBillingInfo((current) => ({ ...current, identityNumber: value }))}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
           placeholder="Telefon"
           placeholderTextColor={colors.textSecondary}
           keyboardType="phone-pad"
@@ -94,22 +98,30 @@ export function EventTicketCheckoutWebView({
           onChangeText={(value) => setBillingInfo((current) => ({ ...current, phone: value }))}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
           placeholder="Adres"
           placeholderTextColor={colors.textSecondary}
           value={billingInfo.address ?? ""}
           onChangeText={(value) => setBillingInfo((current) => ({ ...current, address: value }))}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
           placeholder="Şehir"
           placeholderTextColor={colors.textSecondary}
           value={billingInfo.city ?? ""}
           onChangeText={(value) => setBillingInfo((current) => ({ ...current, city: value }))}
         />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <TouchableOpacity style={styles.primaryButton} onPress={() => attemptCheckout(billingInfo)} disabled={loading}>
-          {loading ? <ActivityIndicator color={colors.background} /> : <Text style={styles.primaryButtonText}>Devam Et</Text>}
+        {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+          onPress={() => attemptCheckout(billingInfo)}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={colors.background} />
+          ) : (
+            <Text style={[styles.primaryButtonText, { color: colors.background }]}>Devam Et</Text>
+          )}
         </TouchableOpacity>
       </View>
     );
@@ -127,7 +139,7 @@ export function EventTicketCheckoutWebView({
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.accentGold} />
-        <Text style={styles.confirmingText}>Ödeme sonucu doğrulanıyor…</Text>
+        <Text style={[styles.confirmingText, { color: colors.textSecondary }]}>Ödeme sonucu doğrulanıyor…</Text>
       </View>
     );
   }
@@ -135,9 +147,9 @@ export function EventTicketCheckoutWebView({
   if (error) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.error}>{error}</Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={() => onDone("cancelled")}>
-          <Text style={styles.primaryButtonText}>Kapat</Text>
+        <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+        <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={() => onDone("cancelled")}>
+          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Kapat</Text>
         </TouchableOpacity>
       </View>
     );
@@ -157,11 +169,14 @@ export function EventTicketCheckoutWebView({
           }
         }}
       />
-      <TouchableOpacity style={styles.manualConfirmButton} onPress={pollForCompletion}>
-        <Text style={styles.manualConfirmButtonText}>Ödemeyi tamamladım</Text>
+      <TouchableOpacity
+        style={[styles.manualConfirmButton, { backgroundColor: colors.accentBlue }]}
+        onPress={pollForCompletion}
+      >
+        <Text style={[styles.manualConfirmButtonText, { color: colors.background }]}>Ödemeyi tamamladım</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.cancelLink} onPress={() => onDone("cancelled")}>
-        <Text style={styles.cancelLinkText}>Vazgeç</Text>
+        <Text style={[styles.cancelLinkText, { color: colors.textSecondary }]}>Vazgeç</Text>
       </TouchableOpacity>
     </View>
   );
@@ -178,46 +193,37 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
   subtitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
   input: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
     fontSize: typography.sizes.md,
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
     marginTop: spacing.sm,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   confirmingText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.md,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
     textAlign: "center",
   },
@@ -225,14 +231,12 @@ const styles = StyleSheet.create({
     height: 480,
   },
   manualConfirmButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
     margin: spacing.md,
   },
   manualConfirmButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -241,7 +245,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cancelLinkText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
 });

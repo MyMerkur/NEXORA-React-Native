@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { applyToJob, getJobs, type JobItem } from "../../../services/jobApi";
 import { ApplyModal } from "./ApplyModal";
 import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 export function JobListTab() {
+  const { colors } = useTheme();
   const [jobs, setJobs] = useState<JobItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,39 +92,44 @@ export function JobListTab() {
         onEndReached={handleLoadMore}
         ListEmptyComponent={
           <View style={styles.centered}>
-            <Text style={styles.emptyText}>{error ?? "Şu anda açık ilan yok"}</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{error ?? "Şu anda açık ilan yok"}</Text>
           </View>
         }
         ListFooterComponent={loadingMore ? <ActivityIndicator style={styles.footerLoader} color={colors.accentGold} /> : null}
         renderItem={({ item }) => {
           const alreadyApplied = appliedIds.has(item.id);
+          const applyButtonBackground = alreadyApplied ? colors.surfaceElevated : colors.accentBlue;
           return (
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <TouchableOpacity onPress={() => setOrgTarget(item.employer.id)}>
-                <Text style={styles.employerName}>{item.employer.displayName}</Text>
+                <Text style={[styles.employerName, { color: colors.textSecondary }]}>{item.employer.displayName}</Text>
               </TouchableOpacity>
-              <Text style={styles.title}>{item.title}</Text>
-              {item.location ? <Text style={styles.location}>{item.location}</Text> : null}
+              <Text style={[styles.title, { color: colors.textPrimary }]}>{item.title}</Text>
+              {item.location ? (
+                <Text style={[styles.location, { color: colors.textSecondary }]}>{item.location}</Text>
+              ) : null}
               {item.description ? (
-                <Text style={styles.description} numberOfLines={3}>
+                <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>
                   {item.description}
                 </Text>
               ) : null}
               {item.specialties.length > 0 ? (
                 <View style={styles.tagRow}>
                   {item.specialties.map((tag) => (
-                    <View key={tag} style={styles.tag}>
-                      <Text style={styles.tagText}>{tag}</Text>
+                    <View key={tag} style={[styles.tag, { borderColor: colors.border }]}>
+                      <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
                     </View>
                   ))}
                 </View>
               ) : null}
               <TouchableOpacity
-                style={[styles.applyButton, alreadyApplied && styles.applyButtonDisabled]}
+                style={[styles.applyButton, { backgroundColor: applyButtonBackground }]}
                 onPress={() => setApplyTarget(item)}
                 disabled={alreadyApplied}
               >
-                <Text style={styles.applyButtonText}>{alreadyApplied ? "Başvuruldu" : "Başvur"}</Text>
+                <Text style={[styles.applyButtonText, { color: colors.background }]}>
+                  {alreadyApplied ? "Başvuruldu" : "Başvur"}
+                </Text>
               </TouchableOpacity>
             </View>
           );
@@ -147,38 +154,31 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
   },
   footerLoader: {
     marginVertical: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
     margin: spacing.md,
     marginBottom: 0,
     padding: spacing.md,
   },
   employerName: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginBottom: spacing.xs,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   location: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   description: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
@@ -191,26 +191,19 @@ const styles = StyleSheet.create({
   tag: {
     borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
   },
   tagText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
   applyButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
     marginTop: spacing.md,
   },
-  applyButtonDisabled: {
-    backgroundColor: colors.surfaceElevated,
-  },
   applyButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },

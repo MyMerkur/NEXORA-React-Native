@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
+import { useTheme } from "../../../store/useThemeStore";
 
 interface ApplyModalProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface ApplyModalProps {
 }
 
 export function ApplyModal({ visible, jobTitle, onClose, onSubmit }: ApplyModalProps) {
+  const { colors } = useTheme();
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,25 +34,36 @@ export function ApplyModal({ visible, jobTitle, onClose, onSubmit }: ApplyModalP
 
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet">
-          <Text style={styles.title}>{jobTitle}</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>{jobTitle}</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+            ]}
             placeholder="Kısa bir mesaj (opsiyonel)"
             placeholderTextColor={colors.textSecondary}
             value={message}
             onChangeText={setMessage}
             multiline
           />
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.secondaryButton} onPress={onClose} disabled={submitting}>
-              <Text style={styles.secondaryButtonText}>İptal</Text>
+            <TouchableOpacity
+              style={[styles.secondaryButton, { borderColor: colors.border }]}
+              onPress={onClose}
+              disabled={submitting}
+            >
+              <Text style={[styles.secondaryButtonText, { color: colors.textSecondary }]}>İptal</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.primaryButton} onPress={handleSubmit} disabled={submitting}>
+            <TouchableOpacity
+              style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+              onPress={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? (
                 <ActivityIndicator color={colors.background} />
               ) : (
-                <Text style={styles.primaryButtonText}>Başvur</Text>
+                <Text style={[styles.primaryButtonText, { color: colors.background }]}>Başvur</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -60,17 +73,13 @@ export function ApplyModal({ visible, jobTitle, onClose, onSubmit }: ApplyModalP
 
 const styles = StyleSheet.create({
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.md,
   },
   input: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     minHeight: 80,
@@ -78,7 +87,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
   },
   error: {
-    color: colors.danger,
     marginTop: spacing.sm,
   },
   buttonRow: {
@@ -92,22 +100,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
   },
   secondaryButtonText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
   },
   primaryButton: {
     flex: 1,
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },

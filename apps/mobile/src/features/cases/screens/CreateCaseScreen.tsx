@@ -3,7 +3,8 @@ import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, Touc
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import {
   createCase,
   requestImageUploadUrl,
@@ -21,6 +22,19 @@ const STAGES: { key: CaseStage; label: string }[] = [
 ];
 
 export function CreateCaseScreen() {
+  const { colors } = useTheme();
+  const aiDraftSectionStyle = { backgroundColor: colors.surface, borderColor: colors.border };
+  const inputStyle = { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary };
+  const labelStyle = { color: colors.textPrimary };
+  const thumbnailStyle = { backgroundColor: colors.surfaceElevated };
+  const removeBadgeStyle = { backgroundColor: colors.danger };
+  const removeBadgeTextStyle = { color: colors.textPrimary };
+  const addThumbnailButtonStyle = { borderColor: colors.border };
+  const addThumbnailTextStyle = { color: colors.textSecondary };
+  const errorStyle = { color: colors.danger };
+  const successStyle = { color: colors.success };
+  const submitButtonStyle = { backgroundColor: colors.accentBlue };
+  const submitButtonTextStyle = { color: colors.background };
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [specialties, setSpecialties] = useState<MicroCompetencyTag[]>([]);
@@ -155,10 +169,10 @@ export function CreateCaseScreen() {
   return (
     <>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.aiDraftSection}>
-          <Text style={styles.label}>🤖 Instagram Gönderisinden Taslak Oluştur (Eğitmen)</Text>
+        <View style={[styles.aiDraftSection, aiDraftSectionStyle]}>
+          <Text style={[styles.label, labelStyle]}>🤖 Instagram Gönderisinden Taslak Oluştur (Eğitmen)</Text>
           <TextInput
-            style={[styles.input, styles.multiline]}
+            style={[styles.input, inputStyle, styles.multiline]}
             placeholder="Instagram açıklaması (opsiyonel)"
             placeholderTextColor={colors.textSecondary}
             value={captionText}
@@ -168,54 +182,54 @@ export function CreateCaseScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
             {draftSourceImages.map((image, index) => (
               <View key={image.storageKey} style={styles.thumbnailWrapper}>
-                <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
-                <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveDraftSourceImage(index)}>
-                  <Text style={styles.removeBadgeText}>×</Text>
+                <Image source={{ uri: image.previewUri }} style={[styles.thumbnail, thumbnailStyle]} />
+                <TouchableOpacity style={[styles.removeBadge, removeBadgeStyle]} onPress={() => handleRemoveDraftSourceImage(index)}>
+                  <Text style={[styles.removeBadgeText, removeBadgeTextStyle]}>×</Text>
                 </TouchableOpacity>
               </View>
             ))}
             <TouchableOpacity
-              style={styles.addThumbnailButton}
+              style={[styles.addThumbnailButton, addThumbnailButtonStyle]}
               onPress={handleAddDraftSourceImage}
               disabled={uploadingDraftImage}
             >
               {uploadingDraftImage ? (
                 <ActivityIndicator color={colors.textSecondary} />
               ) : (
-                <Text style={styles.addThumbnailText}>+ Ekle</Text>
+                <Text style={[styles.addThumbnailText, addThumbnailTextStyle]}>+ Ekle</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.addThumbnailButton}
+              style={[styles.addThumbnailButton, addThumbnailButtonStyle]}
               onPress={() => setInstagramModalVisible(true)}
               disabled={uploadingDraftImage}
             >
-              <Text style={styles.addThumbnailText}>📷 Instagram</Text>
+              <Text style={[styles.addThumbnailText, addThumbnailTextStyle]}>📷 Instagram</Text>
             </TouchableOpacity>
           </ScrollView>
-          {draftError ? <Text style={styles.error}>{draftError}</Text> : null}
+          {draftError ? <Text style={[styles.error, errorStyle]}>{draftError}</Text> : null}
           <TouchableOpacity
-            style={[styles.submitButton, styles.draftButton]}
+            style={[styles.submitButton, submitButtonStyle, styles.draftButton]}
             onPress={handleGenerateDraft}
             disabled={draftSourceImages.length === 0 || generatingDraft}
           >
             {generatingDraft ? (
               <ActivityIndicator color={colors.background} />
             ) : (
-              <Text style={styles.submitButtonText}>Taslak Oluştur</Text>
+              <Text style={[styles.submitButtonText, submitButtonTextStyle]}>Taslak Oluştur</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputStyle]}
           placeholder="Vaka başlığı"
           placeholderTextColor={colors.textSecondary}
           value={title}
           onChangeText={setTitle}
         />
         <TextInput
-          style={[styles.input, styles.multiline]}
+          style={[styles.input, inputStyle, styles.multiline]}
           placeholder="Açıklama"
           placeholderTextColor={colors.textSecondary}
           value={description}
@@ -223,47 +237,47 @@ export function CreateCaseScreen() {
           multiline
         />
 
-        <Text style={styles.label}>İlgili yetkinlikler</Text>
+        <Text style={[styles.label, labelStyle]}>İlgili yetkinlikler</Text>
         <TagPicker selected={specialties} onChange={setSpecialties} />
 
         {STAGES.map((stage) => (
           <View key={stage.key} style={styles.stageSection}>
-            <Text style={styles.label}>{stage.label}</Text>
+            <Text style={[styles.label, labelStyle]}>{stage.label}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbnailRow}>
               {images
                 .map((image, index) => ({ image, index }))
                 .filter(({ image }) => image.stage === stage.key)
                 .map(({ image, index }) => (
                   <View key={image.storageKey} style={styles.thumbnailWrapper}>
-                    <Image source={{ uri: image.previewUri }} style={styles.thumbnail} />
-                    <TouchableOpacity style={styles.removeBadge} onPress={() => handleRemoveImage(index)}>
-                      <Text style={styles.removeBadgeText}>×</Text>
+                    <Image source={{ uri: image.previewUri }} style={[styles.thumbnail, thumbnailStyle]} />
+                    <TouchableOpacity style={[styles.removeBadge, removeBadgeStyle]} onPress={() => handleRemoveImage(index)}>
+                      <Text style={[styles.removeBadgeText, removeBadgeTextStyle]}>×</Text>
                     </TouchableOpacity>
                   </View>
                 ))}
               <TouchableOpacity
-                style={styles.addThumbnailButton}
+                style={[styles.addThumbnailButton, addThumbnailButtonStyle]}
                 onPress={() => handleAddImage(stage.key)}
                 disabled={uploadingStage !== null}
               >
                 {uploadingStage === stage.key ? (
                   <ActivityIndicator color={colors.textSecondary} />
                 ) : (
-                  <Text style={styles.addThumbnailText}>+ Ekle</Text>
+                  <Text style={[styles.addThumbnailText, addThumbnailTextStyle]}>+ Ekle</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
           </View>
         ))}
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+        {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}
+        {successMessage ? <Text style={[styles.success, successStyle]}>{successMessage}</Text> : null}
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={submitting}>
+        <TouchableOpacity style={[styles.submitButton, submitButtonStyle]} onPress={handleSubmit} disabled={submitting}>
           {submitting ? (
             <ActivityIndicator color={colors.background} />
           ) : (
-            <Text style={styles.submitButtonText}>Paylaş</Text>
+            <Text style={[styles.submitButtonText, submitButtonTextStyle]}>Paylaş</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -281,10 +295,8 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   aiDraftSection: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
@@ -292,11 +304,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   input: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
@@ -307,7 +316,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   label: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
@@ -327,7 +335,6 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: radii.sm,
-    backgroundColor: colors.surfaceElevated,
   },
   removeBadge: {
     position: "absolute",
@@ -336,12 +343,10 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: radii.pill,
-    backgroundColor: colors.danger,
     alignItems: "center",
     justifyContent: "center",
   },
   removeBadgeText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     lineHeight: typography.sizes.sm,
   },
@@ -350,34 +355,28 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: radii.sm,
     borderWidth: 1,
-    borderColor: colors.border,
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
   },
   addThumbnailText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
   error: {
-    color: colors.danger,
     marginTop: spacing.lg,
     textAlign: "center",
   },
   success: {
-    color: colors.success,
     marginTop: spacing.lg,
     textAlign: "center",
   },
   submitButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
     marginTop: spacing.lg,
   },
   submitButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },

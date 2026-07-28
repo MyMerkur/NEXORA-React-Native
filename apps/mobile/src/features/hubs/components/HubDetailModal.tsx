@@ -10,7 +10,8 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import {
   getHub,
@@ -32,6 +33,7 @@ interface HubDetailModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetailModalProps) {
+  const { colors } = useTheme();
   const [hub, setHub] = useState<HubItem | null>(null);
   const [posts, setPosts] = useState<HubPostItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -130,9 +132,9 @@ export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetai
   return (
     <ModalShell visible={hubId !== null} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>{hub?.name ?? "Hub"}</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>{hub?.name ?? "Hub"}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -142,22 +144,24 @@ export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetai
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
           ) : hub ? (
             <ScrollView style={styles.content}>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              {hub.description ? <Text style={styles.description}>{hub.description}</Text> : null}
-              <Text style={styles.metaText}>
+              {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+              {hub.description ? (
+                <Text style={[styles.description, { color: colors.textSecondary }]}>{hub.description}</Text>
+              ) : null}
+              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                 {hub.memberCount} üye · {hub.type === "paid" ? `₺${hub.price}/ay` : "Ücretsiz"}
               </Text>
 
               {!hub.isMember ? (
                 <TouchableOpacity
-                  style={styles.primaryButton}
+                  style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                   onPress={hub.type === "free" ? handleJoin : () => setCheckoutVisible(true)}
                   disabled={joining}
                 >
                   {joining ? (
                     <ActivityIndicator color={colors.background} />
                   ) : (
-                    <Text style={styles.primaryButtonText}>
+                    <Text style={[styles.primaryButtonText, { color: colors.background }]}>
                       {hub.type === "free" ? "Katıl" : `Üye Ol (₺${hub.price}/ay)`}
                     </Text>
                   )}
@@ -165,18 +169,26 @@ export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetai
               ) : (
                 <>
                   {!hub.isOwner ? (
-                    <TouchableOpacity style={styles.dangerButton} onPress={handleLeave} disabled={leaving}>
+                    <TouchableOpacity
+                      style={[styles.dangerButton, { borderColor: colors.danger }]}
+                      onPress={handleLeave}
+                      disabled={leaving}
+                    >
                       {leaving ? (
                         <ActivityIndicator color={colors.danger} />
                       ) : (
-                        <Text style={styles.dangerButtonText}>Hub'dan Ayrıl</Text>
+                        <Text style={[styles.dangerButtonText, { color: colors.danger }]}>Hub'dan Ayrıl</Text>
                       )}
                     </TouchableOpacity>
                   ) : null}
 
                   <View style={styles.postForm}>
                     <TextInput
-                      style={[styles.input, styles.multiline]}
+                      style={[
+                        styles.input,
+                        styles.multiline,
+                        { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                      ]}
                       placeholder="Hub'da bir şeyler paylaş…"
                       placeholderTextColor={colors.textSecondary}
                       value={newPostText}
@@ -184,25 +196,27 @@ export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetai
                       multiline
                     />
                     <TouchableOpacity
-                      style={styles.primaryButton}
+                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                       onPress={handlePost}
                       disabled={posting || newPostText.trim().length === 0}
                     >
                       {posting ? (
                         <ActivityIndicator color={colors.background} />
                       ) : (
-                        <Text style={styles.primaryButtonText}>Paylaş</Text>
+                        <Text style={[styles.primaryButtonText, { color: colors.background }]}>Paylaş</Text>
                       )}
                     </TouchableOpacity>
                   </View>
 
                   {posts.length === 0 ? (
-                    <Text style={styles.emptyText}>Henüz gönderi yok.</Text>
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz gönderi yok.</Text>
                   ) : (
                     posts.map((post) => (
-                      <View key={post.id} style={styles.card}>
-                        <Text style={styles.cardSubtitle}>{post.author.displayName}</Text>
-                        <Text style={styles.cardBody}>{post.text}</Text>
+                      <View key={post.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                          {post.author.displayName}
+                        </Text>
+                        <Text style={[styles.cardBody, { color: colors.textPrimary }]}>{post.text}</Text>
                       </View>
                     ))
                   )}
@@ -222,13 +236,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     flexShrink: 1,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
@@ -238,28 +250,23 @@ const styles = StyleSheet.create({
     maxHeight: "100%",
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   description: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.sm,
   },
   metaText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginBottom: spacing.md,
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
     marginTop: spacing.sm,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
@@ -269,10 +276,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.danger,
   },
   dangerButtonText: {
-    color: colors.danger,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -281,11 +286,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   input: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     fontSize: typography.sizes.md,
@@ -295,24 +297,20 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardSubtitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginBottom: spacing.xs,
   },
   cardBody: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
   },
 });

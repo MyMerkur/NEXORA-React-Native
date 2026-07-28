@@ -10,12 +10,13 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
 import { getJobApplications, updateApplicationStatus, type JobApplicantItem, type JobItem } from "../../../services/jobApi";
 import { statusColor, statusLabel } from "../statusStyles";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { UserProfileModal } from "../../profiles/components/UserProfileModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 interface ApplicantsModalProps {
   visible: boolean;
@@ -26,6 +27,7 @@ interface ApplicantsModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "80%" };
 
 export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps) {
+  const { colors } = useTheme();
   const [applicants, setApplicants] = useState<JobApplicantItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,9 +63,9 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
     <>
       <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>{job?.title ?? ""}</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>{job?.title ?? ""}</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -71,41 +73,47 @@ export function ApplicantsModal({ visible, job, onClose }: ApplicantsModalProps)
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
           ) : (
             <ScrollView>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
-              {applicants.length === 0 ? <Text style={styles.emptyText}>Henüz başvuru yok</Text> : null}
+              {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+              {applicants.length === 0 ? (
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz başvuru yok</Text>
+              ) : null}
               {applicants.map((applicant) => (
-                <View key={applicant.id} style={styles.row}>
+                <View key={applicant.id} style={[styles.row, { borderTopColor: colors.border }]}>
                   {applicant.applicant.avatarUrl ? (
                     <Image source={{ uri: applicant.applicant.avatarUrl }} style={styles.avatar} />
                   ) : (
-                    <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                    <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
                   )}
                   <View style={styles.rowContent}>
                     <TouchableOpacity onPress={() => setProfileTargetId(applicant.applicant.id)}>
-                      <Text style={styles.applicantName}>{applicant.applicant.displayName}</Text>
+                      <Text style={[styles.applicantName, { color: colors.textPrimary }]}>
+                        {applicant.applicant.displayName}
+                      </Text>
                     </TouchableOpacity>
-                    {applicant.message ? <Text style={styles.message}>{applicant.message}</Text> : null}
+                    {applicant.message ? (
+                      <Text style={[styles.message, { color: colors.textSecondary }]}>{applicant.message}</Text>
+                    ) : null}
                     <Text style={[styles.status, { color: statusColor(applicant.status) }]}>
                       {statusLabel(applicant.status)}
                     </Text>
                     <TouchableOpacity onPress={() => setMessageTargetId(applicant.applicant.id)}>
-                      <Text style={styles.messageLink}>Mesaj Gönder</Text>
+                      <Text style={[styles.messageLink, { color: colors.accentGold }]}>Mesaj Gönder</Text>
                     </TouchableOpacity>
                     {applicant.status === "pending" ? (
                       <View style={styles.decisionRow}>
                         <TouchableOpacity
-                          style={styles.acceptButton}
+                          style={[styles.acceptButton, { backgroundColor: colors.success }]}
                           onPress={() => handleDecision(applicant.id, "accepted")}
                           disabled={updatingId === applicant.id}
                         >
-                          <Text style={styles.acceptButtonText}>Onayla</Text>
+                          <Text style={[styles.acceptButtonText, { color: colors.background }]}>Onayla</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={styles.rejectButton}
+                          style={[styles.rejectButton, { borderColor: colors.danger }]}
                           onPress={() => handleDecision(applicant.id, "rejected")}
                           disabled={updatingId === applicant.id}
                         >
-                          <Text style={styles.rejectButtonText}>Reddet</Text>
+                          <Text style={[styles.rejectButtonText, { color: colors.danger }]}>Reddet</Text>
                         </TouchableOpacity>
                       </View>
                     ) : null}
@@ -136,31 +144,26 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     flexShrink: 1,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   emptyText: {
-    color: colors.textSecondary,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   row: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingVertical: spacing.md,
   },
   avatar: {
@@ -169,19 +172,14 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     marginRight: spacing.sm,
   },
-  avatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
-  },
   rowContent: {
     flex: 1,
   },
   applicantName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
   },
   message: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
@@ -191,7 +189,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
   },
   messageLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     marginTop: spacing.xs,
@@ -205,10 +202,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.success,
   },
   acceptButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -217,10 +212,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 1,
-    borderColor: colors.danger,
   },
   rejectButtonText: {
-    color: colors.danger,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },

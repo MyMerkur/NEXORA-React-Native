@@ -10,13 +10,14 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { ModalShell } from "../../../components/ModalShell";
 import { getCandidateSwipeFeed, swipeCandidate, type SwipeCandidateCard } from "../../../services/matchingApi";
 import type { JobItem } from "../../../services/jobApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
 import { SwipeCard } from "./SwipeCard";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 interface CandidateSwipeModalProps {
   visible: boolean;
@@ -27,6 +28,7 @@ interface CandidateSwipeModalProps {
 const SHEET_HEIGHT: ViewStyle = { height: "80%" };
 
 export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeModalProps) {
+  const { colors } = useTheme();
   const [deck, setDeck] = useState<SwipeCandidateCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,15 +82,15 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
     <>
       <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
               {job?.title ?? ""} — Adaylar
             </Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {loading ? (
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
@@ -102,17 +104,19 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
                 {current.avatarUrl ? (
                   <Image source={{ uri: current.avatarUrl }} style={styles.avatar} />
                 ) : (
-                  <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                  <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
                 )}
-                <Text style={styles.candidateName}>{current.displayName}</Text>
+                <Text style={[styles.candidateName, { color: colors.textPrimary }]}>{current.displayName}</Text>
                 {current.experienceYears != null ? (
-                  <Text style={styles.experience}>{current.experienceYears} yıl deneyim</Text>
+                  <Text style={[styles.experience, { color: colors.textSecondary }]}>
+                    {current.experienceYears} yıl deneyim
+                  </Text>
                 ) : null}
                 {current.desiredPositions.length > 0 ? (
                   <View style={styles.tagRow}>
                     {current.desiredPositions.map((tag) => (
-                      <View key={tag} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag}</Text>
+                      <View key={tag} style={[styles.tag, { borderColor: colors.border }]}>
+                        <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
                       </View>
                     ))}
                   </View>
@@ -121,9 +125,9 @@ export function CandidateSwipeModal({ visible, job, onClose }: CandidateSwipeMod
             </View>
           ) : (
             <View style={styles.centered}>
-              <Text style={styles.emptyText}>Şu an gösterilecek yeni aday yok</Text>
-              <TouchableOpacity style={styles.refreshButton} onPress={load}>
-                <Text style={styles.refreshButtonText}>Yenile</Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Şu an gösterilecek yeni aday yok</Text>
+              <TouchableOpacity style={[styles.refreshButton, { borderColor: colors.accentGold }]} onPress={load}>
+                <Text style={[styles.refreshButtonText, { color: colors.accentGold }]}>Yenile</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -142,20 +146,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     flexShrink: 1,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   deckArea: {
@@ -167,7 +168,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
     textAlign: "center",
     marginBottom: spacing.md,
@@ -177,10 +177,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   refreshButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -191,17 +189,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: spacing.md,
   },
-  avatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
-  },
   candidateName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
     textAlign: "center",
   },
   experience: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
     marginTop: spacing.xs,
@@ -218,10 +211,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   tagText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
 });

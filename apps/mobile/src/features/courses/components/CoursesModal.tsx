@@ -13,7 +13,8 @@ import {
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import {
   createCourse,
@@ -45,6 +46,7 @@ const STATUS_LABELS: Record<"enrolled" | "completed", string> = {
 };
 
 export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalProps) {
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<CoursesTab>("browse");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -156,39 +158,69 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
     }
   }
 
+  const activeTabBorderStyle = { borderBottomColor: colors.accentGold };
+  const activeTabTextStyle = { color: colors.accentGold };
+
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>🎓 Kurslar</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>🎓 Kurslar</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tabBar}>
+          <View style={[styles.tabBar, { borderBottomColor: colors.border }]}>
             <TouchableOpacity
-              style={[styles.tabButton, activeTab === "browse" && styles.tabButtonActive]}
+              style={[styles.tabButton, activeTab === "browse" && activeTabBorderStyle]}
               onPress={() => setActiveTab("browse")}
             >
-              <Text style={[styles.tabText, activeTab === "browse" && styles.tabTextActive]}>Kurslar</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: colors.textSecondary },
+                  activeTab === "browse" && styles.tabTextActive,
+                  activeTab === "browse" && activeTabTextStyle,
+                ]}
+              >
+                Kurslar
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.tabButton, activeTab === "mine" && styles.tabButtonActive]}
+              style={[styles.tabButton, activeTab === "mine" && activeTabBorderStyle]}
               onPress={() => setActiveTab("mine")}
             >
-              <Text style={[styles.tabText, activeTab === "mine" && styles.tabTextActive]}>Kayıtlarım</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: colors.textSecondary },
+                  activeTab === "mine" && styles.tabTextActive,
+                  activeTab === "mine" && activeTabTextStyle,
+                ]}
+              >
+                Kayıtlarım
+              </Text>
             </TouchableOpacity>
             {isInstructor ? (
               <TouchableOpacity
-                style={[styles.tabButton, activeTab === "manage" && styles.tabButtonActive]}
+                style={[styles.tabButton, activeTab === "manage" && activeTabBorderStyle]}
                 onPress={() => setActiveTab("manage")}
               >
-                <Text style={[styles.tabText, activeTab === "manage" && styles.tabTextActive]}>Yönettiklerim</Text>
+                <Text
+                  style={[
+                    styles.tabText,
+                    { color: colors.textSecondary },
+                    activeTab === "manage" && styles.tabTextActive,
+                    activeTab === "manage" && activeTabTextStyle,
+                  ]}
+                >
+                  Yönettiklerim
+                </Text>
               </TouchableOpacity>
             ) : null}
           </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {loading ? (
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
@@ -196,22 +228,26 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
             <ScrollView style={styles.content}>
               {activeTab === "browse" ? (
                 courses.length === 0 ? (
-                  <Text style={styles.emptyText}>Henüz kurs yok.</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz kurs yok.</Text>
                 ) : (
                   courses.map((course) => (
-                    <View key={course.id} style={styles.card}>
-                      <Text style={styles.cardTitle}>{course.title}</Text>
-                      <Text style={styles.cardSubtitle}>{course.instructor.displayName}</Text>
-                      {course.description ? <Text style={styles.cardBody}>{course.description}</Text> : null}
+                    <View key={course.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{course.title}</Text>
+                      <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                        {course.instructor.displayName}
+                      </Text>
+                      {course.description ? (
+                        <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{course.description}</Text>
+                      ) : null}
                       <TouchableOpacity
-                        style={styles.primaryButton}
+                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                         onPress={() => handleEnroll(course.id)}
                         disabled={enrollingCourseId === course.id}
                       >
                         {enrollingCourseId === course.id ? (
                           <ActivityIndicator color={colors.background} />
                         ) : (
-                          <Text style={styles.primaryButtonText}>Katıl</Text>
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Katıl</Text>
                         )}
                       </TouchableOpacity>
                     </View>
@@ -221,20 +257,27 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
 
               {activeTab === "mine" ? (
                 enrollments.length === 0 ? (
-                  <Text style={styles.emptyText}>Henüz bir kursa kayıtlı değilsiniz.</Text>
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                    Henüz bir kursa kayıtlı değilsiniz.
+                  </Text>
                 ) : (
                   enrollments.map((enrollment) => (
-                    <View key={enrollment.id} style={styles.card}>
-                      <Text style={styles.cardTitle}>{enrollment.course.title}</Text>
-                      <Text style={styles.cardSubtitle}>{STATUS_LABELS[enrollment.status]}</Text>
+                    <View key={enrollment.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{enrollment.course.title}</Text>
+                      <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                        {STATUS_LABELS[enrollment.status]}
+                      </Text>
                       {enrollment.certificate ? (
                         <View style={styles.certificateBlock}>
-                          <Image source={{ uri: enrollment.certificate.qrCodeDataUrl }} style={styles.qrImage} />
+                          <Image
+                            source={{ uri: enrollment.certificate.qrCodeDataUrl }}
+                            style={[styles.qrImage, { backgroundColor: colors.surface }]}
+                          />
                           <TouchableOpacity
-                            style={styles.secondaryButton}
+                            style={[styles.secondaryButton, { borderColor: colors.accentGold }]}
                             onPress={() => handleShareCertificate(enrollment.certificate!.verificationUrl)}
                           >
-                            <Text style={styles.secondaryButtonText}>Paylaş</Text>
+                            <Text style={[styles.secondaryButtonText, { color: colors.accentGold }]}>Paylaş</Text>
                           </TouchableOpacity>
                         </View>
                       ) : null}
@@ -247,25 +290,31 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                 selectedCourseId ? (
                   <View>
                     <TouchableOpacity onPress={() => setSelectedCourseId(null)}>
-                      <Text style={styles.backLink}>{"< Geri"}</Text>
+                      <Text style={[styles.backLink, { color: colors.accentGold }]}>{"< Geri"}</Text>
                     </TouchableOpacity>
                     {participants.length === 0 ? (
-                      <Text style={styles.emptyText}>Henüz katılımcı yok.</Text>
+                      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz katılımcı yok.</Text>
                     ) : (
                       participants.map((participant) => (
-                        <View key={participant.id} style={styles.card}>
-                          <Text style={styles.cardTitle}>{participant.participant.displayName}</Text>
-                          <Text style={styles.cardSubtitle}>{STATUS_LABELS[participant.status]}</Text>
+                        <View key={participant.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
+                            {participant.participant.displayName}
+                          </Text>
+                          <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                            {STATUS_LABELS[participant.status]}
+                          </Text>
                           {participant.status === "enrolled" ? (
                             <TouchableOpacity
-                              style={styles.primaryButton}
+                              style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                               onPress={() => handleComplete(participant.id)}
                               disabled={completingId === participant.id}
                             >
                               {completingId === participant.id ? (
                                 <ActivityIndicator color={colors.background} />
                               ) : (
-                                <Text style={styles.primaryButtonText}>Tamamlandı İşaretle</Text>
+                                <Text style={[styles.primaryButtonText, { color: colors.background }]}>
+                                  Tamamlandı İşaretle
+                                </Text>
                               )}
                             </TouchableOpacity>
                           ) : null}
@@ -275,17 +324,24 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                   </View>
                 ) : (
                   <View>
-                    <View style={styles.card}>
-                      <Text style={styles.cardTitle}>+ Kurs Oluştur</Text>
+                    <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>+ Kurs Oluştur</Text>
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Kurs başlığı"
                         placeholderTextColor={colors.textSecondary}
                         value={newTitle}
                         onChangeText={setNewTitle}
                       />
                       <TextInput
-                        style={[styles.input, styles.multiline]}
+                        style={[
+                          styles.input,
+                          styles.multiline,
+                          { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Açıklama (opsiyonel)"
                         placeholderTextColor={colors.textSecondary}
                         value={newDescription}
@@ -294,14 +350,14 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                       />
                       <TagPicker selected={newSpecialties} onChange={setNewSpecialties} />
                       <TouchableOpacity
-                        style={styles.primaryButton}
+                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                         onPress={handleCreateCourse}
                         disabled={newTitle.length < 3 || creating}
                       >
                         {creating ? (
                           <ActivityIndicator color={colors.background} />
                         ) : (
-                          <Text style={styles.primaryButtonText}>Oluştur</Text>
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Oluştur</Text>
                         )}
                       </TouchableOpacity>
                     </View>
@@ -309,10 +365,10 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
                     {myCourses.map((course) => (
                       <TouchableOpacity
                         key={course.id}
-                        style={styles.card}
+                        style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
                         onPress={() => handleSelectCourseToManage(course.id)}
                       >
-                        <Text style={styles.cardTitle}>{course.title}</Text>
+                        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{course.title}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -332,18 +388,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   tabBar: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     marginBottom: spacing.sm,
   },
   tabButton: {
@@ -353,16 +406,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "transparent",
   },
-  tabButtonActive: {
-    borderBottomColor: colors.accentGold,
-  },
   tabText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   tabTextActive: {
-    color: colors.accentGold,
     fontWeight: typography.weights.semibold,
   },
   loader: {
@@ -372,42 +420,33 @@ const styles = StyleSheet.create({
     maxHeight: "100%",
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     textAlign: "center",
     marginVertical: spacing.lg,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   cardSubtitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
   cardBody: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
   input: {
-    backgroundColor: colors.surface,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginTop: spacing.sm,
@@ -418,14 +457,12 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
     marginTop: spacing.sm,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -434,11 +471,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accentGold,
     alignSelf: "flex-start",
   },
   secondaryButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -450,11 +485,9 @@ const styles = StyleSheet.create({
   qrImage: {
     width: 120,
     height: 120,
-    backgroundColor: colors.surface,
     borderRadius: radii.sm,
   },
   backLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.sm,
   },

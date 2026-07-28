@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
 import { CheckoutWebView } from "./CheckoutWebView";
@@ -25,6 +26,7 @@ const STATUS_LABELS: Record<SubscriptionSummary["status"], string> = {
 };
 
 export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) {
+  const { colors } = useTheme();
   const [summary, setSummary] = useState<SubscriptionSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [canceling, setCanceling] = useState(false);
@@ -71,9 +73,9 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>Aboneliğim</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>Aboneliğim</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -83,28 +85,37 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
           ) : (
             <View style={styles.content}>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
               {summary ? (
                 <>
-                  <Text style={styles.statusLabel}>{STATUS_LABELS[summary.status]}</Text>
+                  <Text style={[styles.statusLabel, { color: colors.textPrimary }]}>
+                    {STATUS_LABELS[summary.status]}
+                  </Text>
                   {summary.status === "active" && summary.currentPeriodEnd ? (
-                    <Text style={styles.periodText}>
+                    <Text style={[styles.periodText, { color: colors.textSecondary }]}>
                       Yenilenme tarihi: {new Date(summary.currentPeriodEnd).toLocaleDateString("tr-TR")}
                     </Text>
                   ) : null}
 
                   {summary.status === "active" ? (
-                    <TouchableOpacity style={styles.dangerButton} onPress={handleCancel} disabled={canceling}>
+                    <TouchableOpacity
+                      style={[styles.dangerButton, { borderColor: colors.danger }]}
+                      onPress={handleCancel}
+                      disabled={canceling}
+                    >
                       {canceling ? (
                         <ActivityIndicator color={colors.danger} />
                       ) : (
-                        <Text style={styles.dangerButtonText}>İptal Et</Text>
+                        <Text style={[styles.dangerButtonText, { color: colors.danger }]}>İptal Et</Text>
                       )}
                     </TouchableOpacity>
                   ) : (
-                    <TouchableOpacity style={styles.primaryButton} onPress={() => setCheckoutVisible(true)}>
-                      <Text style={styles.primaryButtonText}>Abone Ol</Text>
+                    <TouchableOpacity
+                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                      onPress={() => setCheckoutVisible(true)}
+                    >
+                      <Text style={[styles.primaryButtonText, { color: colors.background }]}>Abone Ol</Text>
                     </TouchableOpacity>
                   )}
                 </>
@@ -123,12 +134,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
@@ -138,29 +147,24 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   statusLabel: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
     marginBottom: spacing.xs,
   },
   periodText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
     marginTop: spacing.md,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
@@ -170,10 +174,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing.md,
     borderWidth: 1,
-    borderColor: colors.danger,
   },
   dangerButtonText: {
-    color: colors.danger,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },

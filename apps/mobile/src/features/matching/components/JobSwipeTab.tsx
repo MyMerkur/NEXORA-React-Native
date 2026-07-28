@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { getJobSwipeFeed, swipeJob, type SwipeJobCard } from "../../../services/matchingApi";
 import type { ThreadContextType } from "../../../services/inboxApi";
 import { SwipeCard } from "./SwipeCard";
 import { InboxModal } from "../../inbox/components/InboxModal";
+import { useTheme } from "../../../store/useThemeStore";
 
 export function JobSwipeTab() {
+  const { colors } = useTheme();
   const [deck, setDeck] = useState<SwipeJobCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,9 +61,11 @@ export function JobSwipeTab() {
   if (!current) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyText}>{error ?? "Şu an gösterilecek yeni ilan yok"}</Text>
-        <TouchableOpacity style={styles.refreshButton} onPress={load}>
-          <Text style={styles.refreshButtonText}>Yenile</Text>
+        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+          {error ?? "Şu an gösterilecek yeni ilan yok"}
+        </Text>
+        <TouchableOpacity style={[styles.refreshButton, { borderColor: colors.accentGold }]} onPress={load}>
+          <Text style={[styles.refreshButtonText, { color: colors.accentGold }]}>Yenile</Text>
         </TouchableOpacity>
       </View>
     );
@@ -74,19 +78,21 @@ export function JobSwipeTab() {
         onSwipeLeft={() => handleSwipe(current, "left")}
         onSwipeRight={() => handleSwipe(current, "right")}
       >
-        <Text style={styles.title}>{current.title}</Text>
-        <Text style={styles.employer}>{current.employer.displayName}</Text>
-        {current.location ? <Text style={styles.location}>{current.location}</Text> : null}
+        <Text style={[styles.title, { color: colors.textPrimary }]}>{current.title}</Text>
+        <Text style={[styles.employer, { color: colors.accentGold }]}>{current.employer.displayName}</Text>
+        {current.location ? (
+          <Text style={[styles.location, { color: colors.textSecondary }]}>{current.location}</Text>
+        ) : null}
         {current.description ? (
-          <Text style={styles.description} numberOfLines={6}>
+          <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={6}>
             {current.description}
           </Text>
         ) : null}
         {current.specialties.length > 0 ? (
           <View style={styles.tagRow}>
             {current.specialties.map((tag) => (
-              <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
+              <View key={tag} style={[styles.tag, { borderColor: colors.border }]}>
+                <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -109,7 +115,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.md,
     textAlign: "center",
     marginBottom: spacing.md,
@@ -119,31 +124,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.accentGold,
   },
   refreshButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
   },
   employer: {
-    color: colors.accentGold,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
     marginTop: spacing.xs,
   },
   location: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   description: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.md,
   },
@@ -158,10 +157,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   tagText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
 });

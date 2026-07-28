@@ -12,7 +12,8 @@ import {
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { EMPLOYER_ROLES } from "@nexora/shared-constants";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography, type ThemeColors } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import {
   getOrgProfile,
@@ -50,7 +51,12 @@ interface OrgProfileModalProps {
 
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
+function getVerifiedBadgeColor(isVerified: boolean, colors: ThemeColors): string {
+  return isVerified ? colors.success : colors.textSecondary;
+}
+
 export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModalProps) {
+  const { colors } = useTheme();
   const [profile, setProfile] = useState<OrgProfile | null>(null);
   const [reviews, setReviews] = useState<OrgReview[]>([]);
   const [loading, setLoading] = useState(false);
@@ -268,18 +274,29 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
     }
   }
 
+  const monthlyIntervalActive = newDuesInterval === "MONTHLY";
+  const yearlyIntervalActive = newDuesInterval === "YEARLY";
+  const monthlyButtonStyle = monthlyIntervalActive
+    ? { borderColor: colors.accentGold, backgroundColor: colors.surfaceElevated }
+    : { borderColor: colors.border };
+  const yearlyButtonStyle = yearlyIntervalActive
+    ? { borderColor: colors.accentGold, backgroundColor: colors.surfaceElevated }
+    : { borderColor: colors.border };
+  const monthlyTextColor = monthlyIntervalActive ? colors.accentGold : colors.textSecondary;
+  const yearlyTextColor = yearlyIntervalActive ? colors.accentGold : colors.textSecondary;
+
   return (
     <>
       <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Kurum Vitrini</Text>
+            <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>Kurum Vitrini</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, { color: colors.accentGold }]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
           {loading ? <ActivityIndicator color={colors.accentGold} style={styles.loader} /> : null}
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {duesCheckoutVisible && orgUserId ? (
             <OrgDuesCheckoutWebView orgId={orgUserId} onDone={handleDuesCheckoutDone} />
@@ -289,17 +306,19 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                 {profile.avatarUrl ? (
                   <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
                 ) : (
-                  <View style={[styles.avatar, styles.avatarPlaceholder]} />
+                  <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
                 )}
                 <View style={styles.profileHeaderText}>
-                  <Text style={styles.displayName}>{profile.displayName}</Text>
-                  {profile.workplace ? <Text style={styles.workplace}>{profile.workplace}</Text> : null}
+                  <Text style={[styles.displayName, { color: colors.textPrimary }]}>{profile.displayName}</Text>
+                  {profile.workplace ? (
+                    <Text style={[styles.workplace, { color: colors.textSecondary }]}>{profile.workplace}</Text>
+                  ) : null}
                   <Text
-                    style={[styles.verifiedBadge, profile.isVerifiedOrg ? styles.verifiedTrue : styles.verifiedFalse]}
+                    style={[styles.verifiedBadge, { color: getVerifiedBadgeColor(profile.isVerifiedOrg, colors) }]}
                   >
                     {profile.isVerifiedOrg ? "✅ Doğrulanmış Kurum" : "⚠️ Doğrulanmamış Kurum"}
                   </Text>
-                  <Text style={styles.ratingSummary}>
+                  <Text style={[styles.ratingSummary, { color: colors.textSecondary }]}>
                     {profile.rating.count > 0
                       ? `⭐ ${profile.rating.average} (${profile.rating.count} değerlendirme)`
                       : "Henüz değerlendirme yok"}
@@ -307,73 +326,88 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                 </View>
               </View>
 
-              {profile.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+              {profile.bio ? <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text> : null}
 
               {profile.id !== currentUser?.id ? (
-                <TouchableOpacity style={styles.messageButton} onPress={() => setMessageVisible(true)}>
-                  <Text style={styles.messageButtonText}>Mesaj Gönder</Text>
+                <TouchableOpacity
+                  style={[styles.messageButton, { backgroundColor: colors.accentGold }]}
+                  onPress={() => setMessageVisible(true)}
+                >
+                  <Text style={[styles.messageButtonText, { color: colors.background }]}>Mesaj Gönder</Text>
                 </TouchableOpacity>
               ) : null}
 
               {canRate ? (
                 <View style={styles.rateSection}>
-                  <Text style={styles.sectionTitle}>Değerlendir</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Değerlendir</Text>
                   <View style={styles.starRow}>
                     {[1, 2, 3, 4, 5].map((value) => (
                       <TouchableOpacity key={value} onPress={() => handleRate(value)} disabled={ratingSaving}>
-                        <Text style={styles.star}>{value <= selectedRating ? "★" : "☆"}</Text>
+                        <Text style={[styles.star, { color: colors.accentGold }]}>
+                          {value <= selectedRating ? "★" : "☆"}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 </View>
               ) : null}
 
-              <Text style={styles.sectionTitle}>Değerlendirmeler ({reviews.length})</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                Değerlendirmeler ({reviews.length})
+              </Text>
               {reviews.length === 0 ? (
-                <Text style={styles.emptyText}>Henüz değerlendirme yok</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz değerlendirme yok</Text>
               ) : (
                 reviews.map((review) => (
-                  <View key={review.id} style={styles.reviewRow}>
-                    <Text style={styles.reviewAuthor}>
+                  <View key={review.id} style={[styles.reviewRow, { borderTopColor: colors.border }]}>
+                    <Text style={[styles.reviewAuthor, { color: colors.textPrimary }]}>
                       {review.author.displayName} — {"★".repeat(review.rating)}
                       {"☆".repeat(5 - review.rating)}
                     </Text>
-                    {review.comment ? <Text style={styles.reviewComment}>{review.comment}</Text> : null}
+                    {review.comment ? (
+                      <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>{review.comment}</Text>
+                    ) : null}
                   </View>
                 ))
               )}
 
-              <Text style={styles.sectionTitle}>Ekip ({profile.team.length})</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Ekip ({profile.team.length})</Text>
               {profile.team.length === 0 ? (
-                <Text style={styles.emptyText}>Henüz ekip üyesi eklenmemiş</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz ekip üyesi eklenmemiş</Text>
               ) : (
                 profile.team.map((member) => (
                   <View key={member.id} style={styles.teamRow}>
                     {member.avatarUrl ? (
                       <Image source={{ uri: member.avatarUrl }} style={styles.teamAvatar} />
                     ) : (
-                      <View style={[styles.teamAvatar, styles.avatarPlaceholder]} />
+                      <View style={[styles.teamAvatar, { backgroundColor: colors.surfaceElevated }]} />
                     )}
-                    <Text style={styles.teamName}>{member.displayName}</Text>
+                    <Text style={[styles.teamName, { color: colors.textPrimary }]}>{member.displayName}</Text>
                   </View>
                 ))
               )}
 
-              <Text style={styles.sectionTitle}>Açık İlanlar ({profile.openJobs.length})</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                Açık İlanlar ({profile.openJobs.length})
+              </Text>
               {profile.openJobs.length === 0 ? (
-                <Text style={styles.emptyText}>Açık ilan yok</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Açık ilan yok</Text>
               ) : (
                 profile.openJobs.map((job) => (
                   <View key={job.id} style={styles.jobRow}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    {job.location ? <Text style={styles.jobLocation}>{job.location}</Text> : null}
+                    <Text style={[styles.jobTitle, { color: colors.textPrimary }]}>{job.title}</Text>
+                    {job.location ? (
+                      <Text style={[styles.jobLocation, { color: colors.textSecondary }]}>{job.location}</Text>
+                    ) : null}
                   </View>
                 ))
               )}
 
-              <Text style={styles.sectionTitle}>Vakalar ({profile.recentCases.length})</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                Vakalar ({profile.recentCases.length})
+              </Text>
               {profile.recentCases.length === 0 ? (
-                <Text style={styles.emptyText}>Henüz paylaşılan vaka yok</Text>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz paylaşılan vaka yok</Text>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.caseRow}>
                   {profile.recentCases.map((item) => (
@@ -381,9 +415,9 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                       {item.imageUrl ? (
                         <Image source={{ uri: item.imageUrl }} style={styles.caseImage} />
                       ) : (
-                        <View style={[styles.caseImage, styles.avatarPlaceholder]} />
+                        <View style={[styles.caseImage, { backgroundColor: colors.surfaceElevated }]} />
                       )}
-                      <Text style={styles.caseTitle} numberOfLines={2}>
+                      <Text style={[styles.caseTitle, { color: colors.textSecondary }]} numberOfLines={2}>
                         {item.title}
                       </Text>
                     </View>
@@ -393,20 +427,31 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
 
               {profile.role === "dernek" ? (
                 <>
-                  {communityError ? <Text style={styles.error}>{communityError}</Text> : null}
+                  {communityError ? (
+                    <Text style={[styles.error, { color: colors.danger }]}>{communityError}</Text>
+                  ) : null}
 
-                  <Text style={styles.sectionTitle}>Duyurular ({announcements.length})</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                    Duyurular ({announcements.length})
+                  </Text>
                   {isOwnProfile ? (
                     <View style={styles.communityForm}>
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Duyuru başlığı"
                         placeholderTextColor={colors.textSecondary}
                         value={newAnnouncementTitle}
                         onChangeText={setNewAnnouncementTitle}
                       />
                       <TextInput
-                        style={[styles.input, styles.multiline]}
+                        style={[
+                          styles.input,
+                          styles.multiline,
+                          { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Duyuru içeriği"
                         placeholderTextColor={colors.textSecondary}
                         value={newAnnouncementBody}
@@ -414,34 +459,37 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                         multiline
                       />
                       <TouchableOpacity
-                        style={styles.primaryButton}
+                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                         onPress={handleCreateAnnouncement}
                         disabled={creatingAnnouncement || newAnnouncementTitle.trim().length === 0 || newAnnouncementBody.trim().length === 0}
                       >
                         {creatingAnnouncement ? (
                           <ActivityIndicator color={colors.background} />
                         ) : (
-                          <Text style={styles.primaryButtonText}>Duyuru Paylaş</Text>
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Duyuru Paylaş</Text>
                         )}
                       </TouchableOpacity>
                     </View>
                   ) : null}
                   {announcements.length === 0 ? (
-                    <Text style={styles.emptyText}>Henüz duyuru yok</Text>
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz duyuru yok</Text>
                   ) : (
                     announcements.map((announcement) => (
-                      <View key={announcement.id} style={styles.reviewRow}>
-                        <Text style={styles.reviewAuthor}>{announcement.title}</Text>
-                        <Text style={styles.reviewComment}>{announcement.body}</Text>
+                      <View key={announcement.id} style={[styles.reviewRow, { borderTopColor: colors.border }]}>
+                        <Text style={[styles.reviewAuthor, { color: colors.textPrimary }]}>{announcement.title}</Text>
+                        <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>{announcement.body}</Text>
                       </View>
                     ))
                   )}
 
-                  <Text style={styles.sectionTitle}>Oylamalar ({votes.length})</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Oylamalar ({votes.length})</Text>
                   {isOwnProfile ? (
                     <View style={styles.communityForm}>
                       <TextInput
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                        ]}
                         placeholder="Oylama sorusu"
                         placeholderTextColor={colors.textSecondary}
                         value={newVoteQuestion}
@@ -450,7 +498,10 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                       {newVoteOptions.map((option, index) => (
                         <TextInput
                           key={index}
-                          style={styles.input}
+                          style={[
+                            styles.input,
+                            { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                          ]}
                           placeholder={`Seçenek ${index + 1}`}
                           placeholderTextColor={colors.textSecondary}
                           value={option}
@@ -460,54 +511,56 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                         />
                       ))}
                       <TouchableOpacity onPress={() => setNewVoteOptions((current) => [...current, ""])}>
-                        <Text style={styles.backLink}>+ Seçenek Ekle</Text>
+                        <Text style={[styles.backLink, { color: colors.accentGold }]}>+ Seçenek Ekle</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.primaryButton}
+                        style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                         onPress={handleCreateVote}
                         disabled={creatingVote || newVoteQuestion.trim().length === 0}
                       >
                         {creatingVote ? (
                           <ActivityIndicator color={colors.background} />
                         ) : (
-                          <Text style={styles.primaryButtonText}>Oylama Aç</Text>
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Oylama Aç</Text>
                         )}
                       </TouchableOpacity>
                     </View>
                   ) : null}
                   {votes.length === 0 ? (
-                    <Text style={styles.emptyText}>Henüz oylama yok</Text>
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz oylama yok</Text>
                   ) : (
                     votes.map((vote) => (
-                      <View key={vote.id} style={styles.card}>
-                        <Text style={styles.cardTitle}>{vote.question}</Text>
-                        <Text style={styles.cardSubtitle}>{vote.status === "open" ? "Açık" : "Kapalı"}</Text>
+                      <View key={vote.id} style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+                        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{vote.question}</Text>
+                        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                          {vote.status === "open" ? "Açık" : "Kapalı"}
+                        </Text>
                         {vote.results.map((result, index) => (
                           <View key={index} style={styles.voteOptionRow}>
-                            <Text style={styles.voteOptionText}>
+                            <Text style={[styles.voteOptionText, { color: colors.textPrimary }]}>
                               {result.option} — {result.count} oy{vote.myOptionIndex === index ? " (Sizin oyunuz)" : ""}
                             </Text>
                             {vote.status === "open" && vote.myOptionIndex === null ? (
                               <TouchableOpacity
-                                style={styles.secondaryButton}
+                                style={[styles.secondaryButton, { borderColor: colors.accentGold }]}
                                 onPress={() => handleCastBallot(vote.id, index)}
                                 disabled={castingVoteId === vote.id}
                               >
-                                <Text style={styles.secondaryButtonText}>Oy Ver</Text>
+                                <Text style={[styles.secondaryButtonText, { color: colors.accentGold }]}>Oy Ver</Text>
                               </TouchableOpacity>
                             ) : null}
                           </View>
                         ))}
                         {isOwnProfile && vote.status === "open" ? (
                           <TouchableOpacity
-                            style={styles.dangerButton}
+                            style={[styles.dangerButton, { borderColor: colors.danger }]}
                             onPress={() => handleCloseVote(vote.id)}
                             disabled={closingVoteId === vote.id}
                           >
                             {closingVoteId === vote.id ? (
                               <ActivityIndicator color={colors.danger} />
                             ) : (
-                              <Text style={styles.dangerButtonText}>Oylamayı Kapat</Text>
+                              <Text style={[styles.dangerButtonText, { color: colors.danger }]}>Oylamayı Kapat</Text>
                             )}
                           </TouchableOpacity>
                         ) : null}
@@ -515,19 +568,25 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                     ))
                   )}
 
-                  <Text style={styles.sectionTitle}>Aidat</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Aidat</Text>
                   {isOwnProfile ? (
                     !duesPlan ? (
                       <View style={styles.communityForm}>
                         <TextInput
-                          style={styles.input}
+                          style={[
+                            styles.input,
+                            { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                          ]}
                           placeholder="Plan adı (opsiyonel)"
                           placeholderTextColor={colors.textSecondary}
                           value={newDuesName}
                           onChangeText={setNewDuesName}
                         />
                         <TextInput
-                          style={styles.input}
+                          style={[
+                            styles.input,
+                            { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
+                          ]}
                           placeholder="Tutar (₺)"
                           placeholderTextColor={colors.textSecondary}
                           keyboardType="decimal-pad"
@@ -536,69 +595,80 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
                         />
                         <View style={styles.typeRow}>
                           <TouchableOpacity
-                            style={[styles.typeButton, newDuesInterval === "MONTHLY" && styles.typeButtonActive]}
+                            style={[styles.typeButton, monthlyButtonStyle]}
                             onPress={() => setNewDuesInterval("MONTHLY")}
                           >
-                            <Text style={[styles.typeText, newDuesInterval === "MONTHLY" && styles.typeTextActive]}>
+                            <Text style={[styles.typeText, monthlyIntervalActive && styles.typeTextActive, { color: monthlyTextColor }]}>
                               Aylık
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            style={[styles.typeButton, newDuesInterval === "YEARLY" && styles.typeButtonActive]}
+                            style={[styles.typeButton, yearlyButtonStyle]}
                             onPress={() => setNewDuesInterval("YEARLY")}
                           >
-                            <Text style={[styles.typeText, newDuesInterval === "YEARLY" && styles.typeTextActive]}>
+                            <Text style={[styles.typeText, yearlyIntervalActive && styles.typeTextActive, { color: yearlyTextColor }]}>
                               Yıllık
                             </Text>
                           </TouchableOpacity>
                         </View>
                         <TouchableOpacity
-                          style={styles.primaryButton}
+                          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
                           onPress={handleCreateDuesPlan}
                           disabled={creatingDuesPlan || newDuesPrice.trim().length === 0}
                         >
                           {creatingDuesPlan ? (
                             <ActivityIndicator color={colors.background} />
                           ) : (
-                            <Text style={styles.primaryButtonText}>Aidat Planı Oluştur</Text>
+                            <Text style={[styles.primaryButtonText, { color: colors.background }]}>Aidat Planı Oluştur</Text>
                           )}
                         </TouchableOpacity>
                       </View>
                     ) : (
                       <View>
-                        <Text style={styles.emptyText}>
+                        <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                           {duesPlan.name} — ₺{duesPlan.price} / {duesPlan.paymentInterval === "MONTHLY" ? "ay" : "yıl"}
                         </Text>
                         {duesSubscribers.length === 0 ? (
-                          <Text style={styles.emptyText}>Henüz aidat abonesi yok</Text>
+                          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz aidat abonesi yok</Text>
                         ) : (
                           duesSubscribers.map((subscriber) => (
-                            <View key={subscriber.id} style={styles.reviewRow}>
-                              <Text style={styles.reviewAuthor}>{subscriber.member.displayName}</Text>
-                              <Text style={styles.reviewComment}>{subscriber.status}</Text>
+                            <View key={subscriber.id} style={[styles.reviewRow, { borderTopColor: colors.border }]}>
+                              <Text style={[styles.reviewAuthor, { color: colors.textPrimary }]}>
+                                {subscriber.member.displayName}
+                              </Text>
+                              <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>
+                                {subscriber.status}
+                              </Text>
                             </View>
                           ))
                         )}
                       </View>
                     )
                   ) : !duesPlan ? (
-                    <Text style={styles.emptyText}>Bu derneğin henüz aidat planı yok</Text>
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Bu derneğin henüz aidat planı yok</Text>
                   ) : (
                     <View>
-                      <Text style={styles.emptyText}>
+                      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
                         {duesPlan.name} — ₺{duesPlan.price} / {duesPlan.paymentInterval === "MONTHLY" ? "ay" : "yıl"}
                       </Text>
                       {myDuesStatus?.status === "active" ? (
-                        <TouchableOpacity style={styles.dangerButton} onPress={handleCancelDues} disabled={cancelingDues}>
+                        <TouchableOpacity
+                          style={[styles.dangerButton, { borderColor: colors.danger }]}
+                          onPress={handleCancelDues}
+                          disabled={cancelingDues}
+                        >
                           {cancelingDues ? (
                             <ActivityIndicator color={colors.danger} />
                           ) : (
-                            <Text style={styles.dangerButtonText}>Aidat Üyeliğini İptal Et</Text>
+                            <Text style={[styles.dangerButtonText, { color: colors.danger }]}>Aidat Üyeliğini İptal Et</Text>
                           )}
                         </TouchableOpacity>
                       ) : (
-                        <TouchableOpacity style={styles.primaryButton} onPress={() => setDuesCheckoutVisible(true)}>
-                          <Text style={styles.primaryButtonText}>Aidat Öde</Text>
+                        <TouchableOpacity
+                          style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                          onPress={() => setDuesCheckoutVisible(true)}
+                        >
+                          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Aidat Öde</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -626,19 +696,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   headerTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
     marginVertical: spacing.xl,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   profileHeader: {
@@ -652,19 +719,14 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     marginRight: spacing.md,
   },
-  avatarPlaceholder: {
-    backgroundColor: colors.surfaceElevated,
-  },
   profileHeaderText: {
     flex: 1,
   },
   displayName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
   },
   workplace: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
@@ -673,14 +735,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     marginTop: spacing.xs,
   },
-  verifiedTrue: {
-    color: colors.success,
-  },
-  verifiedFalse: {
-    color: colors.textSecondary,
-  },
   ratingSummary: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginTop: spacing.xs,
   },
@@ -692,26 +747,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   star: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xl,
   },
   reviewRow: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     paddingVertical: spacing.sm,
   },
   reviewAuthor: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   reviewComment: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   bio: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
@@ -720,23 +770,19 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.accentGold,
     marginBottom: spacing.md,
   },
   messageButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   sectionTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
   },
   emptyText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
   },
   teamRow: {
@@ -751,19 +797,16 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   teamName: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
   },
   jobRow: {
     paddingVertical: spacing.xs,
   },
   jobTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   jobLocation: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
   caseRow: {
@@ -780,18 +823,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   caseTitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
   },
   communityForm: {
     marginBottom: spacing.sm,
   },
   input: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.textPrimary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
@@ -802,35 +841,29 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.sm,
     alignItems: "center",
     marginTop: spacing.xs,
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
   backLink: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.sm,
   },
   card: {
-    backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
   cardTitle: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   cardSubtitle: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
     marginBottom: spacing.xs,
@@ -842,7 +875,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   voteOptionText: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.sm,
     flexShrink: 1,
   },
@@ -851,11 +883,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderWidth: 1,
-    borderColor: colors.accentGold,
     alignSelf: "flex-start",
   },
   secondaryButtonText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -865,10 +895,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.danger,
   },
   dangerButtonText: {
-    color: colors.danger,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
   },
@@ -883,19 +911,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  typeButtonActive: {
-    borderColor: colors.accentGold,
-    backgroundColor: colors.surfaceElevated,
   },
   typeText: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
   },
   typeTextActive: {
-    color: colors.accentGold,
     fontWeight: typography.weights.semibold,
   },
 });

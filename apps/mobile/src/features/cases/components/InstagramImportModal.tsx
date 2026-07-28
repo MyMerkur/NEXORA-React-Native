@@ -10,7 +10,8 @@ import {
   type ViewStyle,
 } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { colors, radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import {
   getInstagramStatus,
@@ -29,6 +30,15 @@ interface InstagramImportModalProps {
 const SHEET_HEIGHT: ViewStyle = { maxHeight: "85%" };
 
 export function InstagramImportModal({ visible, onClose, onSelect }: InstagramImportModalProps) {
+  const { colors } = useTheme();
+  const titleStyle = { color: colors.textPrimary };
+  const closeTextStyle = { color: colors.accentGold };
+  const errorStyle = { color: colors.danger };
+  const primaryButtonStyle = { backgroundColor: colors.accentBlue };
+  const primaryButtonTextStyle = { color: colors.background };
+  const disconnectLinkStyle = { color: colors.danger };
+  const mediaThumbnailStyle = { backgroundColor: colors.surfaceElevated };
+  const mediaCaptionStyle = { color: colors.textSecondary };
   const [connected, setConnected] = useState<boolean | null>(null);
   const [media, setMedia] = useState<InstagramMediaItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,9 +94,9 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
   return (
     <ModalShell visible={visible} onClose={onClose} variant="sheet" contentStyle={SHEET_HEIGHT}>
           <View style={styles.header}>
-            <Text style={styles.title}>Instagram'dan İçe Aktar</Text>
+            <Text style={[styles.title, titleStyle]}>Instagram'dan İçe Aktar</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>Kapat</Text>
+              <Text style={[styles.closeText, closeTextStyle]}>Kapat</Text>
             </TouchableOpacity>
           </View>
 
@@ -96,18 +106,18 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
             <ActivityIndicator color={colors.accentGold} style={styles.loader} />
           ) : (
             <View style={styles.content}>
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}
 
               {connected === false ? (
-                <TouchableOpacity style={styles.primaryButton} onPress={() => setConnecting(true)}>
-                  <Text style={styles.primaryButtonText}>Instagram Hesabını Bağla</Text>
+                <TouchableOpacity style={[styles.primaryButton, primaryButtonStyle]} onPress={() => setConnecting(true)}>
+                  <Text style={[styles.primaryButtonText, primaryButtonTextStyle]}>Instagram Hesabını Bağla</Text>
                 </TouchableOpacity>
               ) : null}
 
               {connected === true ? (
                 <>
                   <TouchableOpacity onPress={handleDisconnect} disabled={disconnecting}>
-                    <Text style={styles.disconnectLink}>
+                    <Text style={[styles.disconnectLink, disconnectLinkStyle]}>
                       {disconnecting ? "Kaldırılıyor…" : "Bağlantıyı Kaldır"}
                     </Text>
                   </TouchableOpacity>
@@ -118,9 +128,9 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
                         style={styles.mediaItem}
                         onPress={() => onSelect({ mediaUrl: item.mediaUrl, caption: item.caption })}
                       >
-                        <Image source={{ uri: item.mediaUrl }} style={styles.mediaThumbnail} />
+                        <Image source={{ uri: item.mediaUrl }} style={[styles.mediaThumbnail, mediaThumbnailStyle]} />
                         {item.caption ? (
-                          <Text style={styles.mediaCaption} numberOfLines={2}>
+                          <Text style={[styles.mediaCaption, mediaCaptionStyle]} numberOfLines={2}>
                             {item.caption}
                           </Text>
                         ) : null}
@@ -143,12 +153,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.textPrimary,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   closeText: {
-    color: colors.accentGold,
     fontSize: typography.sizes.sm,
   },
   loader: {
@@ -158,22 +166,18 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   error: {
-    color: colors.danger,
     marginBottom: spacing.sm,
   },
   primaryButton: {
-    backgroundColor: colors.accentBlue,
     borderRadius: radii.pill,
     paddingVertical: spacing.md,
     alignItems: "center",
   },
   primaryButtonText: {
-    color: colors.background,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
   },
   disconnectLink: {
-    color: colors.danger,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
@@ -189,10 +193,8 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: radii.sm,
-    backgroundColor: colors.surfaceElevated,
   },
   mediaCaption: {
-    color: colors.textSecondary,
     fontSize: typography.sizes.xs,
     marginTop: spacing.xs,
   },
