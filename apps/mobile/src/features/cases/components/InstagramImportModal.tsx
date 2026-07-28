@@ -13,6 +13,7 @@ import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Button } from "../../../components/Button";
 import {
   getInstagramStatus,
   listInstagramMedia,
@@ -34,8 +35,6 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
   const titleStyle = { color: colors.textPrimary };
   const closeTextStyle = { color: colors.accentGold };
   const errorStyle = { color: colors.danger };
-  const primaryButtonStyle = { backgroundColor: colors.accentBlue };
-  const primaryButtonTextStyle = { color: colors.background };
   const disconnectLinkStyle = { color: colors.danger };
   const mediaThumbnailStyle = { backgroundColor: colors.surfaceElevated };
   const mediaCaptionStyle = { color: colors.textSecondary };
@@ -109,9 +108,7 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
               {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}
 
               {connected === false ? (
-                <TouchableOpacity style={[styles.primaryButton, primaryButtonStyle]} onPress={() => setConnecting(true)}>
-                  <Text style={[styles.primaryButtonText, primaryButtonTextStyle]}>Instagram Hesabını Bağla</Text>
-                </TouchableOpacity>
+                <Button label="Instagram Hesabını Bağla" onPress={() => setConnecting(true)} fullWidth />
               ) : null}
 
               {connected === true ? (
@@ -167,15 +164,6 @@ const styles = StyleSheet.create({
   },
   error: {
     marginBottom: spacing.sm,
-  },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
   disconnectLink: {
     fontSize: typography.sizes.sm,

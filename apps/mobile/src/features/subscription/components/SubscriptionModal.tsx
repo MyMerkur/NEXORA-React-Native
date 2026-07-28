@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
+import { Button } from "../../../components/Button";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
 import { CheckoutWebView } from "./CheckoutWebView";
 
@@ -99,24 +100,21 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
                   ) : null}
 
                   {summary.status === "active" ? (
-                    <TouchableOpacity
-                      style={[styles.dangerButton, { borderColor: colors.danger }]}
+                    <Button
+                      label="İptal Et"
                       onPress={handleCancel}
-                      disabled={canceling}
-                    >
-                      {canceling ? (
-                        <ActivityIndicator color={colors.danger} />
-                      ) : (
-                        <Text style={[styles.dangerButtonText, { color: colors.danger }]}>İptal Et</Text>
-                      )}
-                    </TouchableOpacity>
+                      loading={canceling}
+                      variant="danger"
+                      fullWidth
+                      style={styles.actionButton}
+                    />
                   ) : (
-                    <TouchableOpacity
-                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                    <Button
+                      label="Abone Ol"
                       onPress={() => setCheckoutVisible(true)}
-                    >
-                      <Text style={[styles.primaryButtonText, { color: colors.background }]}>Abone Ol</Text>
-                    </TouchableOpacity>
+                      fullWidth
+                      style={styles.actionButton}
+                    />
                   )}
                 </>
               ) : null}
@@ -158,25 +156,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginBottom: spacing.md,
   },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
+  actionButton: {
     marginTop: spacing.md,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-  },
-  dangerButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    marginTop: spacing.md,
-    borderWidth: 1,
-  },
-  dangerButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
 });

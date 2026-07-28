@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
@@ -13,6 +13,9 @@ import {
   type CaseStage,
 } from "../../../services/caseApi";
 import { TagPicker } from "../../../components/TagPicker";
+import { Input } from "../../../components/Input";
+import { Button } from "../../../components/Button";
+import { Card } from "../../../components/Card";
 import { InstagramImportModal } from "../components/InstagramImportModal";
 
 const STAGES: { key: CaseStage; label: string }[] = [
@@ -23,9 +26,6 @@ const STAGES: { key: CaseStage; label: string }[] = [
 
 export function CreateCaseScreen() {
   const { colors } = useTheme();
-  const aiDraftSectionStyle = { backgroundColor: colors.surface, borderColor: colors.border };
-  const inputStyle = { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary };
-  const labelStyle = { color: colors.textPrimary };
   const thumbnailStyle = { backgroundColor: colors.surfaceElevated };
   const removeBadgeStyle = { backgroundColor: colors.danger };
   const removeBadgeTextStyle = { color: colors.textPrimary };
@@ -33,8 +33,7 @@ export function CreateCaseScreen() {
   const addThumbnailTextStyle = { color: colors.textSecondary };
   const errorStyle = { color: colors.danger };
   const successStyle = { color: colors.success };
-  const submitButtonStyle = { backgroundColor: colors.accentBlue };
-  const submitButtonTextStyle = { color: colors.background };
+  const labelStyle = { color: colors.textPrimary };
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [specialties, setSpecialties] = useState<MicroCompetencyTag[]>([]);
@@ -169,12 +168,11 @@ export function CreateCaseScreen() {
   return (
     <>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={[styles.aiDraftSection, aiDraftSectionStyle]}>
+        <Card style={styles.aiDraftSection}>
           <Text style={[styles.label, labelStyle]}>🤖 Instagram Gönderisinden Taslak Oluştur (Eğitmen)</Text>
-          <TextInput
-            style={[styles.input, inputStyle, styles.multiline]}
+          <Input
+            style={[styles.field, styles.multiline]}
             placeholder="Instagram açıklaması (opsiyonel)"
-            placeholderTextColor={colors.textSecondary}
             value={captionText}
             onChangeText={setCaptionText}
             multiline
@@ -208,30 +206,20 @@ export function CreateCaseScreen() {
             </TouchableOpacity>
           </ScrollView>
           {draftError ? <Text style={[styles.error, errorStyle]}>{draftError}</Text> : null}
-          <TouchableOpacity
-            style={[styles.submitButton, submitButtonStyle, styles.draftButton]}
+          <Button
+            label="Taslak Oluştur"
             onPress={handleGenerateDraft}
-            disabled={draftSourceImages.length === 0 || generatingDraft}
-          >
-            {generatingDraft ? (
-              <ActivityIndicator color={colors.background} />
-            ) : (
-              <Text style={[styles.submitButtonText, submitButtonTextStyle]}>Taslak Oluştur</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            loading={generatingDraft}
+            disabled={draftSourceImages.length === 0}
+            fullWidth
+            style={styles.draftButton}
+          />
+        </Card>
 
-        <TextInput
-          style={[styles.input, inputStyle]}
-          placeholder="Vaka başlığı"
-          placeholderTextColor={colors.textSecondary}
-          value={title}
-          onChangeText={setTitle}
-        />
-        <TextInput
-          style={[styles.input, inputStyle, styles.multiline]}
+        <Input style={styles.field} placeholder="Vaka başlığı" value={title} onChangeText={setTitle} />
+        <Input
+          style={[styles.field, styles.multiline]}
           placeholder="Açıklama"
-          placeholderTextColor={colors.textSecondary}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -273,13 +261,7 @@ export function CreateCaseScreen() {
         {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}
         {successMessage ? <Text style={[styles.success, successStyle]}>{successMessage}</Text> : null}
 
-        <TouchableOpacity style={[styles.submitButton, submitButtonStyle]} onPress={handleSubmit} disabled={submitting}>
-          {submitting ? (
-            <ActivityIndicator color={colors.background} />
-          ) : (
-            <Text style={[styles.submitButtonText, submitButtonTextStyle]}>Paylaş</Text>
-          )}
-        </TouchableOpacity>
+        <Button label="Paylaş" onPress={handleSubmit} loading={submitting} fullWidth style={styles.submitButton} />
       </ScrollView>
       <InstagramImportModal
         visible={instagramModalVisible}
@@ -295,21 +277,13 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   aiDraftSection: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    padding: spacing.md,
     marginBottom: spacing.lg,
   },
   draftButton: {
     marginTop: spacing.sm,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.md,
-    fontSize: typography.sizes.md,
   },
   multiline: {
     minHeight: 80,
@@ -371,13 +345,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   submitButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
     marginTop: spacing.lg,
-  },
-  submitButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
 });

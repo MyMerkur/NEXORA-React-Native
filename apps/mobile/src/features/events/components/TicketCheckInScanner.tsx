@@ -2,8 +2,9 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Camera, useCameraDevice, useCameraPermission, useCodeScanner } from "react-native-vision-camera";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
+import { Button } from "../../../components/Button";
 import { checkInTicket, type CheckInResult } from "../../../services/eventApi";
 
 interface TicketCheckInScannerProps {
@@ -71,9 +72,7 @@ export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
         <Text style={[styles.permissionText, { color: colors.textPrimary }]}>
           Check-in için kamera izni gerekiyor.
         </Text>
-        <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={requestPermission}>
-          <Text style={[styles.primaryButtonText, { color: colors.background }]}>İzin Ver</Text>
-        </TouchableOpacity>
+        <Button label="İzin Ver" onPress={requestPermission} style={styles.actionButton} />
         <TouchableOpacity style={styles.cancelLink} onPress={onClose}>
           <Text style={[styles.cancelLinkText, { color: colors.textSecondary }]}>Kapat</Text>
         </TouchableOpacity>
@@ -123,16 +122,12 @@ export function TicketCheckInScanner({ onClose }: TicketCheckInScannerProps) {
             </Text>
             <Text style={[styles.attendeeText, { color: colors.textPrimary }]}>{result.attendeeName}</Text>
             <Text style={[styles.eventText, { color: colors.textSecondary }]}>{result.eventTitle}</Text>
-            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={handleScanNext}>
-              <Text style={[styles.primaryButtonText, { color: colors.background }]}>Sıradaki Bileti Okut</Text>
-            </TouchableOpacity>
+            <Button label="Sıradaki Bileti Okut" onPress={handleScanNext} style={styles.actionButton} />
           </View>
         ) : error ? (
           <View>
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
-            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]} onPress={handleScanNext}>
-              <Text style={[styles.primaryButtonText, { color: colors.background }]}>Tekrar Dene</Text>
-            </TouchableOpacity>
+            <Button label="Tekrar Dene" onPress={handleScanNext} style={styles.actionButton} />
           </View>
         ) : (
           <Text style={[styles.hintText, { color: colors.textSecondary }]}>Bilet QR kodunu kameraya gösterin</Text>
@@ -200,15 +195,8 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     textAlign: "center",
   },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
+  actionButton: {
     marginTop: spacing.md,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   cancelLink: {
     alignItems: "center",
