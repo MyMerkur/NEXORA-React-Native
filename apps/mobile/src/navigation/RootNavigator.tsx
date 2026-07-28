@@ -2,7 +2,7 @@ import { NavigationContainer, DarkTheme, DefaultTheme } from "@react-navigation/
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { LoginScreen } from "../features/auth/screens/LoginScreen";
 import { DesignPreviewScreen } from "../features/devPreview/screens/DesignPreviewScreen";
-import { MainTabNavigator } from "./MainTabNavigator";
+import { AppDrawer } from "./AppDrawer";
 import { useAuthStore } from "../store/useAuthStore";
 import { useTheme } from "../store/useThemeStore";
 
@@ -29,7 +29,7 @@ export function RootNavigator() {
     <NavigationContainer theme={navigationTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
-          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          <Stack.Screen name="MainTabs" component={AppDrawer} />
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />
         )}
