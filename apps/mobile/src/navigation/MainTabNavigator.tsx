@@ -52,11 +52,11 @@ export function MainTabNavigator() {
         tabBarInactiveTintColor: colors.textSecondary,
       }}
     >
-      <Tab.Screen name="Feed" component={FeedScreen} options={{ tabBarIcon: FeedTabIcon }} />
-      <Tab.Screen name="Hubs" component={HubsScreen} options={{ tabBarIcon: HubsTabIcon }} />
-      <Tab.Screen name="Create" component={CreateCaseScreen} options={{ tabBarIcon: CreateTabIcon }} />
-      <Tab.Screen name="Career" component={CareerScreen} options={{ tabBarIcon: CareerTabIcon }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarIcon: ProfileTabIcon }} />
+      <Tab.Screen name="Feed" component={FeedScreen} options={{ title: "Ana Sayfa", tabBarIcon: FeedTabIcon }} />
+      <Tab.Screen name="Hubs" component={HubsScreen} options={{ title: "Topluluklar", tabBarIcon: HubsTabIcon }} />
+      <Tab.Screen name="Create" component={CreateCaseScreen} options={{ title: "Paylaş", tabBarIcon: CreateTabIcon }} />
+      <Tab.Screen name="Career" component={CareerScreen} options={{ title: "Kariyer", tabBarIcon: CareerTabIcon }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: "Profil", tabBarIcon: ProfileTabIcon }} />
     </Tab.Navigator>
   );
 }
