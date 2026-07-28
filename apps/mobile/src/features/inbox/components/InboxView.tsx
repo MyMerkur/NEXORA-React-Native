@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,11 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { MessageCircle } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { getSocket } from "../../../services/socket";
+import { Avatar } from "../../../components/Avatar";
+import { Button } from "../../../components/Button";
+import { EmptyState } from "../../../components/EmptyState";
 import {
   startThread,
   listThreads,
@@ -207,7 +210,7 @@ export function InboxView({ onClose, active = true, startTarget }: InboxViewProp
           ) : (
             <ScrollView>
               {filteredThreads.length === 0 ? (
-                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Henüz bir sohbetin yok</Text>
+                <EmptyState icon={MessageCircle} title="Henüz bir sohbetin yok" />
               ) : null}
               {filteredThreads.map((thread) => (
                 <TouchableOpacity
@@ -215,11 +218,7 @@ export function InboxView({ onClose, active = true, startTarget }: InboxViewProp
                   style={[styles.threadRow, { borderTopColor: colors.border }]}
                   onPress={() => openThread(thread)}
                 >
-                  {thread.participant.avatarUrl ? (
-                    <Image source={{ uri: thread.participant.avatarUrl }} style={styles.avatar} />
-                  ) : (
-                    <View style={[styles.avatar, { backgroundColor: colors.surfaceElevated }]} />
-                  )}
+                  <Avatar name={thread.participant.displayName} imageUrl={thread.participant.avatarUrl} size="md" />
                   <View style={styles.threadContent}>
                     <View style={styles.threadHeader}>
                       <Text style={[styles.threadName, { color: colors.textPrimary }]} numberOfLines={1}>
@@ -277,13 +276,7 @@ export function InboxView({ onClose, active = true, startTarget }: InboxViewProp
               onChangeText={setMessageText}
               multiline
             />
-            <TouchableOpacity
-              style={[styles.sendButton, { backgroundColor: colors.accentGold }]}
-              onPress={handleSend}
-              disabled={sending}
-            >
-              <Text style={[styles.sendButtonText, { color: colors.background }]}>Gönder</Text>
-            </TouchableOpacity>
+            <Button label="Gönder" onPress={handleSend} loading={sending} variant="gold" size="sm" />
           </View>
         </>
       )}
@@ -313,10 +306,6 @@ const styles = StyleSheet.create({
   loader: {
     marginVertical: spacing.xl,
   },
-  emptyText: {
-    textAlign: "center",
-    marginVertical: spacing.lg,
-  },
   error: {
     marginBottom: spacing.sm,
   },
@@ -338,14 +327,9 @@ const styles = StyleSheet.create({
   threadRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing.sm,
     borderTopWidth: 1,
     paddingVertical: spacing.md,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.pill,
-    marginRight: spacing.sm,
   },
   threadContent: {
     flex: 1,
@@ -416,14 +400,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     maxHeight: 100,
-  },
-  sendButton: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  sendButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
 });
