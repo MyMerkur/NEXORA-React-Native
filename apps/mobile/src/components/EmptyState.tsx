@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors, fontFamilies, radii, spacing } from "@nexora/ui-tokens";
+import { fontFamilies, radii, spacing } from "@nexora/ui-tokens";
+import { useTheme } from "../store/useThemeStore";
 import { Button } from "./Button";
 
 // lucide-react-native doesn't export its `LucideProps` type publicly, so this
@@ -20,13 +21,15 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon: Icon, title, description, ctaLabel, onCtaPress }: EmptyStateProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.iconWrap}>
+    <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+      <View style={[styles.iconWrap, { backgroundColor: colors.surfaceElevated }]}>
         <Icon size={26} color={colors.textTertiary} strokeWidth={1.6} />
       </View>
-      <Text style={styles.title}>{title}</Text>
-      {description ? <Text style={styles.description}>{description}</Text> : null}
+      <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
+      {description ? <Text style={[styles.description, { color: colors.textSecondary }]}>{description}</Text> : null}
       {ctaLabel && onCtaPress ? (
         <Button label={ctaLabel} onPress={onCtaPress} size="sm" style={styles.cta} />
       ) : null}
@@ -39,16 +42,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: spacing.xxl + 8,
     paddingHorizontal: spacing.lg,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.borderSubtle,
     borderRadius: radii.lg,
   },
   iconWrap: {
     width: 56,
     height: 56,
     borderRadius: radii.lg,
-    backgroundColor: colors.surfaceElevated,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.md + 2,
@@ -56,14 +56,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fontFamilies.semibold,
     fontSize: 16,
-    color: colors.textPrimary,
     marginBottom: spacing.xs,
     textAlign: "center",
   },
   description: {
     fontSize: 13.5,
     lineHeight: 19,
-    color: colors.textSecondary,
     textAlign: "center",
     marginBottom: spacing.md + 2,
   },

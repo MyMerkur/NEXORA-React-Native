@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { MessageCircle } from "lucide-react-native";
-import { colors, fontFamilies, spacing } from "@nexora/ui-tokens";
+import { fontFamilies, spacing, type ThemeColors } from "@nexora/ui-tokens";
+import { useTheme } from "../../../store/useThemeStore";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Input } from "../../../components/Input";
@@ -14,12 +15,18 @@ import { ModalShell } from "../../../components/ModalShell";
 // Dev-only visual QA screen for the Faz 5 primitive library (#58) — not part of any
 // user-facing flow. Reachable from ProfileScreen's "🎨 Tasarım" button when __DEV__.
 export function DesignPreviewScreen() {
+  const { colors, scheme } = useTheme();
   const [sheetVisible, setSheetVisible] = useState(false);
   const [centerVisible, setCenterVisible] = useState(false);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Section title="Button">
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.content}
+    >
+      <Text style={[styles.schemeLabel, { color: colors.accentGold }]}>Aktif tema: {scheme}</Text>
+
+      <Section title="Button" colors={colors}>
         <Row>
           <Button label="Primary" onPress={() => {}} />
           <Button label="Gold" variant="gold" onPress={() => {}} />
@@ -33,24 +40,24 @@ export function DesignPreviewScreen() {
         </Row>
       </Section>
 
-      <Section title="Card">
+      <Section title="Card" colors={colors}>
         <Card variant="flat" style={styles.stackGap}>
-          <Text style={styles.cardTitle}>Flat</Text>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Flat</Text>
         </Card>
         <Card variant="elevated" style={styles.stackGap}>
-          <Text style={styles.cardTitle}>Elevated</Text>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Elevated</Text>
         </Card>
         <Card variant="glass" style={styles.stackGap}>
-          <Text style={styles.cardTitle}>Glass</Text>
+          <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Glass</Text>
         </Card>
       </Section>
 
-      <Section title="Input">
+      <Section title="Input" colors={colors}>
         <Input label="E-posta" placeholder="ornek@nexora.dev" style={styles.stackGap} />
         <Input label="Şifre" error="Şifre en az 8 karakter olmalı" style={styles.stackGap} />
       </Section>
 
-      <Section title="Badge">
+      <Section title="Badge" colors={colors}>
         <Row>
           <Badge label="Taslak" variant="neutral" />
           <Badge label="Aktif" variant="blue" />
@@ -61,7 +68,7 @@ export function DesignPreviewScreen() {
         </Row>
       </Section>
 
-      <Section title="Avatar">
+      <Section title="Avatar" colors={colors}>
         <Row>
           <Avatar name="Ada Lovelace" size="sm" />
           <Avatar name="Ada Lovelace" size="md" />
@@ -69,18 +76,18 @@ export function DesignPreviewScreen() {
         </Row>
       </Section>
 
-      <Section title="EmptyState">
+      <Section title="EmptyState" colors={colors}>
         <EmptyState icon={MessageCircle} title="Henüz mesajın yok" description="Eşleştiğinde sohbet burada görünecek." ctaLabel="Keşfet" onCtaPress={() => {}} />
       </Section>
 
-      <Section title="Skeleton">
+      <Section title="Skeleton" colors={colors}>
         <SkeletonRow />
         <View style={styles.stackGap}>
           <Skeleton width="60%" />
         </View>
       </Section>
 
-      <Section title="ModalShell">
+      <Section title="ModalShell" colors={colors}>
         <Row>
           <Button label="Bottom Sheet" variant="secondary" onPress={() => setSheetVisible(true)} />
           <Button label="Center Modal" variant="secondary" onPress={() => setCenterVisible(true)} />
@@ -88,19 +95,19 @@ export function DesignPreviewScreen() {
       </Section>
 
       <ModalShell visible={sheetVisible} onClose={() => setSheetVisible(false)} variant="sheet">
-        <Text style={styles.cardTitle}>Başvuru Seçenekleri</Text>
+        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Başvuru Seçenekleri</Text>
       </ModalShell>
       <ModalShell visible={centerVisible} onClose={() => setCenterVisible(false)} variant="center">
-        <Text style={styles.cardTitle}>Sohbeti sonlandır?</Text>
+        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>Sohbeti sonlandır?</Text>
       </ModalShell>
     </ScrollView>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, colors, children }: { title: string; colors: ThemeColors; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>{title}</Text>
       {children}
     </View>
   );
@@ -113,11 +120,16 @@ function Row({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     padding: spacing.lg,
     gap: spacing.xl,
+  },
+  schemeLabel: {
+    fontFamily: fontFamilies.semibold,
+    fontSize: 12,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
   section: {
     gap: spacing.sm,
@@ -127,7 +139,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textTransform: "uppercase",
     letterSpacing: 0.6,
-    color: colors.textTertiary,
   },
   row: {
     flexDirection: "row",
@@ -141,6 +152,5 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontFamily: fontFamilies.semibold,
     fontSize: 15,
-    color: colors.textPrimary,
   },
 });

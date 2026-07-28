@@ -2,12 +2,13 @@ import { useEffect, type ComponentType } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { House, Users, CirclePlus, Briefcase, User } from "lucide-react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { colors, duration, iconSizes, iconStrokeWidth } from "@nexora/ui-tokens";
+import { duration, iconSizes, iconStrokeWidth } from "@nexora/ui-tokens";
 import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
 import { FeedScreen } from "../features/feed/screens/FeedScreen";
 import { HubsScreen } from "../features/hubs/screens/HubsScreen";
 import { CreateCaseScreen } from "../features/cases/screens/CreateCaseScreen";
 import { CareerScreen } from "../features/jobs/screens/CareerScreen";
+import { useTheme } from "../store/useThemeStore";
 
 export type MainTabParamList = {
   Feed: undefined;
@@ -59,6 +60,8 @@ const CareerTabIcon = AnimatedTabIcon(Briefcase);
 const ProfileTabIcon = AnimatedTabIcon(User);
 
 export function MainTabNavigator() {
+  const { colors } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{

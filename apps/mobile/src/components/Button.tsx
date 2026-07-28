@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { colors, duration, fontFamilies, radii, spacing } from "@nexora/ui-tokens";
+import { duration, fontFamilies, radii, spacing, type ThemeColors } from "@nexora/ui-tokens";
+import { useTheme } from "../store/useThemeStore";
 
 export type ButtonVariant = "primary" | "gold" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -22,43 +23,55 @@ const SIZE_STYLES: Record<ButtonSize, { paddingVertical: number; paddingHorizont
   lg: { paddingVertical: 16, paddingHorizontal: spacing.xl, fontSize: 15, radius: radii.md + 2 },
 };
 
-const VARIANT_COLORS: Record<
-  ButtonVariant,
-  { background: string; backgroundPressed: string; backgroundDisabled: string; text: string; border?: string }
-> = {
-  primary: {
-    background: colors.accentBlue,
-    backgroundPressed: colors.accentBluePressed,
-    backgroundDisabled: colors.accentBlueDisabled,
-    text: "#FFFFFF",
-  },
-  gold: {
-    background: colors.accentGold,
-    backgroundPressed: colors.accentGoldPressed,
-    backgroundDisabled: colors.accentGoldDisabled,
-    text: colors.textOnAccent,
-  },
-  secondary: {
-    background: "transparent",
-    backgroundPressed: colors.surfaceElevated,
-    backgroundDisabled: "transparent",
-    text: colors.textPrimary,
-    border: colors.borderSubtle,
-  },
-  ghost: {
-    background: "transparent",
-    backgroundPressed: "rgba(61, 139, 255, 0.08)",
-    backgroundDisabled: "transparent",
-    text: colors.accentBlue,
-  },
-  danger: {
-    background: "transparent",
-    backgroundPressed: "rgba(255, 92, 92, 0.08)",
-    backgroundDisabled: "transparent",
-    text: colors.danger,
-    border: "rgba(255, 92, 92, 0.35)",
-  },
-};
+interface VariantColors {
+  background: string;
+  backgroundPressed: string;
+  backgroundDisabled: string;
+  text: string;
+  border?: string;
+}
+
+function getVariantColors(variant: ButtonVariant, colors: ThemeColors): VariantColors {
+  switch (variant) {
+    case "primary":
+      return {
+        background: colors.accentBlue,
+        backgroundPressed: colors.accentBluePressed,
+        backgroundDisabled: colors.accentBlueDisabled,
+        text: "#FFFFFF",
+      };
+    case "gold":
+      return {
+        background: colors.accentGold,
+        backgroundPressed: colors.accentGoldPressed,
+        backgroundDisabled: colors.accentGoldDisabled,
+        text: colors.textOnAccent,
+      };
+    case "secondary":
+      return {
+        background: "transparent",
+        backgroundPressed: colors.surfaceElevated,
+        backgroundDisabled: "transparent",
+        text: colors.textPrimary,
+        border: colors.borderSubtle,
+      };
+    case "ghost":
+      return {
+        background: "transparent",
+        backgroundPressed: "rgba(61, 139, 255, 0.08)",
+        backgroundDisabled: "transparent",
+        text: colors.accentBlue,
+      };
+    case "danger":
+      return {
+        background: "transparent",
+        backgroundPressed: "rgba(255, 92, 92, 0.08)",
+        backgroundDisabled: "transparent",
+        text: colors.danger,
+        border: "rgba(255, 92, 92, 0.35)",
+      };
+  }
+}
 
 export function Button({
   label,
@@ -70,8 +83,9 @@ export function Button({
   fullWidth = false,
   style,
 }: ButtonProps) {
+  const { colors } = useTheme();
   const sizeStyle = SIZE_STYLES[size];
-  const variantColors = VARIANT_COLORS[variant];
+  const variantColors = getVariantColors(variant, colors);
   const isDisabled = disabled || loading;
   const pressedValue = useSharedValue(0);
 

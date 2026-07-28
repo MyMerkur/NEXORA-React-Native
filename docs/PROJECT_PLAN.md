@@ -246,7 +246,9 @@ Faz 0-4 fonksiyon-öncelikli inşa edildi; `packages/ui-tokens` bare bir token d
 - Mikro-etkileşim ve animasyon katmanı (`react-native-reanimated`)
 - Auth/Onboarding akışı + ilk sınıf KYC akışı (issue #11 bu kapsamla birleşir)
 - Feed, Profil/Vitrin, İş İlanları/Eşleştirme, Hub/B2B, Mesajlaşma/Bildirim, Etkinlik/Kurs/Dernek/Abonelik ekranlarının tamamının yeni sisteme taşınması
-- **Non-goals:** özel ikon seti yok, light mode yok, backend değişikliği yok, Fastlane/store/waitlist yok (Faz 6'da), AI Onboarding Asistanı davranışı Faz 6'da kalır — bu fazda sadece standart onboarding UI'ı inşa edilir.
+- Ana ekran mimarisi: sidebar (drawer), Ana Sayfa'da bildirim ikonu (okunmamış rozeti) ve mesajlar için tab bar erişimi (#72)
+- Dark/Light tema desteği, cihaz temasına göre otomatik geçiş (#73)
+- **Non-goals:** özel ikon seti yok, backend değişikliği yok, Fastlane/store/waitlist yok (Faz 6'da), AI Onboarding Asistanı davranışı Faz 6'da kalır — bu fazda sadece standart onboarding UI'ı inşa edilir.
 
 ### Faz 6 — Mobil Lansman Hazırlığı *(4-6 hafta)*
 - Sinematik waitlist (bu aşamada basit bir statik sayfa/landing yeterli, tam web henüz yok)
