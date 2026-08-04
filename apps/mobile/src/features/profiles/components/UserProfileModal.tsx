@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { fontFamilies, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { Avatar } from "../../../components/Avatar";
@@ -28,7 +28,6 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
   const dangerTextStyle = { color: colors.danger };
   const successTextStyle = { color: colors.success };
   const textSecondaryStyle = { color: colors.textSecondary };
-  const actionButtonBorderStyle = { borderColor: colors.accentGold };
   const referenceRowStyle = { borderTopColor: colors.border };
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -131,22 +130,20 @@ export function UserProfileModal({ visible, userId, onClose }: UserProfileModalP
 
               {!isSelf ? (
                 <View style={styles.actionRow}>
-                  <TouchableOpacity style={[styles.actionButton, actionButtonBorderStyle]} onPress={() => setMessageVisible(true)}>
-                    <Text style={[styles.actionButtonText, accentGoldTextStyle]}>Mesaj Gönder</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, actionButtonBorderStyle]}
+                  <Button label="Mesaj Gönder" variant="secondary" size="sm" onPress={() => setMessageVisible(true)} />
+                  <Button
+                    label="Referans İste"
+                    variant="secondary"
+                    size="sm"
+                    loading={submitting}
                     onPress={handleRequestReference}
-                    disabled={submitting}
-                  >
-                    <Text style={[styles.actionButtonText, accentGoldTextStyle]}>Referans İste</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, actionButtonBorderStyle]}
+                  />
+                  <Button
+                    label="Referans Yaz"
+                    variant="secondary"
+                    size="sm"
                     onPress={() => setWriteFormVisible((current) => !current)}
-                  >
-                    <Text style={[styles.actionButtonText, accentGoldTextStyle]}>Referans Yaz</Text>
-                  </TouchableOpacity>
+                  />
                 </View>
               ) : null}
 
@@ -206,11 +203,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   headerTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h1,
   },
   closeText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
+    fontFamily: fontFamilies.semibold,
   },
   loadingLines: {
     flex: 1,
@@ -235,19 +232,18 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   displayName: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h2,
   },
   title: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.bodySmall,
     marginTop: 2,
   },
   workplace: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.bodySmall,
     marginTop: 2,
   },
   bio: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
     marginBottom: spacing.md,
   },
   actionRow: {
@@ -255,16 +251,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.sm,
     marginBottom: spacing.md,
-  },
-  actionButton: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderWidth: 1,
-  },
-  actionButtonText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
   },
   writeForm: {
     marginBottom: spacing.md,
@@ -277,28 +263,26 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   sectionTitle: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h2,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
   },
   emptyText: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
   },
   referenceRow: {
     borderTopWidth: 1,
     paddingVertical: spacing.sm,
   },
   referenceAuthor: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
+    ...typographyPresets.bodySmall,
   },
   referenceRelationship: {
-    fontSize: typography.sizes.xs,
+    fontSize: 12,
     marginTop: 1,
   },
   referenceBody: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
     marginTop: spacing.xs,
   },
 });

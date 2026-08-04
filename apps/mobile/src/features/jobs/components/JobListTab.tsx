@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Briefcase } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typographyPresets } from "@nexora/ui-tokens";
 import { applyToJob, getJobs, type JobItem } from "../../../services/jobApi";
 import { ApplyModal } from "./ApplyModal";
 import { OrgProfileModal } from "../../orgs/components/OrgProfileModal";
@@ -166,26 +166,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   errorText: {
-    fontSize: typography.sizes.md,
+    ...typographyPresets.body,
   },
   card: {
     margin: spacing.md,
     marginBottom: 0,
   },
   employerName: {
-    fontSize: typography.sizes.xs,
+    ...typographyPresets.bodySmall,
     marginBottom: spacing.xs,
   },
   title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h2,
   },
   location: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.bodySmall,
     marginTop: 2,
   },
   description: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
     marginTop: spacing.xs,
   },
   tagRow: {
