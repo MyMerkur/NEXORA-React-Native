@@ -14,9 +14,21 @@
 		5A16726AD2CC420395D54564 /* Inter-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 52A062489F0D47AC8D1853DC /* Inter-Medium.ttf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		A205CB86B8AA479396A6CA5B /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 78C24949059744BA967CC700 /* OFL.txt */; };
 		C07EB95C95BF454F81B8E1E0 /* Inter-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5B577C6A30024FCDAB5301D7 /* Inter-Bold.ttf */; };
 		EA52FC544F4F44ACA054A04C /* Inter-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1EDD169DB3684F25819618EF /* Inter-SemiBold.ttf */; };
+		1E2902106BE74C758904E8DC /* Fraunces-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B6668A6BE07849658B6ECA44 /* Fraunces-Medium.ttf */; };
+		6A4F242962544C668325F7DC /* Manrope-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FE12D7DBEAD346E784E68CAA /* Manrope-Medium.ttf */; };
+		8D86F8A30BD4469BAA1EFDF4 /* Fraunces-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 520DE3217C7D4132B0E55C05 /* Fraunces-Regular.ttf */; };
+		AC5EE354CA264860AF99844C /* Manrope-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 95480FB44B7A4F8BA6824962 /* Manrope-SemiBold.ttf */; };
+		BDE8EA72B50E4B5699DCC10B /* Fraunces-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DD7C5E6B5C8D48AFB1C26713 /* Fraunces-SemiBold.ttf */; };
+		53E9B19361B54EF3911431FD /* Manrope-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 7DE87AA20A9B4C798E089FE7 /* Manrope-ExtraBold.ttf */; };
+		C8BF7C57730F48A4BB5629E0 /* PlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 45B9DBF9EB4249C0B94ABD98 /* PlexMono-Medium.ttf */; };
+		D20ECD34D0174BE4ADCF48D2 /* Manrope-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E7BE18CD0BBA4E5BAE8622EF /* Manrope-Regular.ttf */; };
+		A2CF077B9F34476AB5BCFDC2 /* Manrope-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A95E295B27604CBAAB2A3A43 /* Manrope-Bold.ttf */; };
+		9DC671B64D3F4C6B94A33A4A /* PlexMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4994C06A4EEB43CFBE85D1E5 /* PlexMono-Regular.ttf */; };
+		FD06B7351DE742D0AFD36433 /* OFL-IBMPlexMono.txt in Resources */ = {isa = PBXBuildFile; fileRef = CF7ED780D6834589A1412803 /* OFL-IBMPlexMono.txt */; };
+		54565A119F334063AC341AE1 /* OFL-Manrope.txt in Resources */ = {isa = PBXBuildFile; fileRef = 0000F02C16A94F27AD0F6516 /* OFL-Manrope.txt */; };
+		21D7B47ED0DB466DB36BE5CD /* OFL-Fraunces.txt in Resources */ = {isa = PBXBuildFile; fileRef = F54098E2BF0149EF81BF93D9 /* OFL-Fraunces.txt */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,10 +43,22 @@
 		5B577C6A30024FCDAB5301D7 /* Inter-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Bold.ttf"; path = "../assets/fonts/Inter-Bold.ttf"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-NexoraMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NexoraMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = NexoraMobile/AppDelegate.swift; sourceTree = "<group>"; };
-		78C24949059744BA967CC700 /* OFL.txt */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = OFL.txt; path = ../assets/fonts/OFL.txt; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NexoraMobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D6F3618068754C3AA77E22AD /* Inter-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-Regular.ttf"; path = "../assets/fonts/Inter-Regular.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		B6668A6BE07849658B6ECA44 /* Fraunces-Medium.ttf */ = {isa = PBXFileReference; name = "Fraunces-Medium.ttf"; path = "../assets/fonts/Fraunces-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FE12D7DBEAD346E784E68CAA /* Manrope-Medium.ttf */ = {isa = PBXFileReference; name = "Manrope-Medium.ttf"; path = "../assets/fonts/Manrope-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		520DE3217C7D4132B0E55C05 /* Fraunces-Regular.ttf */ = {isa = PBXFileReference; name = "Fraunces-Regular.ttf"; path = "../assets/fonts/Fraunces-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		95480FB44B7A4F8BA6824962 /* Manrope-SemiBold.ttf */ = {isa = PBXFileReference; name = "Manrope-SemiBold.ttf"; path = "../assets/fonts/Manrope-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		DD7C5E6B5C8D48AFB1C26713 /* Fraunces-SemiBold.ttf */ = {isa = PBXFileReference; name = "Fraunces-SemiBold.ttf"; path = "../assets/fonts/Fraunces-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		7DE87AA20A9B4C798E089FE7 /* Manrope-ExtraBold.ttf */ = {isa = PBXFileReference; name = "Manrope-ExtraBold.ttf"; path = "../assets/fonts/Manrope-ExtraBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		45B9DBF9EB4249C0B94ABD98 /* PlexMono-Medium.ttf */ = {isa = PBXFileReference; name = "PlexMono-Medium.ttf"; path = "../assets/fonts/PlexMono-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E7BE18CD0BBA4E5BAE8622EF /* Manrope-Regular.ttf */ = {isa = PBXFileReference; name = "Manrope-Regular.ttf"; path = "../assets/fonts/Manrope-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A95E295B27604CBAAB2A3A43 /* Manrope-Bold.ttf */ = {isa = PBXFileReference; name = "Manrope-Bold.ttf"; path = "../assets/fonts/Manrope-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		4994C06A4EEB43CFBE85D1E5 /* PlexMono-Regular.ttf */ = {isa = PBXFileReference; name = "PlexMono-Regular.ttf"; path = "../assets/fonts/PlexMono-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		CF7ED780D6834589A1412803 /* OFL-IBMPlexMono.txt */ = {isa = PBXFileReference; name = "OFL-IBMPlexMono.txt"; path = "../assets/fonts/OFL-IBMPlexMono.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		0000F02C16A94F27AD0F6516 /* OFL-Manrope.txt */ = {isa = PBXFileReference; name = "OFL-Manrope.txt"; path = "../assets/fonts/OFL-Manrope.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		F54098E2BF0149EF81BF93D9 /* OFL-Fraunces.txt */ = {isa = PBXFileReference; name = "OFL-Fraunces.txt"; path = "../assets/fonts/OFL-Fraunces.txt"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,7 +101,19 @@
 				5B577C6A30024FCDAB5301D7 /* Inter-Bold.ttf */,
 				D6F3618068754C3AA77E22AD /* Inter-Regular.ttf */,
 				1EDD169DB3684F25819618EF /* Inter-SemiBold.ttf */,
-				78C24949059744BA967CC700 /* OFL.txt */,
+				B6668A6BE07849658B6ECA44 /* Fraunces-Medium.ttf */,
+				FE12D7DBEAD346E784E68CAA /* Manrope-Medium.ttf */,
+				520DE3217C7D4132B0E55C05 /* Fraunces-Regular.ttf */,
+				95480FB44B7A4F8BA6824962 /* Manrope-SemiBold.ttf */,
+				DD7C5E6B5C8D48AFB1C26713 /* Fraunces-SemiBold.ttf */,
+				7DE87AA20A9B4C798E089FE7 /* Manrope-ExtraBold.ttf */,
+				45B9DBF9EB4249C0B94ABD98 /* PlexMono-Medium.ttf */,
+				E7BE18CD0BBA4E5BAE8622EF /* Manrope-Regular.ttf */,
+				A95E295B27604CBAAB2A3A43 /* Manrope-Bold.ttf */,
+				4994C06A4EEB43CFBE85D1E5 /* PlexMono-Regular.ttf */,
+				CF7ED780D6834589A1412803 /* OFL-IBMPlexMono.txt */,
+				0000F02C16A94F27AD0F6516 /* OFL-Manrope.txt */,
+				F54098E2BF0149EF81BF93D9 /* OFL-Fraunces.txt */,
 			);
 			name = Resources;
 			path = "";
@@ -189,7 +225,19 @@
 				C07EB95C95BF454F81B8E1E0 /* Inter-Bold.ttf in Resources */,
 				192E382D7A894406892B8000 /* Inter-Regular.ttf in Resources */,
 				EA52FC544F4F44ACA054A04C /* Inter-SemiBold.ttf in Resources */,
-				A205CB86B8AA479396A6CA5B /* OFL.txt in Resources */,
+				1E2902106BE74C758904E8DC /* Fraunces-Medium.ttf in Resources */,
+				6A4F242962544C668325F7DC /* Manrope-Medium.ttf in Resources */,
+				8D86F8A30BD4469BAA1EFDF4 /* Fraunces-Regular.ttf in Resources */,
+				AC5EE354CA264860AF99844C /* Manrope-SemiBold.ttf in Resources */,
+				BDE8EA72B50E4B5699DCC10B /* Fraunces-SemiBold.ttf in Resources */,
+				53E9B19361B54EF3911431FD /* Manrope-ExtraBold.ttf in Resources */,
+				C8BF7C57730F48A4BB5629E0 /* PlexMono-Medium.ttf in Resources */,
+				D20ECD34D0174BE4ADCF48D2 /* Manrope-Regular.ttf in Resources */,
+				A2CF077B9F34476AB5BCFDC2 /* Manrope-Bold.ttf in Resources */,
+				9DC671B64D3F4C6B94A33A4A /* PlexMono-Regular.ttf in Resources */,
+				FD06B7351DE742D0AFD36433 /* OFL-IBMPlexMono.txt in Resources */,
+				54565A119F334063AC341AE1 /* OFL-Manrope.txt in Resources */,
+				21D7B47ED0DB466DB36BE5CD /* OFL-Fraunces.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
