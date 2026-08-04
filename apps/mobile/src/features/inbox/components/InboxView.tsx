@@ -308,6 +308,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
   },
   loader: {
+    alignItems: "center",
     marginVertical: spacing.xl,
   },
   error: {

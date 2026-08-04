@@ -383,6 +383,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
   },
   loader: {
+    alignItems: "center",
     marginVertical: spacing.xl,
   },
   content: {
