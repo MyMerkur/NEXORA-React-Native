@@ -1,10 +1,12 @@
 import { useEffect, useState, type ComponentType } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Platform, Pressable, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { createBottomTabNavigator, type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "@react-native-community/blur";
 import { House, Users, CirclePlus, Briefcase, User, MessageCircle, Menu } from "lucide-react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { duration, iconSizes, iconStrokeWidth } from "@nexora/ui-tokens";
+import { duration, elevation, iconSizes, iconStrokeWidth, radii } from "@nexora/ui-tokens";
 import { ProfileScreen } from "../features/profile/screens/ProfileScreen";
 import { FeedScreen } from "../features/feed/screens/FeedScreen";
 import { HubsScreen } from "../features/hubs/screens/HubsScreen";
@@ -83,6 +85,84 @@ function SidebarToggle() {
   );
 }
 
+const CREATE_ROUTE_NAME = "Create";
+const BAR_HEIGHT = 56;
+const CREATE_BUTTON_SIZE = 52;
+
+// Custom tab bar (spec §7.9) — translucent blurred zemin, and the "Paylaş" tab
+// rendered as a physically-elevated circular button rather than a flattened 5th
+// icon (do not collapse this back into a plain tab). Badges are drawn here
+// directly since a custom `tabBar` bypasses React Navigation's built-in
+// `tabBarBadge` rendering.
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors, scheme } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.barWrap, { height: BAR_HEIGHT + insets.bottom, borderTopColor: colors.border }]}>
+      <BlurView
+        style={StyleSheet.absoluteFill}
+        blurType={scheme === "dark" ? "dark" : "light"}
+        blurAmount={16}
+        overlayColor={colors.surface}
+        reducedTransparencyFallbackColor={colors.surface}
+      />
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const focused = state.index === index;
+        const color = focused ? colors.accentGold : colors.textSecondary;
+
+        function handlePress() {
+          const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
+          if (!focused && !event.defaultPrevented) {
+            navigation.navigate(route.name);
+          }
+        }
+
+        if (route.name === CREATE_ROUTE_NAME) {
+          return (
+            <View key={route.key} style={styles.createSlot}>
+              <Pressable
+                onPress={handlePress}
+                accessibilityRole="button"
+                accessibilityLabel={options.title ?? route.name}
+                style={[
+                  styles.createButton,
+                  { backgroundColor: colors.accentGoldStrong },
+                  Platform.select<ViewStyle>({ ios: elevation.glow.ios, android: elevation.glow.android }),
+                ]}
+              >
+                {options.tabBarIcon?.({ focused, color: colors.textOnAccent, size: iconSizes.md })}
+              </Pressable>
+            </View>
+          );
+        }
+
+        const badgeCount = options.tabBarBadge;
+
+        return (
+          <Pressable
+            key={route.key}
+            onPress={handlePress}
+            accessibilityRole="button"
+            accessibilityLabel={options.title ?? route.name}
+            style={styles.tabItem}
+          >
+            <View>
+              {options.tabBarIcon?.({ focused, color, size: iconSizes.md })}
+              {badgeCount ? (
+                <View style={[styles.badge, { backgroundColor: colors.accentGold }]}>
+                  <Text style={[styles.badgeText, { color: colors.textOnAccent }]}>{badgeCount}</Text>
+                </View>
+              ) : null}
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function MainTabNavigator() {
   const { colors } = useTheme();
   const [unreadThreadCount, setUnreadThreadCount] = useState(0);
@@ -95,12 +175,10 @@ export function MainTabNavigator() {
 
   return (
     <Tab.Navigator
+      tabBar={CustomTabBar}
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.textPrimary,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
-        tabBarActiveTintColor: colors.accentGold,
-        tabBarInactiveTintColor: colors.textSecondary,
       }}
     >
       <Tab.Screen
@@ -134,5 +212,43 @@ const styles = StyleSheet.create({
   sidebarToggle: {
     marginLeft: 12,
     padding: 6,
+  },
+  barWrap: {
+    flexDirection: "row",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    overflow: "visible",
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  createSlot: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  createButton: {
+    width: CREATE_BUTTON_SIZE,
+    height: CREATE_BUTTON_SIZE,
+    borderRadius: CREATE_BUTTON_SIZE / 2,
+    marginTop: -(CREATE_BUTTON_SIZE - BAR_HEIGHT) / 2 - 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -10,
+    minWidth: 16,
+    height: 16,
+    borderRadius: radii.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: "700",
   },
 });
