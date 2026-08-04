@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { Card } from "../../../components/Card";
 import {
   getHub,
@@ -135,7 +136,7 @@ export function HubDetailModal({ hubId, onClose, onMembershipChanged }: HubDetai
           {checkoutVisible && hubId ? (
             <HubMembershipCheckoutWebView hubId={hubId} onDone={handleCheckoutDone} />
           ) : loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}><BrandSpinner /></View>
           ) : hub ? (
             <ScrollView style={styles.content}>
               {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}

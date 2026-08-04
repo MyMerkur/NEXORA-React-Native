@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { EMPLOYER_ROLES } from "@nexora/shared-constants";
 import { radii, spacing, typography, type ThemeColors } from "@nexora/ui-tokens";
@@ -8,6 +8,7 @@ import { ModalShell } from "../../../components/ModalShell";
 import { Avatar } from "../../../components/Avatar";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { Card } from "../../../components/Card";
 import {
   getOrgProfile,
@@ -289,7 +290,7 @@ export function OrgProfileModal({ visible, orgUserId, onClose }: OrgProfileModal
             </TouchableOpacity>
           </View>
 
-          {loading ? <ActivityIndicator color={colors.accentGold} style={styles.loader} /> : null}
+          {loading ? <View style={styles.loader}><BrandSpinner /></View> : null}
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {duesCheckoutVisible && orgUserId ? (

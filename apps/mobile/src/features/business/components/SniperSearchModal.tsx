@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } 
 import { UserSearch } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { fontFamilies, radii, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import {
   searchCandidates,
@@ -17,6 +17,7 @@ import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { EmptyState } from "../../../components/EmptyState";
+import { LockIcon } from "../../../components/icons";
 import { InboxModal } from "../../inbox/components/InboxModal";
 import { SniperCreditCheckoutWebView } from "./SniperCreditCheckoutWebView";
 
@@ -161,9 +162,12 @@ export function SniperSearchModal({ visible, onClose }: SniperSearchModalProps) 
                 ) : (
                   results.map((candidate) => (
                     <Card key={candidate.candidateId} variant="elevated" style={styles.card}>
-                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
-                        {candidate.unlocked ? candidate.displayName : "Gizli Aday"}
-                      </Text>
+                      <View style={styles.cardTitleRow}>
+                        {!candidate.unlocked ? <LockIcon size={14} color={colors.accentGold} /> : null}
+                        <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>
+                          {candidate.unlocked ? candidate.displayName : "Gizli Aday"}
+                        </Text>
+                      </View>
                       <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                         {candidate.specialties.join(", ") || "Uzmanlık belirtilmemiş"}
                       </Text>
@@ -205,11 +209,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h1,
   },
   closeText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
+    fontFamily: fontFamilies.semibold,
   },
   balanceRow: {
     flexDirection: "row",
@@ -218,8 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   balanceText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.medium,
+    ...typographyPresets.bodyLarge,
   },
   secondaryButton: {
     borderRadius: radii.pill,
@@ -228,12 +231,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   secondaryButtonText: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
+    fontSize: 12,
+    fontFamily: fontFamilies.semibold,
   },
   sectionTitle: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.label,
     marginBottom: spacing.xs,
   },
   field: {
@@ -255,16 +257,20 @@ const styles = StyleSheet.create({
   card: {
     marginTop: spacing.md,
   },
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
   cardTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h2,
   },
   cardSubtitle: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.bodySmall,
     marginTop: spacing.xs,
   },
   cardBody: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.bodySmall,
     marginTop: spacing.xs,
   },
   cardButton: {

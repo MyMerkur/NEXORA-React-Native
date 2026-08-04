@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Modal, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { Image, Modal, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { Ticket } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
@@ -8,6 +8,7 @@ import { ModalShell } from "../../../components/ModalShell";
 import { Card } from "../../../components/Card";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { EmptyState } from "../../../components/EmptyState";
 import {
   createEvent,
@@ -237,7 +238,7 @@ export function EventsModal({ visible, onClose, isOrganizer }: EventsModalProps)
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}><BrandSpinner /></View>
           ) : (
             <ScrollView style={styles.content}>
               {activeTab === "browse" ? (

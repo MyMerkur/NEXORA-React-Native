@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import { EMPLOYER_ROLES, type MicroCompetencyTag } from "@nexora/shared-constants";
@@ -8,6 +8,7 @@ import { useTheme } from "../../../store/useThemeStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
 import { Badge } from "../../../components/Badge";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { requestAvatarUploadUrl, updateShowcase, getMe, type UserProfile } from "../../../services/profileApi";
 import {
   searchOrgs,
@@ -230,7 +231,7 @@ export function ShowcaseTab({ profile, onUpdated }: ShowcaseTabProps) {
         )}
         {uploadingAvatar ? (
           <View style={styles.avatarOverlay}>
-            <ActivityIndicator color={colors.textPrimary} />
+            <BrandSpinner size={18} />
           </View>
         ) : null}
       </TouchableOpacity>
