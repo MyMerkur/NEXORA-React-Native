@@ -3,10 +3,11 @@ import { FlatList, Image, RefreshControl, StyleSheet, Text, TouchableOpacity, Vi
 import { useNavigation, type NavigationProp } from "@react-navigation/native";
 import { ImageOff } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { radii, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { Card } from "../../../components/Card";
 import { Avatar } from "../../../components/Avatar";
+import { Badge } from "../../../components/Badge";
 import { EmptyState } from "../../../components/EmptyState";
 import { Skeleton } from "../../../components/Skeleton";
 import { getFeed, type CaseItem } from "../../../services/caseApi";
@@ -144,6 +145,13 @@ export function FeedScreen() {
                 {item.description}
               </Text>
             ) : null}
+            {item.specialties.length > 0 ? (
+              <View style={styles.tagRow}>
+                {item.specialties.map((tag) => (
+                  <Badge key={tag} label={tag} variant="neutral" />
+                ))}
+              </View>
+            ) : null}
 
             {item.author.id !== currentUserId ? (
               <TouchableOpacity onPress={() => setMessageTarget({ authorId: item.author.id, caseId: item.id })}>
@@ -178,7 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   errorText: {
-    fontSize: typography.sizes.md,
+    ...typographyPresets.body,
   },
   card: {
     margin: spacing.md,
@@ -205,8 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   authorName: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
+    ...typographyPresets.bodySmall,
   },
   image: {
     width: "100%",
@@ -215,16 +222,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h2,
     marginBottom: spacing.xs,
   },
   description: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
+  },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    marginTop: spacing.sm,
   },
   messageLink: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.medium,
+    ...typographyPresets.bodySmall,
     marginTop: spacing.sm,
   },
 });
