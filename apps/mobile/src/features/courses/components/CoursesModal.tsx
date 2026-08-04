@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { Image, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { GraduationCap } from "lucide-react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
@@ -9,6 +9,7 @@ import { ModalShell } from "../../../components/ModalShell";
 import { Card } from "../../../components/Card";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { EmptyState } from "../../../components/EmptyState";
 import {
   createCourse,
@@ -217,7 +218,7 @@ export function CoursesModal({ visible, onClose, isInstructor }: CoursesModalPro
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}><BrandSpinner /></View>
           ) : (
             <ScrollView style={styles.content}>
               {activeTab === "browse" ? (

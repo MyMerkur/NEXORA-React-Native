@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -14,6 +13,7 @@ import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import {
   getInstagramStatus,
   listInstagramMedia,
@@ -102,7 +102,7 @@ export function InstagramImportModal({ visible, onClose, onSelect }: InstagramIm
           {connecting ? (
             <InstagramConnectWebView onDone={handleConnectDone} />
           ) : loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}><BrandSpinner /></View>
           ) : (
             <View style={styles.content}>
               {error ? <Text style={[styles.error, errorStyle]}>{error}</Text> : null}

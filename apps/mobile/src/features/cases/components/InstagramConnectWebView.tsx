@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { getConnectAuthorizeUrl, getInstagramStatus } from "../../../services/instagramApi";
 
 interface InstagramConnectWebViewProps {
@@ -47,7 +48,7 @@ export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
       </View>
     );
   }
@@ -64,7 +65,7 @@ export function InstagramConnectWebView({ onDone }: InstagramConnectWebViewProps
   if (confirming) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
         <Text style={[styles.confirmingText, confirmingTextStyle]}>Bağlantı doğrulanıyor…</Text>
       </View>
     );

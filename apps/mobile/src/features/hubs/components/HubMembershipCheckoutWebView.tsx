@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WebView } from "react-native-webview";
 import axios from "axios";
 import { getApiErrorMessage } from "@nexora/api-client";
@@ -7,6 +7,7 @@ import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { startHubMembershipCheckout, getHub } from "../../../services/hubApi";
 import type { BillingInfoInput } from "../../../services/subscriptionApi";
 
@@ -111,7 +112,7 @@ export function HubMembershipCheckoutWebView({ hubId, onDone }: HubMembershipChe
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
       </View>
     );
   }
@@ -119,7 +120,7 @@ export function HubMembershipCheckoutWebView({ hubId, onDone }: HubMembershipChe
   if (confirming) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
         <Text style={[styles.confirmingText, { color: colors.textSecondary }]}>Ödeme sonucu doğrulanıyor…</Text>
       </View>
     );

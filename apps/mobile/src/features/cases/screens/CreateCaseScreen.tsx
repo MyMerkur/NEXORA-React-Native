@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import type { MicroCompetencyTag } from "@nexora/shared-constants";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import {
   createCase,
   requestImageUploadUrl,
@@ -192,7 +193,7 @@ export function CreateCaseScreen() {
               disabled={uploadingDraftImage}
             >
               {uploadingDraftImage ? (
-                <ActivityIndicator color={colors.textSecondary} />
+                <BrandSpinner size={16} />
               ) : (
                 <Text style={[styles.addThumbnailText, addThumbnailTextStyle]}>+ Ekle</Text>
               )}
@@ -249,7 +250,7 @@ export function CreateCaseScreen() {
                 disabled={uploadingStage !== null}
               >
                 {uploadingStage === stage.key ? (
-                  <ActivityIndicator color={colors.textSecondary} />
+                  <BrandSpinner size={16} />
                 ) : (
                   <Text style={[styles.addThumbnailText, addThumbnailTextStyle]}>+ Ekle</Text>
                 )}

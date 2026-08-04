@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -18,6 +17,7 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import { getSocket } from "../../../services/socket";
 import { Avatar } from "../../../components/Avatar";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { EmptyState } from "../../../components/EmptyState";
 import {
   startThread,
@@ -206,7 +206,9 @@ export function InboxView({ onClose, active = true, startTarget }: InboxViewProp
           </View>
 
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}>
+              <BrandSpinner />
+            </View>
           ) : (
             <ScrollView>
               {filteredThreads.length === 0 ? (
@@ -245,7 +247,9 @@ export function InboxView({ onClose, active = true, startTarget }: InboxViewProp
       ) : (
         <>
           {loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}>
+              <BrandSpinner />
+            </View>
           ) : (
             <ScrollView
               ref={scrollRef}

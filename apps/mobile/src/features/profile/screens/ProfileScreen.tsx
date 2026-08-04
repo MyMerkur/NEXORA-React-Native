@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import { ShowcaseTab } from "../components/ShowcaseTab";
 import { CareerTab } from "../components/CareerTab";
@@ -26,7 +27,7 @@ export function ProfileScreen() {
   if (loading) {
     return (
       <View style={[styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
       </View>
     );
   }

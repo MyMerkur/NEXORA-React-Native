@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
 import { radii, spacing, typography } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { getJobCreditBalance } from "../../../services/jobCreditApi";
 import { getSniperCreditBalance } from "../../../services/sniperApi";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
@@ -170,7 +171,9 @@ export function BusinessModal({ visible, onClose }: BusinessModalProps) {
           ) : subscriptionCheckoutVisible ? (
             <CheckoutWebView planCode={PLAN_CODE} onDone={handleSubscriptionCheckoutDone} />
           ) : loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}>
+              <BrandSpinner />
+            </View>
           ) : (
             <View style={styles.content}>
               {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
