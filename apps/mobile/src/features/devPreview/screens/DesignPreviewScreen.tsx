@@ -16,6 +16,7 @@ import { JobCard } from "../../../components/JobCard";
 import { HeartButton } from "../../../components/HeartButton";
 import { StepsIndicator } from "../../../components/StepsIndicator";
 import { ResultCard } from "../../../components/ResultCard";
+import { LockIcon, DocumentIcon, CardIcon, HeartIcon } from "../../../components/icons";
 
 // Dev-only visual QA screen for the Faz 5 primitive library (#58) — not part of any
 // user-facing flow. Reachable from ProfileScreen's "🎨 Tasarım" button when __DEV__.
@@ -120,6 +121,15 @@ export function DesignPreviewScreen() {
 
       <Section title="StepsIndicator" colors={colors}>
         <StepsIndicator steps={["01 Belge", "02 OCR", "03 Onay"]} activeIndex={0} />
+      </Section>
+
+      <Section title="Özel İkonlar" colors={colors}>
+        <Row>
+          <LockIcon size={22} color={colors.accentGold} />
+          <DocumentIcon size={22} color={colors.textSecondary} />
+          <CardIcon size={22} color={colors.textSecondary} />
+          <HeartIcon size={22} color={colors.danger} filled />
+        </Row>
       </Section>
 
       <Section title="ResultCard" colors={colors}>

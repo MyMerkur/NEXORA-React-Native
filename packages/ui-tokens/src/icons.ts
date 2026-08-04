@@ -1,12 +1,14 @@
-// Icon library decision (Faz 5, #57): `lucide-react-native`, backed by `react-native-svg`.
-// Reasons: SVG-based (no native font linking like react-native-vector-icons needs),
-// consistent stroke-based style that fits the Dark & Gold premium identity, actively
-// maintained, tree-shakeable (only imported icons ship). No custom/hand-drawn icon set —
-// see docs/PROJECT_PLAN.md, Faz 5 non-goals.
+// Icon library decision (Faz 5, #57): `lucide-react-native`, backed by `react-native-svg`,
+// stays the general-purpose icon set — SVG-based, consistent stroke style, tree-shakeable.
 //
 // Usage in screens: import icons directly from "lucide-react-native", e.g.
 //   import { Search } from "lucide-react-native";
 //   <Search size={iconSizes.md} color={colors.textPrimary} strokeWidth={iconStrokeWidth} />
+//
+// Design system v2 revision (Nexora_Tasarim_Sistemi_ClaudeCode.md §8): the handful of
+// *recurring structural* icons (lock, document, payment card, heart/like) are custom
+// SVGs instead, under apps/mobile/src/components/icons/ — not a full icon-library swap,
+// this stays the exception rather than the rule.
 export const iconStrokeWidth = 1.75;
 
 export const iconSizes = {

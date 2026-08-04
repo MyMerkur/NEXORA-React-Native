@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
-import { Lock } from "lucide-react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 import { fontFamilies, radii, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../store/useThemeStore";
+import { LockIcon } from "./icons";
 
 interface LockedCardProps {
   previewText: string;
@@ -37,7 +37,7 @@ export function LockedCard({ previewText, ctaLabel = "Devamı için abone ol", o
         <View style={styles.glintClip} pointerEvents="none">
           <Animated.View style={[styles.glintBand, glintStyle]} />
         </View>
-        <Lock size={13} color={colors.accentGold} strokeWidth={1.75} />
+        <LockIcon size={13} color={colors.accentGold} strokeWidth={1.75} />
         <Text
           style={[styles.ctaLabel, { color: colors.accentGold }]}
           onPress={onPress}
