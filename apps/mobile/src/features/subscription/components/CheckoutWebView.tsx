@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WebView } from "react-native-webview";
 import axios from "axios";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { spacing, typography } from "@nexora/ui-tokens";
+import { spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { startCheckout, getSubscriptionStatus, type BillingInfoInput } from "../../../services/subscriptionApi";
 
 interface CheckoutWebViewProps {
@@ -115,7 +116,7 @@ export function CheckoutWebView({ planCode, onDone }: CheckoutWebViewProps) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
       </View>
     );
   }
@@ -123,7 +124,7 @@ export function CheckoutWebView({ planCode, onDone }: CheckoutWebViewProps) {
   if (confirming) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator color={colors.accentGold} />
+        <BrandSpinner />
         <Text style={[styles.confirmingText, { color: colors.textSecondary }]}>Ödeme sonucu doğrulanıyor…</Text>
       </View>
     );
@@ -171,12 +172,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h1,
     marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
     marginBottom: spacing.md,
   },
   field: {
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   confirmingText: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
     marginTop: spacing.md,
   },
   error: {
@@ -204,6 +204,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cancelLinkText: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
   },
 });

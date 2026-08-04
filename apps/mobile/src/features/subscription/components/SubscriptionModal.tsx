@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { spacing, typography } from "@nexora/ui-tokens";
+import { fontFamilies, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { ModalShell } from "../../../components/ModalShell";
 import { Button } from "../../../components/Button";
+import { BrandSpinner } from "../../../components/BrandSpinner";
 import { getSubscriptionStatus, cancelSubscription, type SubscriptionSummary } from "../../../services/subscriptionApi";
 import { CheckoutWebView } from "./CheckoutWebView";
 
@@ -83,7 +84,9 @@ export function SubscriptionModal({ visible, onClose }: SubscriptionModalProps) 
           {checkoutVisible ? (
             <CheckoutWebView planCode={PLAN_CODE} onDone={handleCheckoutDone} />
           ) : loading ? (
-            <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+            <View style={styles.loader}>
+              <BrandSpinner />
+            </View>
           ) : (
             <View style={styles.content}>
               {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
@@ -132,13 +135,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h1,
   },
   closeText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
+    fontFamily: fontFamilies.semibold,
   },
   loader: {
+    alignItems: "center",
     marginVertical: spacing.xl,
   },
   content: {
@@ -148,12 +152,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   statusLabel: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h1,
     marginBottom: spacing.xs,
   },
   periodText: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.bodySmall,
     marginBottom: spacing.md,
   },
   actionButton: {
