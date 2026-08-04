@@ -163,6 +163,14 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
+// React Navigation invokes `tabBar` as a plain function call, not via createElement -
+// passing `CustomTabBar` directly breaks its hooks ("Invalid hook call"). This module-level
+// wrapper renders it as a real element while staying a stable reference across renders
+// (avoids the react/no-unstable-nested-components warning an inline arrow would trigger).
+function renderTabBar(props: BottomTabBarProps) {
+  return <CustomTabBar {...props} />;
+}
+
 export function MainTabNavigator() {
   const { colors } = useTheme();
   const [unreadThreadCount, setUnreadThreadCount] = useState(0);
@@ -175,7 +183,7 @@ export function MainTabNavigator() {
 
   return (
     <Tab.Navigator
-      tabBar={CustomTabBar}
+      tabBar={renderTabBar}
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.textPrimary,
