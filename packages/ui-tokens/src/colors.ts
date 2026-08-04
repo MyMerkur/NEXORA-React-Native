@@ -118,3 +118,12 @@ export const gradients = {
     stops: ["rgba(160, 180, 255, 0.10)", "rgba(160, 180, 255, 0.02)"],
   },
 } as const;
+
+// Tints a theme color (6-digit hex only) for tag/badge/result-card backgrounds —
+// e.g. withAlpha(colors.success, 0.1) for the KYC result card fill (spec §7.14).
+export function withAlpha(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
