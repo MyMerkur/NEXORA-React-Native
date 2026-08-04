@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   label: {
-    fontFamily: fontFamilies.semibold,
+    fontFamily: fontFamilies.extrabold,
   },
   labelDisabled: {
     opacity: 0.5,

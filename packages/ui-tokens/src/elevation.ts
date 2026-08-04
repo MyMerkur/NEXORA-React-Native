@@ -21,6 +21,13 @@ export const elevation = {
     ios: { shadowColor: "#000000", shadowOffset: { width: 0, height: 16 }, shadowOpacity: 0.4, shadowRadius: 28 },
     android: { elevation: 16 },
   },
+  // Gold-tint glow, reserved for the primary CTA button (spec §4) — not a depth cue,
+  // a brand-color accent shadow. iOS gets the real tinted glow; Android's shadowColor
+  // support is limited pre-API 28 so it falls back to a small neutral lift.
+  glow: {
+    ios: { shadowColor: "#D8B872", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.35, shadowRadius: 22 },
+    android: { elevation: 6 },
+  },
 } satisfies Record<string, ElevationLevel>;
 
 export type ElevationToken = keyof typeof elevation;

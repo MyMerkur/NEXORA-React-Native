@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { BadgeCheck } from "lucide-react-native";
-import { colors, fontFamilies } from "@nexora/ui-tokens";
+import { fontFamilies } from "@nexora/ui-tokens";
 import { useTheme } from "../store/useThemeStore";
 
 export type AvatarSize = "sm" | "md" | "lg";
@@ -24,9 +24,10 @@ function getInitials(name: string): string {
 }
 
 export function Avatar({ name, imageUrl, size = "md", verified = false }: AvatarProps) {
-  // accentBlue/accentGold/textOnAccent/background: only `background` actually varies by theme
-  // (it's the badge's cutout border, meant to match whatever page it sits on).
-  const { colors: themeColors } = useTheme();
+  // gold/ice now differ by theme (v2 palette), so the fallback/badge fills must come
+  // from the hook's dynamic colors, not a module-level static import (was a v1 bug —
+  // harmless when accent colors were theme-constant, wrong once they weren't).
+  const { colors } = useTheme();
   const dimension = SIZE_PX[size];
   const badgeSize = BADGE_SIZE[size];
 
@@ -39,7 +40,13 @@ export function Avatar({ name, imageUrl, size = "md", verified = false }: Avatar
           accessibilityLabel={name}
         />
       ) : (
-        <View style={[styles.circle, styles.fallback, { width: dimension, height: dimension }]}>
+        <View
+          style={[
+            styles.circle,
+            styles.fallback,
+            { width: dimension, height: dimension, backgroundColor: colors.accentBlue },
+          ]}
+        >
           <Text style={[styles.initials, { fontSize: FONT_SIZE[size] }]}>{getInitials(name)}</Text>
         </View>
       )}
@@ -47,7 +54,13 @@ export function Avatar({ name, imageUrl, size = "md", verified = false }: Avatar
         <View
           style={[
             styles.badge,
-            { width: badgeSize, height: badgeSize, borderRadius: badgeSize / 2, borderColor: themeColors.background },
+            {
+              width: badgeSize,
+              height: badgeSize,
+              borderRadius: badgeSize / 2,
+              borderColor: colors.background,
+              backgroundColor: colors.accentGold,
+            },
           ]}
         >
           <BadgeCheck size={badgeSize - 4} color={colors.textOnAccent} strokeWidth={2} />
@@ -62,7 +75,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   fallback: {
-    backgroundColor: colors.accentBlue,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -74,7 +86,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: -2,
     right: -2,
-    backgroundColor: colors.accentGold,
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
