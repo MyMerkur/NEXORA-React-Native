@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View, type DimensionValue } from "react-native";
-import { radii } from "@nexora/ui-tokens";
+import { useEffect } from "react";
+import { StyleSheet, View, type DimensionValue } from "react-native";
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import { radii, withAlpha } from "@nexora/ui-tokens";
 import { useTheme } from "../store/useThemeStore";
 
 interface SkeletonProps {
@@ -10,28 +11,26 @@ interface SkeletonProps {
   style?: object;
 }
 
-// Simple opacity-pulse shimmer built on RN's core Animated API — deliberately not
-// react-native-reanimated, since a JS-thread interval timer is fine for a non-gesture,
-// non-interactive loop like this one.
+// Shimmer band sweeping left-to-right, not an opacity pulse — spec §6.2 (1.3s,
+// linear, infinite). The band is a translating lighter-tone panel rather than a
+// true CSS gradient (no gradient dependency in this package), which reads the same
+// at the widths these skeletons actually render at.
 export function Skeleton({ width = "100%", height = 14, radius = radii.sm, style }: SkeletonProps) {
   const { colors } = useTheme();
-  const opacity = useRef(new Animated.Value(0.4)).current;
+  const translate = useSharedValue(-1);
 
   useEffect(() => {
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.4, duration: 700, useNativeDriver: true }),
-      ]),
-    );
-    pulse.start();
-    return () => pulse.stop();
-  }, [opacity]);
+    translate.value = withRepeat(withTiming(1, { duration: 1300, easing: Easing.linear }), -1, false);
+  }, [translate]);
+
+  const bandStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: `${translate.value * 150}%` }],
+  }));
 
   return (
-    <Animated.View
-      style={[styles.base, { width, height, borderRadius: radius, opacity, backgroundColor: colors.surfaceElevated }, style]}
-    />
+    <View style={[styles.base, { width, height, borderRadius: radius, backgroundColor: colors.surfaceElevated }, style]}>
+      <Animated.View style={[styles.band, { backgroundColor: withAlpha(colors.textPrimary, 0.06) }, bandStyle]} />
+    </View>
   );
 }
 
@@ -54,7 +53,15 @@ export function SkeletonRow({ avatarSize = 44 }: SkeletonRowProps) {
 }
 
 const styles = StyleSheet.create({
-  base: {},
+  base: {
+    overflow: "hidden",
+  },
+  band: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: "60%",
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",

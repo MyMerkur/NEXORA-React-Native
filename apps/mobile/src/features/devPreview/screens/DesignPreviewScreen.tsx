@@ -11,6 +11,11 @@ import { Avatar } from "../../../components/Avatar";
 import { EmptyState } from "../../../components/EmptyState";
 import { Skeleton, SkeletonRow } from "../../../components/Skeleton";
 import { ModalShell } from "../../../components/ModalShell";
+import { LockedCard } from "../../../components/LockedCard";
+import { JobCard } from "../../../components/JobCard";
+import { HeartButton } from "../../../components/HeartButton";
+import { StepsIndicator } from "../../../components/StepsIndicator";
+import { ResultCard } from "../../../components/ResultCard";
 
 // Dev-only visual QA screen for the Faz 5 primitive library (#58) — not part of any
 // user-facing flow. Reachable from ProfileScreen's "🎨 Tasarım" button when __DEV__.
@@ -18,6 +23,7 @@ export function DesignPreviewScreen() {
   const { colors, scheme } = useTheme();
   const [sheetVisible, setSheetVisible] = useState(false);
   const [centerVisible, setCenterVisible] = useState(false);
+  const [liked, setLiked] = useState(false);
 
   return (
     <ScrollView
@@ -92,6 +98,33 @@ export function DesignPreviewScreen() {
           <Button label="Bottom Sheet" variant="secondary" onPress={() => setSheetVisible(true)} />
           <Button label="Center Modal" variant="secondary" onPress={() => setCenterVisible(true)} />
         </Row>
+      </Section>
+
+      <Section title="LockedCard" colors={colors}>
+        <LockedCard previewText="Vaka: 34y kadın hasta, alt çene All-on-4 planlaması. Teşhis ve ilk görüntüleme aşağıda..." />
+      </Section>
+
+      <Section title="JobCard" colors={colors}>
+        <JobCard
+          tag="Nöbetçi İlan"
+          timestamp="2s önce"
+          clinicName="Akdeniz Ağız ve Diş Sağlığı"
+          subtitle="İzmir, Konak · Bugün 18:00–24:00"
+          onPress={() => {}}
+        />
+      </Section>
+
+      <Section title="HeartButton" colors={colors}>
+        <HeartButton liked={liked} count={liked ? 129 : 128} onToggle={() => setLiked((v) => !v)} />
+      </Section>
+
+      <Section title="StepsIndicator" colors={colors}>
+        <StepsIndicator steps={["01 Belge", "02 OCR", "03 Onay"]} activeIndex={0} />
+      </Section>
+
+      <Section title="ResultCard" colors={colors}>
+        <ResultCard title="Doğrulandı" description="Uzm. Dt. rozeti profiline eklendi" />
+        <ResultCard tone="danger" title="Reddedildi" description="Belge okunaklı değil, tekrar yükleyin" style={styles.stackGap} />
       </Section>
 
       <ModalShell visible={sheetVisible} onClose={() => setSheetVisible(false)} variant="sheet">
