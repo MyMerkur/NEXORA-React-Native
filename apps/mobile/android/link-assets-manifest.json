@@ -2,24 +2,56 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "assets/fonts/Inter-Bold.ttf",
-      "sha1": "9461e7c083137c2abe6d198f784fb0d341a527a1"
+      "path": "assets/fonts/Fraunces-Medium.ttf",
+      "sha1": "dabce0ded3066abddd44ea86cf9bddb36030a169"
     },
     {
-      "path": "assets/fonts/Inter-Medium.ttf",
-      "sha1": "c1d25d8c10adb45a970e71c387bbd6380f10992d"
+      "path": "assets/fonts/Fraunces-Regular.ttf",
+      "sha1": "7877f91fb2d059f728bd19bc9a69c8a363e53835"
     },
     {
-      "path": "assets/fonts/Inter-Regular.ttf",
-      "sha1": "6e3430f906a4b42b4b63fd8f33e498a43d9f8d84"
+      "path": "assets/fonts/Fraunces-SemiBold.ttf",
+      "sha1": "ef33a66174ec72a4335d7f9f9ad0d11e9d8d47cb"
     },
     {
-      "path": "assets/fonts/Inter-SemiBold.ttf",
-      "sha1": "b4bdaf6bdd6a479b46c452a7bbae13f5cb2079bf"
+      "path": "assets/fonts/Manrope-Bold.ttf",
+      "sha1": "d9b76cf11d57ef2b1728af5966e8c1a5f63facc0"
     },
     {
-      "path": "assets/fonts/OFL.txt",
-      "sha1": "174b037934980ddcad39144da3ce7b0f9d73546c"
+      "path": "assets/fonts/Manrope-ExtraBold.ttf",
+      "sha1": "334c7ffe594f6effb45e592a89ef66c9f4f8bde9"
+    },
+    {
+      "path": "assets/fonts/Manrope-Medium.ttf",
+      "sha1": "1e69382c30848a6393decdab97c85215f04a6dbd"
+    },
+    {
+      "path": "assets/fonts/Manrope-Regular.ttf",
+      "sha1": "b89178e5d54d5881aa718148a05d77329690ceff"
+    },
+    {
+      "path": "assets/fonts/Manrope-SemiBold.ttf",
+      "sha1": "d7ba492a1a3d92a3439215e5a730e8d0cc0121c7"
+    },
+    {
+      "path": "assets/fonts/OFL-Fraunces.txt",
+      "sha1": "6b423eeae14983d491c0307f355a521f1b317e5d"
+    },
+    {
+      "path": "assets/fonts/OFL-IBMPlexMono.txt",
+      "sha1": "0ae1afdcc6d9bc8ed3195c89cbcba5fcd3dda1db"
+    },
+    {
+      "path": "assets/fonts/OFL-Manrope.txt",
+      "sha1": "5b50f74932f120512afa0c1e61772c7b119f3a4b"
+    },
+    {
+      "path": "assets/fonts/PlexMono-Medium.ttf",
+      "sha1": "d02d803d74582b704f059994d710d0b1db368fde"
+    },
+    {
+      "path": "assets/fonts/PlexMono-Regular.ttf",
+      "sha1": "8863163b83a9174854cf69718ff5dd52cb6a2373"
     }
   ]
 }
