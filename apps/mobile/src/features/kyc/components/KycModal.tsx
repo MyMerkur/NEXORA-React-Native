@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, type ViewStyle } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getApiErrorMessage, uploadFileToPresignedUrl } from "@nexora/api-client";
 import { EMPLOYER_ROLES } from "@nexora/shared-constants";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { fontFamilies, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { Badge, type BadgeVariant } from "../../../components/Badge";
 import { ModalShell } from "../../../components/ModalShell";
+import { Card } from "../../../components/Card";
+import { Button } from "../../../components/Button";
+import { Input } from "../../../components/Input";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { getMe, type UserProfile } from "../../../services/profileApi";
 import {
   requestKycUploadUrl,
@@ -118,7 +122,10 @@ export function KycModal({ visible, onClose }: KycModalProps) {
       </View>
 
       {loading ? (
-        <ActivityIndicator color={colors.accentGold} style={styles.loader} />
+        <View style={styles.loaderStack}>
+          <SkeletonRow avatarSize={0} />
+          <SkeletonRow avatarSize={0} />
+        </View>
       ) : (
         <ScrollView>
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
@@ -133,7 +140,7 @@ export function KycModal({ visible, onClose }: KycModalProps) {
             const isFormOpen = uploadingType === documentType;
 
             return (
-              <View key={documentType} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <Card key={documentType} variant="flat" style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{DOCUMENT_LABELS[documentType]}</Text>
                   {latest ? <Badge label={STATUS_LABELS[latest.status]} variant={STATUS_VARIANTS[latest.status]} /> : null}
@@ -144,46 +151,38 @@ export function KycModal({ visible, onClose }: KycModalProps) {
                     Diploma yüklemeden önce kimlik belgen onaylanmalı.
                   </Text>
                 ) : !isFormOpen ? (
-                  <TouchableOpacity
-                    style={[styles.secondaryButton, { borderColor: colors.accentGold }]}
+                  <Button
+                    label={latest ? "Yeniden Yükle" : "Belge Yükle"}
+                    variant="secondary"
+                    size="sm"
                     onPress={() => {
                       setError(null);
                       setUploadingType(documentType);
                     }}
-                  >
-                    <Text style={[styles.secondaryButtonText, { color: colors.accentGold }]}>
-                      {latest ? "Yeniden Yükle" : "Belge Yükle"}
-                    </Text>
-                  </TouchableOpacity>
+                    style={styles.secondaryButton}
+                  />
                 ) : (
                   <View style={styles.uploadForm}>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.textPrimary },
-                      ]}
+                    <Input
+                      style={styles.field}
                       placeholder="Belgedeki ad soyad"
-                      placeholderTextColor={colors.textSecondary}
                       value={claimedFullName}
                       onChangeText={setClaimedFullName}
                     />
-                    <TouchableOpacity
-                      style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+                    <Button
+                      label="Fotoğraf Seç ve Yükle"
+                      variant="gold"
+                      fullWidth
+                      loading={submitting}
                       onPress={() => handleUpload(documentType)}
-                      disabled={submitting}
-                    >
-                      {submitting ? (
-                        <ActivityIndicator color={colors.background} />
-                      ) : (
-                        <Text style={[styles.primaryButtonText, { color: colors.background }]}>Fotoğraf Seç ve Yükle</Text>
-                      )}
-                    </TouchableOpacity>
+                      style={styles.field}
+                    />
                     <TouchableOpacity onPress={() => setUploadingType(null)} disabled={submitting}>
                       <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Vazgeç</Text>
                     </TouchableOpacity>
                   </View>
                 )}
-              </View>
+              </Card>
             );
           })}
         </ScrollView>
@@ -200,25 +199,24 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    ...typographyPresets.h1,
   },
   closeText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
+    fontFamily: fontFamilies.semibold,
   },
-  loader: {
-    marginVertical: spacing.xl,
+  loaderStack: {
+    gap: spacing.sm,
+    marginVertical: spacing.md,
   },
   error: {
     marginBottom: spacing.sm,
   },
   introText: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
     marginBottom: spacing.lg,
   },
   card: {
-    borderRadius: radii.md,
-    borderWidth: 1,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
@@ -229,46 +227,23 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   cardTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.medium,
+    ...typographyPresets.h2,
   },
   hint: {
-    fontSize: typography.sizes.sm,
+    ...typographyPresets.body,
   },
   secondaryButton: {
     alignSelf: "flex-start",
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderWidth: 1,
-  },
-  secondaryButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
   },
   uploadForm: {
     marginTop: spacing.xs,
+    gap: spacing.sm,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
-    fontSize: typography.sizes.sm,
-  },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+  field: {
+    marginBottom: 0,
   },
   cancelText: {
-    fontSize: typography.sizes.xs,
+    fontSize: 12,
     textAlign: "center",
   },
 });

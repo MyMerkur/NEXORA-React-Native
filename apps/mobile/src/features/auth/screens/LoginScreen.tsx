@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getApiErrorMessage } from "@nexora/api-client";
-import { radii, spacing, typography } from "@nexora/ui-tokens";
+import { fontFamilies, radii, spacing, typographyPresets } from "@nexora/ui-tokens";
 import { useTheme } from "../../../store/useThemeStore";
 import { login, register } from "../../../services/authApi";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { Button } from "../../../components/Button";
+import { Input } from "../../../components/Input";
 import { ROLE_LABELS, CANDIDATE_ROLE_LIST, EMPLOYER_ROLE_LIST, type UserRole } from "../roleLabels";
 
 type Mode = "login" | "registerRole" | "registerCredentials";
@@ -76,37 +78,19 @@ export function LoginScreen() {
         <>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Giriş yap</Text>
 
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+          <Input
+            style={styles.field}
             placeholder="E-posta"
-            placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
           />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
-            placeholder="Şifre"
-            placeholderTextColor={colors.textSecondary}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          <Input style={styles.field} placeholder="Şifre" secureTextEntry value={password} onChangeText={setPassword} />
 
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.background} />
-            ) : (
-              <Text style={[styles.primaryButtonText, { color: colors.background }]}>Giriş Yap</Text>
-            )}
-          </TouchableOpacity>
+          <Button label="Giriş Yap" variant="gold" fullWidth loading={loading} onPress={handleLogin} style={styles.stackGap} />
 
           <TouchableOpacity
             style={styles.linkButton}
@@ -142,7 +126,7 @@ export function LoginScreen() {
                 style={[
                   styles.categoryButtonText,
                   { color: colors.textSecondary },
-                  category === "candidate" && { color: colors.accentGold, fontWeight: typography.weights.semibold },
+                  category === "candidate" && { color: colors.accentGold, fontFamily: fontFamilies.bold },
                 ]}
               >
                 Adayım
@@ -163,7 +147,7 @@ export function LoginScreen() {
                 style={[
                   styles.categoryButtonText,
                   { color: colors.textSecondary },
-                  category === "employer" && { color: colors.accentGold, fontWeight: typography.weights.semibold },
+                  category === "employer" && { color: colors.accentGold, fontFamily: fontFamilies.bold },
                 ]}
               >
                 Kurumum
@@ -188,7 +172,7 @@ export function LoginScreen() {
                     style={[
                       styles.roleChipText,
                       { color: colors.textSecondary },
-                      isSelected && { color: colors.accentGold, fontWeight: typography.weights.semibold },
+                      isSelected && { color: colors.accentGold, fontFamily: fontFamilies.bold },
                     ]}
                   >
                     {ROLE_LABELS[role]}
@@ -198,25 +182,14 @@ export function LoginScreen() {
             })}
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.primaryButton,
-              { backgroundColor: colors.accentBlue },
-              !selectedRole && { backgroundColor: colors.surfaceElevated },
-            ]}
-            onPress={() => setMode("registerCredentials")}
+          <Button
+            label="Devam Et"
+            variant="gold"
+            fullWidth
             disabled={!selectedRole}
-          >
-            <Text
-              style={[
-                styles.primaryButtonText,
-                { color: colors.background },
-                !selectedRole && { color: colors.textSecondary },
-              ]}
-            >
-              Devam Et
-            </Text>
-          </TouchableOpacity>
+            onPress={() => setMode("registerCredentials")}
+            style={styles.stackGap}
+          />
 
           <TouchableOpacity style={styles.linkButton} onPress={resetToLogin}>
             <Text style={[styles.linkText, { color: colors.textSecondary }]}>Girişe dön</Text>
@@ -230,46 +203,34 @@ export function LoginScreen() {
             Kayıt ol · <Text style={{ color: colors.accentGold }}>{ROLE_LABELS[selectedRole]}</Text>
           </Text>
 
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+          <Input
+            style={styles.field}
             placeholder="E-posta"
-            placeholderTextColor={colors.textSecondary}
             autoCapitalize="none"
             keyboardType="email-address"
             value={email}
             onChangeText={setEmail}
           />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
-            placeholder="Şifre"
-            placeholderTextColor={colors.textSecondary}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.textPrimary }]}
+          <Input style={styles.field} placeholder="Şifre" secureTextEntry value={password} onChangeText={setPassword} />
+          <Input
+            style={styles.field}
             placeholder="Şifre (tekrar)"
-            placeholderTextColor={colors.textSecondary}
             secureTextEntry
             value={passwordConfirm}
             onChangeText={setPasswordConfirm}
+            hint={PASSWORD_HINT}
           />
-          <Text style={[styles.hint, { color: colors.textSecondary }]}>{PASSWORD_HINT}</Text>
 
           {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: colors.accentBlue }]}
+          <Button
+            label="Kayıt Ol"
+            variant="gold"
+            fullWidth
+            loading={loading}
             onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.background} />
-            ) : (
-              <Text style={[styles.primaryButtonText, { color: colors.background }]}>Kayıt Ol</Text>
-            )}
-          </TouchableOpacity>
+            style={styles.stackGap}
+          />
 
           <TouchableOpacity
             style={styles.linkButton}
@@ -294,48 +255,32 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
   },
   title: {
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
+    ...typographyPresets.display,
+    letterSpacing: 1,
     textAlign: "center",
     marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: typography.sizes.md,
+    ...typographyPresets.bodyLarge,
     textAlign: "center",
     marginBottom: spacing.xl,
   },
-  input: {
-    borderRadius: radii.md,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+  field: {
     marginBottom: spacing.md,
-    fontSize: typography.sizes.md,
   },
-  hint: {
-    fontSize: typography.sizes.xs,
-    marginBottom: spacing.md,
+  stackGap: {
+    marginBottom: spacing.sm,
   },
   error: {
     marginBottom: spacing.md,
     textAlign: "center",
-  },
-  primaryButton: {
-    borderRadius: radii.pill,
-    paddingVertical: spacing.md,
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  primaryButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
   },
   linkButton: {
     alignItems: "center",
     paddingVertical: spacing.sm,
   },
   linkText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
   },
   categoryRow: {
     flexDirection: "row",
@@ -350,7 +295,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   categoryButtonText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
   },
   roleWrap: {
     flexDirection: "row",
@@ -365,6 +310,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   roleChipText: {
-    fontSize: typography.sizes.sm,
+    fontSize: 13.5,
   },
 });
